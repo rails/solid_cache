@@ -1,39 +1,30 @@
 require "test_helper"
+require_relative "../behaviors"
+require "active_support/testing/method_call_assertions"
 
 class ActiveSupport::DatabaseCacheTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::MethodCallAssertions
+  include CacheStoreBehavior
+  include CacheStoreVersionBehavior
+  include CacheStoreCoderBehavior
+  include LocalCacheBehavior
+  include CacheIncrementDecrementBehavior
+  include CacheInstrumentationBehavior
+  include ConnectionPoolBehavior
+  include EncodedKeyCacheBehavior
+
+  def lookup_store(options = {})
+    ActiveSupport::Cache.lookup_store(:database_cache_store, { namespace: @namespace }.merge(options))
+  end
+
   setup do
-    @cache = ActiveSupport::Cache::DatabaseCacheStore.new
-  end
+    @cache = nil
+    @namespace = "test-#{SecureRandom.hex}"
 
-  test "can read a record" do
-    @cache.write("foo", "bar")
-    assert_equal "bar", @cache.read("foo")
-  end
+    @cache = lookup_store(expires_in: 60)
+    # @cache.logger = Logger.new($stdout)  # For test debugging
 
-  test "can delete a record" do
-    @cache.write("foo", "bar")
-    @cache.delete("foo")
-    assert_nil @cache.read("foo")
-  end
-
-  test "expires records" do
-    @cache.write("foo", "bar", expires_at: Time.now + 0.01)
-    assert_equal "bar", @cache.read("foo")
-    sleep(0.015)
-    assert_nil @cache.read("foo")
-  end
-
-  test "writes multiple records" do
-    @cache.write_multi( "foo" => "bar", "boo" => "far", "roo" => "barb" )
-    assert_equal "bar", @cache.read("foo")
-    assert_equal "far", @cache.read("boo")
-    assert_equal "barb", @cache.read("roo")
-  end
-
-  test "reads multiple records" do
-    @cache.write("foo", "bar")
-    @cache.write("boo", "far")
-    @cache.write("roo", "barb")
-    assert_equal({ "foo" => "bar", "roo" => "barb" }, @cache.read_multi("foo", "roo"))
+    # For LocalCacheBehavior tests
+    @peek = lookup_store(expires_in: 60)
   end
 end
