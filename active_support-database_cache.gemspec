@@ -5,18 +5,18 @@ Gem::Specification.new do |spec|
   spec.version     = ActiveSupport::DatabaseCache::VERSION
   spec.authors     = ["Donal McBreen"]
   spec.email       = ["donal@basecamp.com"]
-  spec.homepage    = "TODO"
-  spec.summary     = "TODO: Summary of ActiveSupport::DatabaseCache."
-  spec.description = "TODO: Description of ActiveSupport::DatabaseCache."
-    spec.license     = "MIT"
-  
+  spec.homepage    = "http://github.com/basecamp/active_support-database_cache"
+  spec.summary     = "Database backed ActiveSupport cache store"
+  spec.description = "Database backed ActiveSupport cache store"
+  spec.license     = "MIT"
+
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the "allowed_push_host"
   # to allow pushing to a single host or delete this section to allow pushing to any host.
   spec.metadata["allowed_push_host"] = "TODO: Set to 'http://mygemserver.com'"
 
   spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = "TODO: Put your gem's public repo URL here."
-  spec.metadata["changelog_uri"] = "TODO: Put your gem's CHANGELOG.md URL here."
+  spec.metadata["source_code_uri"] = "http://github.com/basecamp/active_support-database_cache"
+  spec.metadata["changelog_uri"] = "http://github.com/basecamp/active_support-database_cache/blob/main/CHANGELOG.md"
 
   spec.files = Dir.chdir(File.expand_path(__dir__)) do
     Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
