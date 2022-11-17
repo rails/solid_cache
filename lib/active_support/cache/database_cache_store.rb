@@ -8,11 +8,15 @@ module ActiveSupport
       prepend Strategy::LocalCache
 
       def increment(name, amount = 1, options = nil)
-        DatabaseCache::Entry.increment(name, amount)
+        options = merged_options(options)
+        key = normalize_key(name, options)
+        DatabaseCache::Entry.increment(key, amount)
       end
 
       def decrement(name, amount = 1, options = nil)
-        DatabaseCache::Entry.increment(name, -amount)
+        options = merged_options(options)
+        key = normalize_key(name, options)
+        DatabaseCache::Entry.increment(key, -amount)
       end
 
       def cleanup(options = nil)

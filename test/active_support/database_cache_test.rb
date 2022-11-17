@@ -7,16 +7,24 @@ class ActiveSupport::DatabaseCacheTest < ActiveSupport::TestCase
   include CacheStoreBehavior
   include CacheStoreVersionBehavior
   include CacheStoreCoderBehavior
-  # include LocalCacheBehavior
+  include LocalCacheBehavior
   include CacheIncrementDecrementBehavior
   include CacheInstrumentationBehavior
-  # include EncodedKeyCacheBehavior
+  include ConnectionPoolBehavior
+  include EncodedKeyCacheBehavior
 
   def lookup_store(options = {})
-    ActiveSupport::Cache.lookup_store(:database_cache_store, options)
+    ActiveSupport::Cache.lookup_store(:database_cache_store, { namespace: @namespace }.merge(options))
   end
 
   setup do
-    @cache = ActiveSupport::Cache::DatabaseCacheStore.new
+    @cache = nil
+    @namespace = "test-#{SecureRandom.hex}"
+
+    @cache = lookup_store(expires_in: 60)
+    # @cache.logger = Logger.new($stdout)  # For test debugging
+
+    # For LocalCacheBehavior tests
+    @peek = lookup_store(expires_in: 60)
   end
 end
