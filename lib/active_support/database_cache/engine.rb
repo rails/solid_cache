@@ -1,4 +1,5 @@
 require "active_support"
+require "active_support/cache"
 require "zeitwerk"
 
 loader = Zeitwerk::Loader.new
