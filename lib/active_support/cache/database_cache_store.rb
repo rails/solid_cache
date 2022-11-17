@@ -1,12 +1,18 @@
 module ActiveSupport
   module Cache
     class DatabaseCacheStore < Store
+      def self.supports_cache_versioning?
+        true
+      end
+
+      prepend Strategy::LocalCache
+
       def increment(name, amount = 1, options = nil)
-        raise NotImplementedError.new("#{self.class.name} does not support increment")
+        DatabaseCache::Entry.increment(name, amount)
       end
 
       def decrement(name, amount = 1, options = nil)
-        raise NotImplementedError.new("#{self.class.name} does not support decrement")
+        DatabaseCache::Entry.increment(name, -amount)
       end
 
       def cleanup(options = nil)
@@ -19,11 +25,11 @@ module ActiveSupport
 
       private
         def read_entry(key, **options)
-          deserialize_entry(DatabaseCache::Entry.get(key))
+          deserialize_entry(DatabaseCache::Entry.get(key), **options)
         end
 
         def write_entry(key, entry, **options)
-          DatabaseCache::Entry.set(key, serialize_entry(entry))
+          DatabaseCache::Entry.set(key, serialize_entry(entry, **options))
         end
 
         def read_multi_entries(names, **options)
@@ -57,6 +63,21 @@ module ActiveSupport
           entries.count { |key| delete_entry(key, **options) }
         end
 
+        def serialize_entry(entry, raw: false, **options)
+          if raw
+            entry.value.to_s
+          else
+            super(entry, raw: raw, **options)
+          end
+        end
+
+        def deserialize_entry(payload, raw: false, **)
+          if payload && raw
+            Entry.new(payload)
+          else
+            super(payload)
+          end
+        end
     end
   end
 end
