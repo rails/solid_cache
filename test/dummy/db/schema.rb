@@ -15,6 +15,8 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_17_101940) do
     t.string "key", null: false
     t.binary "value", null: false
     t.datetime "expires_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["expires_at"], name: "index_active_support_database_cache_entries_on_expires_at"
     t.index ["key"], name: "index_active_support_database_cache_entries_on_key", unique: true
   end
