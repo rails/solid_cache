@@ -29,11 +29,19 @@ module ActiveSupport
 
       private
         def read_entry(key, **options)
-          deserialize_entry(DatabaseCache::Entry.get(key), **options)
+          deserialize_entry(read_serialized_entry(key, **options), **options)
         end
 
-        def write_entry(key, entry, **options)
-          DatabaseCache::Entry.set(key, serialize_entry(entry, **options))
+        def read_serialized_entry(key, raw: false, **options)
+          DatabaseCache::Entry.get(key)
+        end
+
+        def write_entry(key, entry, raw: false, **options)
+          write_serialized_entry(key, serialize_entry(entry, raw: raw, **options), raw: raw, **options)
+        end
+
+        def write_serialized_entry(key, payload, raw: false, unless_exist: false, expires_in: nil, race_condition_ttl: nil, **options)
+          DatabaseCache::Entry.set(key, payload)
         end
 
         def read_multi_entries(names, **options)
