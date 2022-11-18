@@ -37,17 +37,21 @@ module ActiveSupport
         end
 
         def write_entry(key, entry, raw: false, **options)
-          write_serialized_entry(key, serialize_entry(entry, raw: raw, **options), raw: raw, **options)
-        end
-
-        def write_serialized_entry(key, payload, raw: false, unless_exist: false, expires_in: nil, race_condition_ttl: nil, **options)
+          # This writes it to the cache
+          payload = serialize_entry(entry, raw: raw, **options)
+          write_serialized_entry(key, payload, raw: raw, **options)
           DatabaseCache::Entry.set(key, payload)
         end
 
+        def write_serialized_entry(key, payload, raw: false, unless_exist: false, expires_in: nil, race_condition_ttl: nil, **options)
+          true
+        end
+
         def read_multi_entries(names, **options)
-          names.each_with_object({}) do |name, results|
-            key   = normalize_key(name, options)
-            entry = read_entry(key, **options)
+          keys_and_names = names.to_h { |name| [normalize_key(name, options), name] }
+          serialized_entries = DatabaseCache::Entry.get_all(keys_and_names.keys)
+          keys_and_names.each_with_object({}) do |(key, name), results|
+            entry = deserialize_entry(serialized_entries[key], **options)
 
             next unless entry
 
@@ -61,9 +65,14 @@ module ActiveSupport
           end
         end
 
-        def write_multi_entries(hash, **options)
-          hash.each do |key, entry|
-            write_entry key, entry, **options
+        def write_multi_entries(entries, expires_in: nil, **options)
+          if entries.any?
+            serialized_entries = serialize_entries(entries, **options)
+            # to add them to the local cache
+            serialized_entries.each do |entries|
+              write_serialized_entry(entries[:key], entries[:value])
+            end
+            DatabaseCache::Entry.set_all(serialized_entries)
           end
         end
 
@@ -80,6 +89,12 @@ module ActiveSupport
             entry.value.to_s
           else
             super(entry, raw: raw, **options)
+          end
+        end
+
+        def serialize_entries(entries, **options)
+          entries.map do |key, entry|
+            { key: key, value: serialize_entry(entry, **options) }
           end
         end
 
