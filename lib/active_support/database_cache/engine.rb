@@ -1,5 +1,6 @@
 require "active_support"
 require "active_support/cache"
+require "active_support/database_cache/version"
 require "zeitwerk"
 
 loader = Zeitwerk::Loader.new
