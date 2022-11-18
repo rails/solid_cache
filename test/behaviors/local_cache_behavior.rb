@@ -30,6 +30,12 @@ module LocalCacheBehavior
   end
 
   def test_clear_also_clears_local_cache
+    begin
+      @cache.clear
+    rescue NotImplementedError
+      skip
+    end
+
     key = SecureRandom.uuid
     @cache.with_local_cache do
       @cache.write(key, SecureRandom.alphanumeric)

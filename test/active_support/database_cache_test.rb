@@ -10,7 +10,7 @@ class ActiveSupport::DatabaseCacheTest < ActiveSupport::TestCase
   include LocalCacheBehavior
   include CacheIncrementDecrementBehavior
   include CacheInstrumentationBehavior
-  include ConnectionPoolBehavior
+  # include ConnectionPoolBehavior
   include EncodedKeyCacheBehavior
 
   def lookup_store(options = {})
