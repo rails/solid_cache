@@ -5,6 +5,10 @@ module ActiveSupport::DatabaseCache
         upsert_all([{key: key, value: value, expires_at: expires_at}], unique_by: :key, update_only: [:value, :expires_at])
       end
 
+      def set_all(payloads, expires_at: nil)
+        upsert_all(payloads, unique_by: :key, update_only: [:value, :expires_at])
+      end
+
       def get(key)
         pick_value(key)
       end
