@@ -1,6 +1,5 @@
 require "active_support"
 require "active_support/cache"
-require "active_support/database_cache/version"
 
 module ActiveSupport
   module DatabaseCache
