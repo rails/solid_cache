@@ -48,9 +48,10 @@ module ActiveSupport
         end
 
         def read_multi_entries(names, **options)
-          names.each_with_object({}) do |name, results|
-            key   = normalize_key(name, options)
-            entry = read_entry(key, **options)
+          keys_and_names = names.to_h { |name| [normalize_key(name, options), name] }
+          serialized_entries = DatabaseCache::Entry.get_all(keys_and_names.keys)
+          keys_and_names.each_with_object({}) do |(key, name), results|
+            entry = deserialize_entry(serialized_entries[key], **options)
 
             next unless entry
 

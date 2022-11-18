@@ -13,6 +13,10 @@ module ActiveSupport::DatabaseCache
         pick_value(key)
       end
 
+      def get_all(keys)
+        where(key: keys).pluck(:key, :value).to_h
+      end
+
       def delete(key)
         where(key: key).delete_all.nonzero?
       end
