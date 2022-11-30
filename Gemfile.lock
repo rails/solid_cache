@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     active_support-database_cache (0.1.0)
-      rails (>= 7.0.4)
+      rails (>= 7)
 
 GEM
   remote: https://rubygems.org/
@@ -108,8 +108,6 @@ GEM
     nokogiri (1.13.9)
       mini_portile2 (~> 2.8.0)
       racc (~> 1.4)
-    nokogiri (1.13.9-arm64-darwin)
-      racc (~> 1.4)
     racc (1.6.0)
     rack (2.2.4)
     rack-test (2.0.2)
@@ -152,7 +150,6 @@ GEM
       sprockets (>= 3.0.0)
     sqlite3 (1.5.3)
       mini_portile2 (~> 2.8.0)
-    sqlite3 (1.5.3-arm64-darwin)
     thor (1.2.1)
     timeout (0.3.0)
     tzinfo (2.0.5)
