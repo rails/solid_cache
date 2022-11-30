@@ -5,3 +5,5 @@ module ActiveSupport
     end
   end
 end
+
+ActiveSupport.run_load_hooks :active_storage_database_cache, ActiveSupport::DatabaseCache::ApplicationRecord
