@@ -7,16 +7,24 @@ module ActiveSupport
 
       prepend Strategy::LocalCache
 
+      attr_reader :reading_role, :writing_role
+
+      def initialize(options)
+        @writing_role = options[:writing_role] || options[:role]
+        @reading_role = options[:reading_role] || options[:role]
+        super(options)
+      end
+
       def increment(name, amount = 1, options = nil)
         options = merged_options(options)
         key = normalize_key(name, options)
-        DatabaseCache::Entry.increment(key, amount)
+        with_writing_role { DatabaseCache::Entry.increment(key, amount) }
       end
 
       def decrement(name, amount = 1, options = nil)
         options = merged_options(options)
         key = normalize_key(name, options)
-        DatabaseCache::Entry.increment(key, -amount)
+        with_writing_role { DatabaseCache::Entry.increment(key, -amount) }
       end
 
       def cleanup(options = nil)
@@ -33,14 +41,14 @@ module ActiveSupport
         end
 
         def read_serialized_entry(key, raw: false, **options)
-          DatabaseCache::Entry.get(key)
+          with_reading_role { DatabaseCache::Entry.get(key) }
         end
 
         def write_entry(key, entry, raw: false, **options)
           # This writes it to the cache
           payload = serialize_entry(entry, raw: raw, **options)
           write_serialized_entry(key, payload, raw: raw, **options)
-          DatabaseCache::Entry.set(key, payload)
+          with_writing_role { DatabaseCache::Entry.set(key, payload) }
         end
 
         def write_serialized_entry(key, payload, raw: false, unless_exist: false, expires_in: nil, race_condition_ttl: nil, **options)
@@ -49,7 +57,7 @@ module ActiveSupport
 
         def read_multi_entries(names, **options)
           keys_and_names = names.to_h { |name| [normalize_key(name, options), name] }
-          serialized_entries = DatabaseCache::Entry.get_all(keys_and_names.keys)
+          serialized_entries = with_reading_role { DatabaseCache::Entry.get_all(keys_and_names.keys) }
           keys_and_names.each_with_object({}) do |(key, name), results|
             entry = deserialize_entry(serialized_entries[key], **options)
 
@@ -72,12 +80,12 @@ module ActiveSupport
             serialized_entries.each do |entries|
               write_serialized_entry(entries[:key], entries[:value])
             end
-            DatabaseCache::Entry.set_all(serialized_entries)
+            with_writing_role { DatabaseCache::Entry.set_all(serialized_entries) }
           end
         end
 
         def delete_entry(key, **options)
-          DatabaseCache::Entry.delete(key)
+          with_writing_role { DatabaseCache::Entry.delete(key) }
         end
 
         def delete_multi_entries(entries, **options)
@@ -103,6 +111,22 @@ module ActiveSupport
             Entry.new(payload)
           else
             super(payload)
+          end
+        end
+
+        def with_writing_role
+          with_role(writing_role) { yield }
+        end
+
+        def with_reading_role
+          with_role(reading_role) { yield }
+        end
+
+        def with_role(role)
+          if role
+            DatabaseCache::ApplicationRecord.connected_to(role: role) { yield }
+          else
+            yield
           end
         end
     end
