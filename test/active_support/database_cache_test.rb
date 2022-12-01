@@ -13,10 +13,6 @@ class ActiveSupport::DatabaseCacheTest < ActiveSupport::TestCase
   # include ConnectionPoolBehavior
   include EncodedKeyCacheBehavior
 
-  def lookup_store(options = {})
-    ActiveSupport::Cache.lookup_store(:database_cache_store, { namespace: @namespace }.merge(options))
-  end
-
   setup do
     @cache = nil
     @namespace = "test-#{SecureRandom.hex}"

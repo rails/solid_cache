@@ -14,7 +14,7 @@ module Dummy
     # For compatibility with applications that use this config
     config.action_controller.include_all_helpers = false
 
-    config.cache_store = :database
+    config.cache_store = [:database, writing_role: :writing, reading_role: :reading]
 
     # Configuration for the application, engines, and railties goes here.
     #
