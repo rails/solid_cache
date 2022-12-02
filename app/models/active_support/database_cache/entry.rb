@@ -30,9 +30,6 @@ module ActiveSupport::DatabaseCache
       end
 
       private
-        def pick_value(key)
-        end
-
         def upsert_unique_by
           connection.supports_insert_conflict_target? ? :key : nil
         end

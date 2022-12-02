@@ -1,17 +1,20 @@
 module ActiveSupport
   module Cache
     class DatabaseCacheStore < Store
+      MAX_KEY_BYTESIZE = 1024
+
       def self.supports_cache_versioning?
         true
       end
 
       prepend Strategy::LocalCache
 
-      attr_reader :reading_role, :writing_role
+      attr_reader :reading_role, :writing_role, :max_key_bytesize
 
       def initialize(options)
         @writing_role = options[:writing_role] || options[:role]
         @reading_role = options[:reading_role] || options[:role]
+        @max_key_bytesize = MAX_KEY_BYTESIZE
         super(options)
       end
 
@@ -111,6 +114,20 @@ module ActiveSupport
             Entry.new(payload)
           else
             super(payload)
+          end
+        end
+
+        def normalize_key(key, options)
+          truncate_key super&.b
+        end
+
+        def truncate_key(key)
+          if key && key.bytesize > max_key_bytesize
+            suffix = ":hash:#{ActiveSupport::Digest.hexdigest(key)}"
+            truncate_at = max_key_bytesize - suffix.bytesize
+            "#{key.byteslice(0, truncate_at)}#{suffix}".b
+          else
+            key
           end
         end
 
