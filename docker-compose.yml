@@ -1,0 +1,21 @@
+version: "3.8"
+
+volumes:
+  db: {}
+
+services:
+  postgres:
+    image: postgres:15.1
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    volumes:
+      - db:/var/lib/postgres
+    ports: [ "127.0.0.1:55432:5432" ]
+  mysql:
+    image: mysql:8.0.31
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    volumes:
+      - db:/var/lib/mysql
+    ports: [ "127.0.0.1:33306:3306" ]
+

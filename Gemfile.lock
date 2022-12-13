@@ -75,8 +75,9 @@ GEM
     builder (3.2.4)
     concurrent-ruby (1.1.10)
     crass (1.0.6)
-    debug (1.6.3)
-      irb (>= 1.3.6)
+    date (3.3.1)
+    debug (1.7.0)
+      irb (>= 1.5.0)
       reline (>= 0.3.1)
     erubi (1.11.0)
     globalid (1.0.0)
@@ -84,31 +85,41 @@ GEM
     i18n (1.12.0)
       concurrent-ruby (~> 1.0)
     io-console (0.5.11)
-    irb (1.4.3)
+    irb (1.6.0)
       reline (>= 0.3.0)
-    loofah (2.19.0)
+    loofah (2.19.1)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
-    mail (2.7.1)
+    mail (2.8.0)
       mini_mime (>= 0.1.1)
+      net-imap
+      net-pop
+      net-smtp
     marcel (1.0.2)
     method_source (1.0.0)
     mini_mime (1.1.2)
-    mini_portile2 (2.8.0)
     minitest (5.16.3)
-    net-imap (0.3.1)
+    mysql2 (0.5.4)
+    net-imap (0.3.2)
+      date
       net-protocol
     net-pop (0.1.2)
       net-protocol
-    net-protocol (0.1.3)
+    net-protocol (0.2.1)
       timeout
     net-smtp (0.3.3)
       net-protocol
     nio4r (2.5.8)
-    nokogiri (1.13.9)
-      mini_portile2 (~> 2.8.0)
+    nokogiri (1.13.10-arm64-darwin)
       racc (~> 1.4)
-    racc (1.6.0)
+    nokogiri (1.13.10-x86_64-darwin)
+      racc (~> 1.4)
+    nokogiri (1.13.10-x86_64-linux)
+      racc (~> 1.4)
+    pg (1.4.5)
+    postgresql (1.0.0)
+      pg
+    racc (1.6.1)
     rack (2.2.4)
     rack-test (2.0.2)
       rack (>= 1.3)
@@ -129,8 +140,8 @@ GEM
     rails-dom-testing (2.0.3)
       activesupport (>= 4.2.0)
       nokogiri (>= 1.6)
-    rails-html-sanitizer (1.4.3)
-      loofah (~> 2.3)
+    rails-html-sanitizer (1.4.4)
+      loofah (~> 2.19, >= 2.19.1)
     railties (7.0.4)
       actionpack (= 7.0.4)
       activesupport (= 7.0.4)
@@ -148,10 +159,11 @@ GEM
       actionpack (>= 5.2)
       activesupport (>= 5.2)
       sprockets (>= 3.0.0)
-    sqlite3 (1.5.3)
-      mini_portile2 (~> 2.8.0)
+    sqlite3 (1.5.4-arm64-darwin)
+    sqlite3 (1.5.4-x86_64-darwin)
+    sqlite3 (1.5.4-x86_64-linux)
     thor (1.2.1)
-    timeout (0.3.0)
+    timeout (0.3.1)
     tzinfo (2.0.5)
       concurrent-ruby (~> 1.0)
     websocket-driver (0.7.5)
@@ -160,13 +172,17 @@ GEM
     zeitwerk (2.6.6)
 
 PLATFORMS
-  ruby
+  arm64-darwin-21
+  x86_64-darwin-20
+  x86_64-linux
 
 DEPENDENCIES
   active_support-database_cache!
   debug
+  mysql2
+  postgresql
   sprockets-rails
   sqlite3
 
 BUNDLED WITH
-   2.3.25
+   2.3.26
