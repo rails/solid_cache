@@ -1,3 +1,62 @@
+<% if ENV["TARGET_DB"]=="mysql" %>
+
+# MySQL
+default: &default
+  adapter: mysql2
+  username: root
+  pool: 5
+  host: "127.0.0.1"
+  port: 33306
+
+development:
+  primary:
+    <<: *default
+    database: database_cache_development
+  primary_replica:
+    <<: *default
+    database: database_cache_development
+    replica: true
+
+test:
+  primary:
+    <<: *default
+    database: database_cache_test
+  primary_replica:
+    <<: *default
+    database: database_cache_test
+    replica: true
+
+
+<% elsif ENV["TARGET_DB"]=="postgres" %>
+
+# Postgres
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  username: postgres
+  pool: 5
+  host: "127.0.0.1"
+  port: 55432
+
+development:
+  primary:
+    <<: *default
+    database: database_cache_development
+  primary_replica:
+    <<: *default
+    database: database_cache_development
+    replica: true
+
+test:
+  primary:
+    <<: *default
+    database: database_cache_test
+  primary_replica:
+    <<: *default
+    database: database_cache_test
+    replica: true
+
+<% else %>
 # SQLite. Versions 3.8.0 and up are supported.
 #   gem install sqlite3
 #
@@ -29,12 +88,4 @@ test:
     <<: *default
     database: db/test.sqlite3
     replica: true
-
-production:
-  primary:
-    <<: *default
-    database: db/production.sqlite3
-  primary_replica:
-    <<: *default
-    database: db/production.sqlite3
-    replica: true
+<% end %>
