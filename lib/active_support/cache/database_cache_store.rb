@@ -2,6 +2,7 @@ module ActiveSupport
   module Cache
     class DatabaseCacheStore < Store
       MAX_KEY_BYTESIZE = 1024
+      SQL_WILDCARD_CHARS = [ '_', '%' ]
 
       def self.supports_cache_versioning?
         true
@@ -16,6 +17,20 @@ module ActiveSupport
         @reading_role = options[:reading_role] || options[:role]
         @max_key_bytesize = MAX_KEY_BYTESIZE
         super(options)
+      end
+
+      def delete_matched(matcher, options = {})
+        instrument :delete_matched, matcher do
+          raise ArgumentError, "Only strings are supported: #{matcher.inspect}" unless String === matcher
+          raise ArgumentError, "Strings cannot start with wildcards" if SQL_WILDCARD_CHARS.include?(matcher[0])
+
+          options ||= {}
+          batch_size = options.fetch(:batch_size, 1000)
+
+          matcher = namespace_key(matcher, options)
+
+          with_writing_role { DatabaseCache::Entry.delete_matched(matcher, batch_size: batch_size) }
+        end
       end
 
       def increment(name, amount = 1, options = nil)

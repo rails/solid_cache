@@ -10,7 +10,6 @@ class ActiveSupport::DatabaseCacheTest < ActiveSupport::TestCase
   include LocalCacheBehavior
   include CacheIncrementDecrementBehavior
   include CacheInstrumentationBehavior
-  # include ConnectionPoolBehavior
   include EncodedKeyCacheBehavior
 
   setup do

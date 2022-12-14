@@ -21,6 +21,13 @@ module ActiveSupport::DatabaseCache
         where(key: key).delete_all.nonzero?
       end
 
+      def delete_matched(matcher, batch_size:)
+        like_matcher = arel_table[:key].matches(matcher, nil, true)
+        where(like_matcher).select(:id).find_in_batches(batch_size: batch_size) do |entries|
+          delete_by(id: entries.map(&:id))
+        end
+      end
+
       def increment(key, amount)
         transaction do
           amount += lock.get(key).to_i
