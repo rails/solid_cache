@@ -164,7 +164,7 @@ module LocalCacheBehavior
       @cache.write(key, SecureRandom.alphanumeric)
       @cache.write(other_key, SecureRandom.alphanumeric)
       @cache.write(third_key, value)
-      @cache.delete_matched("#{prefix}*")
+      @cache.delete_matched("#{prefix}%")
       assert_not @cache.exist?(key)
       assert_not @cache.exist?(other_key)
       assert_equal value, @cache.read(third_key)
