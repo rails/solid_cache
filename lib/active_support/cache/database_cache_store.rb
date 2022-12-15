@@ -10,12 +10,13 @@ module ActiveSupport
 
       prepend Strategy::LocalCache
 
-      attr_reader :reading_role, :writing_role, :max_key_bytesize
+      attr_reader :reading_role, :writing_role, :max_key_bytesize, :housekeeper
 
       def initialize(options)
         @writing_role = options[:writing_role] || options[:role]
         @reading_role = options[:reading_role] || options[:role]
         @max_key_bytesize = MAX_KEY_BYTESIZE
+        setup_housekeeper(options.fetch(:housekeeper_options, {})) if options[:housekeeper]
         super(options)
       end
 
@@ -59,14 +60,20 @@ module ActiveSupport
         end
 
         def read_serialized_entry(key, raw: false, **options)
-          with_reading_role { DatabaseCache::Entry.get(key) }
+          with_reading_role {
+            id, entry = DatabaseCache::Entry.get(key)
+            housekeeper&.touch_later(entry_ids: [id])
+            entry
+          }
         end
 
         def write_entry(key, entry, raw: false, **options)
           # This writes it to the cache
           payload = serialize_entry(entry, raw: raw, **options)
           write_serialized_entry(key, payload, raw: raw, **options)
-          with_writing_role { DatabaseCache::Entry.set(key, payload) }
+          with_writing_role { DatabaseCache::Entry.set(key, payload) }.tap do
+            housekeeper&.delete_later(count: 2)
+          end
         end
 
         def write_serialized_entry(key, payload, raw: false, unless_exist: false, expires_in: nil, race_condition_ttl: nil, **options)
@@ -76,8 +83,12 @@ module ActiveSupport
         def read_multi_entries(names, **options)
           keys_and_names = names.to_h { |name| [normalize_key(name, options), name] }
           serialized_entries = with_reading_role { DatabaseCache::Entry.get_all(keys_and_names.keys) }
+
+          housekeeper&.touch_later(entry_ids: serialized_entries.values.map { _1 })
+
           keys_and_names.each_with_object({}) do |(key, name), results|
-            entry = deserialize_entry(serialized_entries[key], **options)
+            id, serialized_entry = serialized_entries[key]
+            entry = deserialize_entry(serialized_entry, **options)
 
             next unless entry
 
@@ -98,12 +109,14 @@ module ActiveSupport
             serialized_entries.each do |entries|
               write_serialized_entry(entries[:key], entries[:value])
             end
-            with_writing_role { DatabaseCache::Entry.set_all(serialized_entries) }
+            with_writing_role { DatabaseCache::Entry.set_all(serialized_entries) }.tap do
+              housekeeper&.delete_later(count: serialized_entries.count + 1)
+            end
           end
         end
 
         def delete_entry(key, **options)
-          with_writing_role { DatabaseCache::Entry.delete(key) }
+          with_writing_role { DatabaseCache::Entry.delete_key(key) }
         end
 
         def delete_multi_entries(entries, **options)
@@ -160,6 +173,10 @@ module ActiveSupport
           else
             yield
           end
+        end
+
+        def setup_housekeeper(housekeeper_options)
+          @housekeeper = DatabaseCache::Housekeeper.new(writing_role: writing_role, **housekeeper_options)
         end
     end
   end

@@ -2,22 +2,22 @@ module ActiveSupport::DatabaseCache
   class Entry < ApplicationRecord
     class << self
       def set(key, value, expires_at: nil)
-        upsert_all([{key: key, value: value, expires_at: expires_at}], unique_by: upsert_unique_by, update_only: [:value, :expires_at])
+        set_all([{key: key, value: value, expires_at: expires_at}])
       end
 
       def set_all(payloads, expires_at: nil)
-        upsert_all(payloads, unique_by: upsert_unique_by, update_only: [:value, :expires_at])
+        upsert_all(payloads, unique_by: upsert_unique_by, update_only: [ :value, :expires_at ])
       end
 
       def get(key)
-        where(key: key).pick(:value)
+        where(key: key).pick(:id, :value)
       end
 
       def get_all(keys)
-        where(key: keys).pluck(:key, :value).to_h
+        where(key: keys).pluck(:key, :id, :value).to_h { [_1, [_2, _3]] }
       end
 
-      def delete(key)
+      def delete_key(key)
         where(key: key).delete_all.nonzero?
       end
 
@@ -30,10 +30,24 @@ module ActiveSupport::DatabaseCache
 
       def increment(key, amount)
         transaction do
-          amount += lock.get(key).to_i
+          amount += lock.pick_value(key).to_i
           set(key, amount)
           amount
         end
+      end
+
+      def touch(ids)
+        where(id: ids).touch_all
+      end
+
+      def pick_value(key)
+        where(key: key).pick(:value)
+      end
+
+      def delete_some(count, delete_by:, delete_age:)
+        ids = Entry.order("#{delete_by}": :asc).where("#{delete_by}": ...delete_age.ago).limit(count).pluck(:id)
+        delete(ids) if ids.any?
+        ids.count
       end
 
       private
