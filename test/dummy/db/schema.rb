@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_11_17_101940) do
+ActiveRecord::Schema[7.0].define(version: 2022_12_15_113323) do
   create_table "active_support_database_cache_entries", force: :cascade do |t|
     t.binary "key", limit: 1024, null: false
     t.binary "value", limit: 536870912, null: false
@@ -19,6 +19,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_17_101940) do
     t.datetime "updated_at", null: false
     t.index ["expires_at"], name: "index_active_support_database_cache_entries_on_expires_at"
     t.index ["key"], name: "index_active_support_database_cache_entries_on_key", unique: true
+    t.index ["updated_at"], name: "index_active_support_database_cache_entries_on_updated_at"
   end
 
 end
