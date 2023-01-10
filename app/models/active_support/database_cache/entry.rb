@@ -43,3 +43,6 @@ module ActiveSupport::DatabaseCache
     end
   end
 end
+
+ActiveSupport.run_load_hooks :active_support_database_cache_entry, ActiveSupport::DatabaseCache::Entry
+
