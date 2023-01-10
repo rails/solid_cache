@@ -13,8 +13,8 @@ module ActiveSupport
       attr_reader :reading_role, :writing_role, :max_key_bytesize
 
       def initialize(options = {})
-        @writing_role = options[:writing_role] || options[:role]
-        @reading_role = options[:reading_role] || options[:role]
+        @writing_role = options[:writing_role] || options[:role] || :writing
+        @reading_role = options[:reading_role] || options[:role] || :reading
         @max_key_bytesize = MAX_KEY_BYTESIZE
         super(options)
       end
