@@ -8,6 +8,7 @@ class CreateActiveSupportDatabaseCacheEntries < ActiveRecord::Migration[7.0]
 
       t.index    :key,       unique: true
       t.index    :expires_at
+      t.index    :updated_at
     end
   end
 end
