@@ -1,5 +1,5 @@
 module ActiveSupport::DatabaseCache
-  class Entry < ApplicationRecord
+  class Entry < Record
     class << self
       def set(key, value, expires_at: nil)
         upsert_all([{key: key, value: value, expires_at: expires_at}], unique_by: upsert_unique_by, update_only: [:value, :expires_at])

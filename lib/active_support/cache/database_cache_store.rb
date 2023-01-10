@@ -156,7 +156,7 @@ module ActiveSupport
 
         def with_role(role)
           if role
-            DatabaseCache::ApplicationRecord.connected_to(role: role) { yield }
+            DatabaseCache::Record.connected_to(role: role) { yield }
           else
             yield
           end
