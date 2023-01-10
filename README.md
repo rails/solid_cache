@@ -66,6 +66,13 @@ Run migrations:
 $ bin/rails db:migrate
 ```
 
+# Enabling encryption
+
+# config/active_storage_database_cache.rb
+ActiveSupport.on_load(:active_storage_database_cache_entry) do
+  encrypts :value
+end
+
 ## Contributing
 Contribution directions go here.
 
