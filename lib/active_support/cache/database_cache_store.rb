@@ -10,12 +10,13 @@ module ActiveSupport
 
       prepend Strategy::LocalCache
 
-      attr_reader :reading_role, :writing_role, :max_key_bytesize
+      attr_reader :reading_role, :writing_role, :max_key_bytesize, :async_executor
 
       def initialize(options = {})
         @writing_role = options[:writing_role] || options[:role] || :writing
         @reading_role = options[:reading_role] || options[:role] || :reading
         @max_key_bytesize = MAX_KEY_BYTESIZE
+        @async_executor = DatabaseCache::AsyncExecutor.new(touch_batch_size: options.fetch(:touch_batch_size, 100))
         super(options)
       end
 
@@ -59,7 +60,9 @@ module ActiveSupport
         end
 
         def read_serialized_entry(key, raw: false, **options)
-          with_reading_role { DatabaseCache::Entry.get(key) }
+          id, serialized_entry = with_reading_role { DatabaseCache::Entry.get(key) }
+          async_executor.touch([id]) if id
+          serialized_entry
         end
 
         def write_entry(key, entry, raw: false, **options)
@@ -75,9 +78,12 @@ module ActiveSupport
 
         def read_multi_entries(names, **options)
           keys_and_names = names.to_h { |name| [normalize_key(name, options), name] }
-          serialized_entries = with_reading_role { DatabaseCache::Entry.get_all(keys_and_names.keys) }
+          ids_and_serialized_entries = with_reading_role { DatabaseCache::Entry.get_all(keys_and_names.keys) }
+          ids = ids_and_serialized_entries.values.map { |id, serialized_entry| id }
+          async_executor.touch(ids) if ids.any?
           keys_and_names.each_with_object({}) do |(key, name), results|
-            entry = deserialize_entry(serialized_entries[key], **options)
+            id, serialized_entry = ids_and_serialized_entries[key]
+            entry = deserialize_entry(serialized_entry, **options)
 
             next unless entry
 
