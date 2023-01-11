@@ -10,11 +10,12 @@ module ActiveSupport::DatabaseCache
       end
 
       def get(key)
-        where(key: key).pick(:value)
+        where(key: key).pick(:id, :value)
       end
 
       def get_all(keys)
-        where(key: keys).pluck(:key, :value).to_h
+        rows = where(key: keys).pluck(:key, :id, :value)
+        rows.to_h { |row| [ row[0], row[1..2] ] }
       end
 
       def delete(key)
@@ -30,10 +31,14 @@ module ActiveSupport::DatabaseCache
 
       def increment(key, amount)
         transaction do
-          amount += lock.get(key).to_i
+          amount += lock.where(key: key).pick(:value).to_i
           set(key, amount)
           amount
         end
+      end
+
+      def touch_by_ids(ids)
+        where(id: ids).touch_all
       end
 
       private
