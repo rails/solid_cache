@@ -56,7 +56,7 @@ $ mv db/migration/*_create_active_support_database_cache_entries.active_support_
 Add an initializer to point models at the new database
 ```
 # config/active_support_database_cache.rb
-ActiveSupport.on_support) do
+ActiveSupport.on_load(:active_support_database_cache) do
   connects_to database: { writing: :cache_primary, reading: :cache_replica }
 end
 ```
@@ -68,10 +68,13 @@ $ bin/rails db:migrate
 
 # Enabling encryption
 
-# csupport.rb
-ActiveSupport.on_support_entry) do
+Add this to an initializer:
+
+```
+ActiveSupport.on_load(:active_support_database_cache_entry) do
   encrypts :value
 end
+```
 
 ## Contributing
 Contribution directions go here.
