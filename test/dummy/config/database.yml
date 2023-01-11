@@ -6,7 +6,7 @@ default: &default
   username: root
   pool: 5
   host: "127.0.0.1"
-  port: 33306
+  port: 33060
 
 development:
   primary:
