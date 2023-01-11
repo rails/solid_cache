@@ -1,5 +1,7 @@
 module ActiveSupport::DatabaseCache
   class Entry < Record
+    scope :least_recently_used, -> { order(:updated_at) }
+
     class << self
       def set(key, value, expires_at: nil)
         upsert_all([{key: key, value: value, expires_at: expires_at}], unique_by: upsert_unique_by, update_only: [:value, :expires_at])
@@ -18,7 +20,7 @@ module ActiveSupport::DatabaseCache
         rows.to_h { |row| [ row[0], row[1..2] ] }
       end
 
-      def delete(key)
+      def delete_by_key(key)
         where(key: key).delete_all.nonzero?
       end
 
