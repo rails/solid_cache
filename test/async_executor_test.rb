@@ -8,7 +8,26 @@ class ActiveSupport::DatabaseCache::AsyncExecutorTest < ActiveSupport::TestCase
     @cache = nil
     @namespace = "test-#{SecureRandom.hex}"
 
-    @cache = lookup_store(touch_batch_size: 2)
+    @cache = lookup_store(touch_batch_size: 2, trim_batch_size: 2)
+  end
+
+  def test_deletes_old_records
+    @cache.write("foo", 1)
+    @cache.write("bar", 2)
+    assert_equal 1, @cache.read("foo")
+    assert_equal 2, @cache.read("bar")
+    sleep 0.1 # ensure the housekeeper has marked them as read
+
+    send_entries_back_in_time(3.weeks)
+
+    @cache.write("baz", 3)
+    @cache.write("haz", 4)
+
+    sleep 0.1
+    assert_nil @cache.read("foo")
+    assert_nil @cache.read("bar")
+    assert_equal 3, @cache.read("baz")
+    assert_equal 4, @cache.read("haz")
   end
 
   def test_touches_records

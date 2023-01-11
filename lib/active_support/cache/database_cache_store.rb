@@ -16,7 +16,12 @@ module ActiveSupport
         @writing_role = options[:writing_role] || options[:role] || :writing
         @reading_role = options[:reading_role] || options[:role] || :reading
         @max_key_bytesize = MAX_KEY_BYTESIZE
-        @async_executor = DatabaseCache::AsyncExecutor.new(touch_batch_size: options.fetch(:touch_batch_size, 100))
+        @async_executor = DatabaseCache::AsyncExecutor.new(
+          touch_batch_size: options.fetch(:touch_batch_size, 100),
+          trim_batch_size: options.fetch(:trim_batch_size, 100),
+          trim_min_age: options.fetch(:trim_min_age, 2.weeks),
+          cache_full: options.fetch(:cache_full, false)
+        )
         super(options)
       end
 
@@ -69,6 +74,7 @@ module ActiveSupport
           # This writes it to the cache
           payload = serialize_entry(entry, raw: raw, **options)
           write_serialized_entry(key, payload, raw: raw, **options)
+          async_executor.trim(1)
           with_writing_role { DatabaseCache::Entry.set(key, payload) }
         end
 
@@ -104,12 +110,13 @@ module ActiveSupport
             serialized_entries.each do |entries|
               write_serialized_entry(entries[:key], entries[:value])
             end
+            async_executor.trim(serialized_entries.count)
             with_writing_role { DatabaseCache::Entry.set_all(serialized_entries) }
           end
         end
 
         def delete_entry(key, **options)
-          with_writing_role { DatabaseCache::Entry.delete(key) }
+          with_writing_role { DatabaseCache::Entry.delete_by_key(key) }
         end
 
         def delete_multi_entries(entries, **options)

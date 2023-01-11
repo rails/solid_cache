@@ -25,7 +25,7 @@ jobs:
         env:
           MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
         ports:
-          - 33306:3306
+          - 33060:3306
     env:
       TARGET_DB: ${{ matrix.database }}
     steps:
