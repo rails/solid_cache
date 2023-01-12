@@ -19,7 +19,7 @@ module ActiveSupport
         @async_executor = DatabaseCache::AsyncExecutor.new(
           touch_batch_size: options.fetch(:touch_batch_size, 100),
           trim_batch_size: options.fetch(:trim_batch_size, 100),
-          trim_min_age: options.fetch(:trim_min_age, 2.weeks),
+          min_age: options.fetch(:min_age, 2.weeks),
           cache_full: options.fetch(:cache_full, false)
         )
         super(options)

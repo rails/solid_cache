@@ -1,10 +1,10 @@
 module ActiveSupport
   module DatabaseCache
     class AsyncExecutor
-      def initialize(touch_batch_size:, trim_batch_size:, trim_min_age:, cache_full:)
+      def initialize(touch_batch_size:, trim_batch_size:, min_age:, cache_full:)
         @executor = Concurrent::SingleThreadExecutor.new(max_queue: 100, fallback_policy: :discard)
         @toucher = Toucher.new(touch_batch_size)
-        @trimmer = Trimmer.new(trim_batch_size, trim_min_age, cache_full)
+        @trimmer = Trimmer.new(trim_batch_size, min_age, cache_full)
       end
 
       def touch(ids)
