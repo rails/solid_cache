@@ -5,8 +5,9 @@ module ActiveSupport
     module ConnectionHandling
       def initialize(options = {})
         super(options)
-        @writing_role = options[:writing_role] || options[:role] || :writing
-        @reading_role = options[:reading_role] || options[:role] || :reading
+        role = options.delete(:role)
+        @writing_role = options.delete(:writing_role) || role
+        @reading_role = options.delete(:reading_role) || role
         @shards = options[:shards] || [:default]
         @hash_ring = @shards.count > 0 ? HashRing.new(@shards) : nil
       end

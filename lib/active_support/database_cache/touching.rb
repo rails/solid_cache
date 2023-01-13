@@ -3,7 +3,7 @@ module ActiveSupport
     module Touching
       def initialize(options)
         super(options)
-        @touch_batch_size = options.fetch(:touch_batch_size, 100)
+        @touch_batch_size = options.delete(:touch_batch_size) || 100
         @touch_ids = @shards.to_h { |shard| [shard, []] }
       end
 
