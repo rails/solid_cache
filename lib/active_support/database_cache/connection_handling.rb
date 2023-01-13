@@ -8,12 +8,12 @@ module ActiveSupport
         role = options.delete(:role)
         @writing_role = options.delete(:writing_role) || role
         @reading_role = options.delete(:reading_role) || role
-        @shards = options[:shards] || [Entry.default_shard]
-        @hash_ring = @shards.count > 0 ? HashRing.new(@shards) : nil
+        @shards = options[:shards]
+        @hash_ring = @shards && @shards.count > 0 ? HashRing.new(@shards) : nil
       end
 
       def writing_all_shards
-        @shards.each do |shard|
+        shards.each do |shard|
           with_role_and_shard(role: @writing_role, shard: shard) { yield }
         end
       end
@@ -54,7 +54,11 @@ module ActiveSupport
         end
 
         def shard_for_normalized_key(normalized_key)
-          @hash_ring&.get_node(normalized_key) || @shards.first
+          @hash_ring&.get_node(normalized_key) || shards.first
+        end
+
+        def shards
+          @shards || [Entry.default_shard]
         end
     end
   end
