@@ -1,7 +1,7 @@
 module ActiveSupport
   module DatabaseCache
     module Trimming
-      # If deleting X records, we'll select X * ID_LIMIT_MULTIPLIER and randomly delete X of those
+      # If deleting X records, we'll select X * TRIM_SELECT_MULTIPLIER and randomly delete X of those
       # The selection doesn't lock so it allows more deletion concurrency
       # We then delete by primary key, which avoids locking on indexes
       #
@@ -9,7 +9,7 @@ module ActiveSupport
       # between them should help reduce deletion overlap when that happens
       TRIM_SELECT_MULTIPLIER = 5
 
-      # For every write that we do, we delete DELETION_MULTIPLIER times as many records.
+      # For every write that we do, we attempt to delete TRIM_DELETE_MULTIPLIER times as many records.
       # This ensures there is downward pressure on the cache size while there is valid data to delete
       TRIM_DELETE_MULTIPLIER = 1.25
 
