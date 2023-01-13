@@ -8,7 +8,9 @@ module ActiveSupport
 
       private
         def async(&block)
-          @executor << block
+          # Need current shard right now, not when block is called
+          current_shard = Entry.current_shard
+          @executor << ->() { block.call(current_shard) }
         end
     end
   end

@@ -27,16 +27,18 @@ module ActiveSupport
 
       private
         def trim(write_count)
-          async do
-            increment_trim_counter(write_count, Entry.current_shard)
+          async do |shard|
+            increment_trim_counter(write_count, shard)
           end
         end
 
         def increment_trim_counter(count, shard)
           @trim_counters[shard] += count * TRIM_DELETE_MULTIPLIER
           while @trim_counters[shard] > @trim_batch_size
-            Entry.delete(trimming_id_candidates)
-            @trim_counters[shard] -= @trim_batch_size
+            with_role_and_shard(role: @writing_role, shard: shard) do
+              Entry.delete(trimming_id_candidates)
+              @trim_counters[shard] -= @trim_batch_size
+            end
           end
         end
 

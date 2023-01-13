@@ -9,15 +9,17 @@ module ActiveSupport
 
       private
         def touch(ids)
-          async do
-            touch_add_ids(ids, Entry.current_shard)
+          async do |shard|
+            touch_add_ids(ids, shard)
           end
         end
 
         def touch_add_ids(ids, shard)
           @touch_ids[shard].concat(ids)
           while @touch_ids[shard].size > @touch_batch_size
-            Entry.touch_by_ids(@touch_ids[shard].shift(@touch_batch_size).uniq)
+            with_role_and_shard(role: @writing_role, shard: shard) do
+              Entry.touch_by_ids(@touch_ids[shard].shift(@touch_batch_size).uniq)
+            end
           end
         end
     end
