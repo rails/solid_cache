@@ -49,8 +49,8 @@ module ActiveSupport
           end
         end
 
-        def in_shards(elements)
-          elements.group_by { |value| shard_for(value.is_a?(Hash) ? value[:key] : value) }
+        def in_shards(values)
+          values.group_by { |value| shard_for(value.is_a?(Hash) ? value[:key] : value) }
         end
 
         def shard_for(key)
