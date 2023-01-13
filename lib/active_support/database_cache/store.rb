@@ -42,13 +42,13 @@ module ActiveSupport
       def increment(name, amount = 1, options = nil)
         options = merged_options(options)
         key = normalize_key(name, options)
-        writing_shard(key: key) { Entry.increment(key, amount) }
+        writing_shard(normalized_key: key) { Entry.increment(key, amount) }
       end
 
       def decrement(name, amount = 1, options = nil)
         options = merged_options(options)
         key = normalize_key(name, options)
-        writing_shard(key: key) { Entry.increment(key, -amount) }
+        writing_shard(normalized_key: key) { Entry.increment(key, -amount) }
       end
 
       def cleanup(options = nil)
@@ -59,13 +59,17 @@ module ActiveSupport
         raise NotImplementedError.new("#{self.class.name} does not support clear")
       end
 
+      def shard_for_key(key, options = nil)
+        shard_for_normalized_key(normalize_key(key, merged_options(options)))
+      end
+
       private
         def read_entry(key, **options)
           deserialize_entry(read_serialized_entry(key, **options), **options)
         end
 
         def read_serialized_entry(key, raw: false, **options)
-          reading_shard(key: key) do
+          reading_shard(normalized_key: key) do
             id, serialized_entry = Entry.get(key)
             touch([id]) if id
             serialized_entry
@@ -77,7 +81,7 @@ module ActiveSupport
           payload = serialize_entry(entry, raw: raw, **options)
           write_serialized_entry(key, payload, raw: raw, **options)
 
-          writing_shard(key: key) do
+          writing_shard(normalized_key: key) do
             Entry.set(key, payload)
             trim(1)
           end
@@ -137,7 +141,7 @@ module ActiveSupport
         end
 
         def delete_entry(key, **options)
-          writing_shard(key: key) { Entry.delete_by_key(key) }
+          writing_shard(normalized_key: key) { Entry.delete_by_key(key) }
         end
 
         def delete_multi_entries(entries, **options)

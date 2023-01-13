@@ -12,13 +12,13 @@ module ActiveSupport
         @hash_ring = @shards.count > 0 ? HashRing.new(@shards) : nil
       end
 
-      private
-        def writing_all_shards
-          @shards.each do |shard|
-            with_role_and_shard(role: @writing_role, shard: shard) { yield }
-          end
+      def writing_all_shards
+        @shards.each do |shard|
+          with_role_and_shard(role: @writing_role, shard: shard) { yield }
         end
+      end
 
+      private
         def writing_across_shards(list:)
           across_shards(role: @writing_role, list:) { |list| yield list }
         end
@@ -27,12 +27,12 @@ module ActiveSupport
           across_shards(role: @reading_role, list:) { |list| yield list }
         end
 
-        def writing_shard(key:)
-          with_role_and_shard(role: @writing_role, shard: shard_for(key)) { yield }
+        def writing_shard(normalized_key:)
+          with_role_and_shard(role: @writing_role, shard: shard_for_normalized_key(normalized_key)) { yield }
         end
 
-        def reading_shard(key:)
-          with_role_and_shard(role: @reading_role, shard: shard_for(key)) { yield }
+        def reading_shard(normalized_key:)
+          with_role_and_shard(role: @reading_role, shard: shard_for_normalized_key(normalized_key)) { yield }
         end
 
         def with_role_and_shard(role:, shard:)
@@ -50,11 +50,11 @@ module ActiveSupport
         end
 
         def in_shards(values)
-          values.group_by { |value| shard_for(value.is_a?(Hash) ? value[:key] : value) }
+          values.group_by { |value| shard_for_normalized_key(value.is_a?(Hash) ? value[:key] : value) }
         end
 
-        def shard_for(key)
-          @hash_ring&.get_node(key) || @shards.first
+        def shard_for_normalized_key(normalized_key)
+          @hash_ring&.get_node(normalized_key) || @shards.first
         end
     end
   end
