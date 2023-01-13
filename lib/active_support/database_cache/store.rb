@@ -87,17 +87,26 @@ module ActiveSupport
           true
         end
 
+        def read_serialized_entries(keys)
+          serialize_entries = {}
+          reading_across_shards(list: keys) do |keys|
+            rows = Entry.get_all(keys)
+            ids = []
+            rows.each do |(key, id, value)|
+              ids << id
+              serialize_entries[key] = value
+            end
+            touch(ids)
+          end
+          serialize_entries
+        end
+
         def read_multi_entries(names, **options)
           keys_and_names = names.to_h { |name| [normalize_key(name, options), name] }
-          ids_and_serialized_entries = reading_across_shards(list: keys_and_names.keys) do |keys|
-            Entry.get_all(keys).tap do |entries|
-              ids = entries.values.map { |id, serialized_entry| id }
-              touch(ids)
-            end
-          end.reduce(&:merge) || {}
+          serialized_entries = read_serialized_entries(keys_and_names.keys)
 
           keys_and_names.each_with_object({}) do |(key, name), results|
-            id, serialized_entry = ids_and_serialized_entries[key]
+            serialized_entry = serialized_entries[key]
             entry = deserialize_entry(serialized_entry, **options)
 
             next unless entry

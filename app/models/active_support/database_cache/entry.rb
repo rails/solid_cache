@@ -16,8 +16,7 @@ module ActiveSupport::DatabaseCache
       end
 
       def get_all(keys)
-        rows = where(key: keys).pluck(:key, :id, :value)
-        rows.to_h { |row| [ row[0], row[1..2] ] }
+        where(key: keys).pluck(:key, :id, :value)
       end
 
       def delete_by_key(key)
