@@ -16,5 +16,5 @@ if ActiveSupport::TestCase.respond_to?(:fixture_path=)
 end
 
 def lookup_store(options = {})
-  ActiveSupport::Cache.lookup_store(:database_cache_store, { namespace: @namespace, writing_role: :writing, reading_role: :reading }.merge(options))
+  ActiveSupport::Cache.lookup_store(:database_cache_store, { namespace: @namespace, writing_role: :writing, reading_role: :reading, shards: [:default, :shard_one] }.merge(options))
 end

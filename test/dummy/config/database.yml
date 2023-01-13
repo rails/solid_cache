@@ -16,6 +16,13 @@ development:
     <<: *default
     database: database_cache_development
     replica: true
+  primary_shard_one:
+    <<: *default
+    database: database_cache1_development
+  primary_shard_one_replica:
+    <<: *default
+    database: database_cache1_development
+    replica: true
 
 test:
   primary:
@@ -24,6 +31,13 @@ test:
   primary_replica:
     <<: *default
     database: database_cache_test
+    replica: true
+  primary_shard_one:
+    <<: *default
+    database: database_cache1_test
+  primary_shard_one_replica:
+    <<: *default
+    database: database_cache1_test
     replica: true
 
 
@@ -46,6 +60,13 @@ development:
     <<: *default
     database: database_cache_development
     replica: true
+  primary_shard_one:
+    <<: *default
+    database: database_cache1_development
+  primary_shard_one_replica:
+    <<: *default
+    database: database_cache1_development
+    replica: true
 
 test:
   primary:
@@ -54,6 +75,13 @@ test:
   primary_replica:
     <<: *default
     database: database_cache_test
+    replica: true
+  primary_shard_one:
+    <<: *default
+    database: database_cache1_test
+  primary_shard_one_replica:
+    <<: *default
+    database: database_cache1_test
     replica: true
 
 <% else %>
@@ -76,6 +104,13 @@ development:
     <<: *default
     database: db/development.sqlite3
     replica: true
+  primary_shard_one:
+    <<: *default
+    database: db/development1.sqlite3
+  primary_shard_one_replica:
+    <<: *default
+    database: db/development1.sqlite3
+    replica: true
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
@@ -87,5 +122,12 @@ test:
   primary_replica:
     <<: *default
     database: db/test.sqlite3
+    replica: true
+  primary_shard_one:
+    <<: *default
+    database: db/test1.sqlite3
+  primary_shard_one_replica:
+    <<: *default
+    database: db/test1.sqlite3
     replica: true
 <% end %>
