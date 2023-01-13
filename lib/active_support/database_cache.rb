@@ -1,6 +1,6 @@
 require "active_support/database_cache/version"
 require "active_support/database_cache/engine"
-require "active_support/database_cache/async_executor"
+require "active_support/database_cache/store"
 
 module ActiveSupport
   module DatabaseCache

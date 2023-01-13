@@ -16,5 +16,13 @@ if ActiveSupport::TestCase.respond_to?(:fixture_path=)
 end
 
 def lookup_store(options = {})
-  ActiveSupport::Cache.lookup_store(:database_cache_store, { namespace: @namespace, writing_role: :writing, reading_role: :reading }.merge(options))
+  ActiveSupport::Cache.lookup_store(:database_cache_store, { namespace: @namespace, writing_role: :writing, reading_role: :reading, shards: [:default, :shard_one] }.merge(options))
+end
+
+def send_entries_back_in_time(distance)
+  @cache.writing_all_shards do
+    ActiveSupport::DatabaseCache::Entry.all.each do |entry|
+      entry.update_columns(created_at: entry.created_at - distance, updated_at: entry.updated_at - distance)
+    end
+  end
 end

@@ -8,7 +8,7 @@ class ActiveSupport::DatabaseCache::AsyncExecutorTest < ActiveSupport::TestCase
     @cache = nil
     @namespace = "test-#{SecureRandom.hex}"
 
-    @cache = lookup_store(touch_batch_size: 2, trim_batch_size: 2)
+    @cache = lookup_store(touch_batch_size: 2, trim_batch_size: 2, shards: nil)
   end
 
   def test_deletes_old_records
