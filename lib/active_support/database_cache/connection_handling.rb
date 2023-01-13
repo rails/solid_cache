@@ -8,7 +8,7 @@ module ActiveSupport
         role = options.delete(:role)
         @writing_role = options.delete(:writing_role) || role
         @reading_role = options.delete(:reading_role) || role
-        @shards = options[:shards] || [:default]
+        @shards = options[:shards] || [Entry.default_shard]
         @hash_ring = @shards.count > 0 ? HashRing.new(@shards) : nil
       end
 
