@@ -1,17 +1,14 @@
 module ActiveSupport
   module DatabaseCache
     module Trimming
-      # If deleting X records, we'll select X * TRIM_SELECT_MULTIPLIER and randomly delete X of those
-      # The selection doesn't lock so it allows more deletion concurrency
-      # We then delete by primary key, which avoids locking on indexes
-      #
-      # With a concurrent deletions selecting more records and choosing randomly
-      # between them should help reduce deletion overlap when that happens
-      TRIM_SELECT_MULTIPLIER = 5
-
       # For every write that we do, we attempt to delete TRIM_DELETE_MULTIPLIER times as many records.
       # This ensures there is downward pressure on the cache size while there is valid data to delete
       TRIM_DELETE_MULTIPLIER = 1.25
+
+      # If deleting X records, we'll select X * TRIM_SELECT_MULTIPLIER and randomly delete X of those
+      # The selection doesn't lock so it allows more deletion concurrency, but some of the selected records
+      # might be deleted already. The delete multiplier should compensate for that.
+      TRIM_SELECT_MULTIPLIER = 5
 
       def initialize(options = {})
         super(options)
