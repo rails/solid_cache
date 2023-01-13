@@ -78,8 +78,8 @@ module ActiveSupport
           write_serialized_entry(key, payload, raw: raw, **options)
 
           writing_shard(key: key) do
-            trim(1)
             Entry.set(key, payload)
+            trim(1)
           end
         end
 
@@ -130,8 +130,8 @@ module ActiveSupport
             end
 
             writing_across_shards(list: serialized_entries) do |serialized_entries|
-              trim(serialized_entries.count)
               Entry.set_all(serialized_entries)
+              trim(serialized_entries.count)
             end
           end
         end
