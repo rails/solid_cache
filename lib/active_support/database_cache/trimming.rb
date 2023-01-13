@@ -19,7 +19,6 @@ module ActiveSupport
         @cache_full_callable = @cache_full.respond_to?(:call)
 
         @trim_select_limit = @trim_batch_size * TRIM_SELECT_MULTIPLIER
-        @trim_counters = @shards.to_h { |shard| [shard, 0] }
       end
 
       private
@@ -30,11 +29,11 @@ module ActiveSupport
         end
 
         def increment_trim_counter(count, shard)
-          @trim_counters[shard] += count * TRIM_DELETE_MULTIPLIER
-          while @trim_counters[shard] > @trim_batch_size
+          trim_counters[shard] += count * TRIM_DELETE_MULTIPLIER
+          while trim_counters[shard] > @trim_batch_size
             with_role_and_shard(role: @writing_role, shard: shard) do
               Entry.delete(trimming_id_candidates)
-              @trim_counters[shard] -= @trim_batch_size
+              trim_counters[shard] -= @trim_batch_size
             end
           end
         end
@@ -43,6 +42,10 @@ module ActiveSupport
           relation = Entry.least_recently_used.limit(@trim_select_limit)
           relation = relation.where("updated_at < ?", @min_age.ago) unless cache_full?
           relation.ids.sample(@trim_batch_size)
+        end
+
+        def trim_counters
+          @trim_counters ||= shards.to_h { |shard| [shard, 0] }
         end
 
         def cache_full?

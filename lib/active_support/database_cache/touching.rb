@@ -4,7 +4,6 @@ module ActiveSupport
       def initialize(options)
         super(options)
         @touch_batch_size = options.delete(:touch_batch_size) || 100
-        @touch_ids = @shards.to_h { |shard| [shard, []] }
       end
 
       private
@@ -15,12 +14,16 @@ module ActiveSupport
         end
 
         def touch_add_ids(ids, shard)
-          @touch_ids[shard].concat(ids)
-          while @touch_ids[shard].size > @touch_batch_size
+          touch_ids[shard].concat(ids)
+          while touch_ids[shard].size > @touch_batch_size
             with_role_and_shard(role: @writing_role, shard: shard) do
-              Entry.touch_by_ids(@touch_ids[shard].shift(@touch_batch_size).uniq)
+              Entry.touch_by_ids(touch_ids[shard].shift(@touch_batch_size).uniq)
             end
           end
+        end
+
+        def touch_ids
+          @touch_ids ||= shards.to_h { |shard| [shard, []] }
         end
     end
   end
