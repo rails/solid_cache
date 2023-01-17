@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-# Specify your gem's dependencies in active_support-database_cache.gemspec.
+# Specify your gem's dependencies in solid_cache.gemspec.
 gemspec
 
 gem "sqlite3"

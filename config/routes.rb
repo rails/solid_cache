@@ -1,2 +1,2 @@
-ActiveSupport::DatabaseCache::Engine.routes.draw do
+SolidCache::Engine.routes.draw do
 end
