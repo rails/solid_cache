@@ -1,7 +1,7 @@
 require "test_helper"
 require "active_support/testing/method_call_assertions"
 
-class ActiveSupport::DatabaseCache::TrimmingTest < ActiveSupport::TestCase
+class SolidCache::TrimmingTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::TimeHelpers
 
   setup do
@@ -62,8 +62,8 @@ class ActiveSupport::DatabaseCache::TrimmingTest < ActiveSupport::TestCase
     assert_equal 8, @cache.read(shard_one_keys[3])
 
     [:default, :shard_one].each do |shard|
-      ActiveSupport::DatabaseCache::Record.connected_to(shard: shard) do
-        assert_equal 2, ActiveSupport::DatabaseCache::Entry.count
+      SolidCache::Record.connected_to(shard: shard) do
+        assert_equal 2, SolidCache::Entry.count
       end
     end
   end

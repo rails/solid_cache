@@ -1,4 +1,4 @@
-# ActiveSupport::DatabaseCache
+# SolidCache
 Short description and motivation.
 
 ## Usage
@@ -8,7 +8,7 @@ How to use my plugin.
 Add this line to your application's Gemfile:
 
 ```ruby
-gem "active_support-database_cache"
+gem "solid_cache"
 ```
 
 And then execute:
@@ -18,18 +18,18 @@ $ bundle
 
 Or install it yourself as:
 ```bash
-$ gem install active_support-database_cache
+$ gem install solid_cache
 ```
 
 Adding the cache to your main database:
 
 ```bash
-$ bin/rails active_support-database_cache:install:migrations
+$ bin/rails solid_cache:install:migrations
 ```
 
 Install and run migrations:
 ```
-$ bin/rails active_support_database_cache:install:migrations
+$ bin/rails solid_cache:install:migrations
 $ bin/rails db:migrate
 ```
 
@@ -44,19 +44,19 @@ $ bin/rails db:create
 
 Install migrations:
 ```
-$ bin/rails active_support_database_cache:install:migrations
+$ bin/rails solid_cache:install:migrations
 ```
 
 Move migrations to custom migrations folder:
 ```
 $ mkdir -p db/cache/migrate
-$ mv db/migration/*_create_active_support_database_cache_entries.active_support_database_cache.rb db/cache/migrate
+$ mv db/migration/*_create_solid_cache_entries.solid_cache.rb db/cache/migrate
 ```
 
 Add an initializer to point models at the new database
 ```
-# config/active_support_database_cache.rb
-ActiveSupport.on_load(:active_support_database_cache) do
+# config/solid_cache.rb
+ActiveSupport.on_load(:solid_cache) do
   connects_to database: { writing: :cache_primary, reading: :cache_replica }
 end
 ```
@@ -71,7 +71,7 @@ $ bin/rails db:migrate
 Add this to an initializer:
 
 ```
-ActiveSupport.on_load(:active_support_database_cache_entry) do
+ActiveSupport.on_load(:solid_cache_entry) do
   encrypts :value
 end
 ```

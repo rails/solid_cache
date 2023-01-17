@@ -1,7 +1,7 @@
 require "test_helper"
 require "active_support/testing/method_call_assertions"
 
-class ActiveSupport::DatabaseCache::AsyncExecutorTest < ActiveSupport::TestCase
+class SolidCache::AsyncExecutorTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::TimeHelpers
 
   setup do
@@ -45,12 +45,12 @@ class ActiveSupport::DatabaseCache::AsyncExecutorTest < ActiveSupport::TestCase
 
     sleep 0.1
 
-    assert_equal 2, ActiveSupport::DatabaseCache::Entry.where("updated_at > ?", Time.now - 1.minute).count
+    assert_equal 2, SolidCache::Entry.where("updated_at > ?", Time.now - 1.minute).count
   end
 
   private
     def send_entries_back_in_time(distance)
-      ActiveSupport::DatabaseCache::Entry.all.each do |entry|
+      SolidCache::Entry.all.each do |entry|
         entry.update_columns(created_at: entry.created_at - distance, updated_at: entry.updated_at - distance)
       end
     end
