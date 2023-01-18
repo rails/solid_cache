@@ -9,7 +9,19 @@ module SolidCache
       def async(&block)
         # Need current shard right now, not when block is called
         current_shard = Entry.current_shard
-        @executor << ->() { block.call(current_shard) }
+        @executor << ->() do
+          wrap_in_rails_executor do
+            block.call(current_shard)
+          end
+        end
+      end
+
+      def wrap_in_rails_executor
+        if SolidCache.executor
+          SolidCache.executor.wrap { yield }
+        else
+          yield
+        end
       end
   end
 end
