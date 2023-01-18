@@ -3,5 +3,5 @@ require "solid_cache/engine"
 require "solid_cache/store"
 
 module SolidCache
-  # Your code goes here...
+  mattr_accessor :executor
 end

@@ -11,47 +11,32 @@ class SolidCache::AsyncExecutorTest < ActiveSupport::TestCase
     @cache = lookup_store(touch_batch_size: 2, trim_batch_size: 2, shards: nil)
   end
 
-  def test_deletes_old_records
-    @cache.write("foo", 1)
-    @cache.write("bar", 2)
-    assert_equal 1, @cache.read("foo")
-    assert_equal 2, @cache.read("bar")
-    sleep 0.1 # ensure the housekeeper has marked them as read
+  def test_async_errors_are_reported
+    error_subscriber = ErrorSubscriber.new
+    Rails.error.subscribe(error_subscriber)
 
-    send_entries_back_in_time(3.weeks)
-
-    @cache.write("baz", 3)
-    @cache.write("haz", 4)
-
-    sleep 0.1
-    assert_nil @cache.read("foo")
-    assert_nil @cache.read("bar")
-    assert_equal 3, @cache.read("baz")
-    assert_equal 4, @cache.read("haz")
-  end
-
-  def test_touches_records
-    @cache.write("foo", 1)
-    @cache.write("bar", 2)
-    assert_equal 1, @cache.read("foo")
-    assert_equal 2, @cache.read("bar")
-
-    sleep 0.1 # wait for them to be marked as read
-
-    send_entries_back_in_time(1.week)
-
-    assert_equal 1, @cache.read("foo")
-    assert_equal 2, @cache.read("bar")
-
-    sleep 0.1
-
-    assert_equal 2, SolidCache::Entry.where("updated_at > ?", Time.now - 1.minute).count
-  end
-
-  private
-    def send_entries_back_in_time(distance)
-      SolidCache::Entry.all.each do |entry|
-        entry.update_columns(created_at: entry.created_at - distance, updated_at: entry.updated_at - distance)
-      end
+    @cache.send(:async) do
+      raise "Boom!"
     end
+
+    sleep 0.1
+
+    assert_equal 1, error_subscriber.errors.count
+    assert_equal "Boom!", error_subscriber.errors.first[0].message
+    assert_equal({context: {}, handled: false, level: :error, source: nil}, error_subscriber.errors.first[1])
+  ensure
+    Rails.error.unsubscribe(error_subscriber) if Rails.error.respond_to?(:unsubscribe)
+  end
+
+  class ErrorSubscriber
+    attr_reader :errors
+
+    def initialize
+      @errors = []
+    end
+
+    def report(error, handled:, severity:, context:, source: nil)
+      errors << [error, { context: context, handled: handled, level: severity, source: source }]
+    end
+  end
 end
