@@ -12,7 +12,7 @@ module SolidCache
     def initialize(options = {})
       super(options)
       @trim_batch_size = options.delete(:trim_batch_size) || 100
-      @min_age = options.delete(:min_age) || 2.weeks
+      @max_age = options.delete(:max_age) || 2.weeks
 
       @cache_full = options.delete(:cache_full)
       @cache_full_callable = @cache_full.respond_to?(:call)
@@ -39,7 +39,7 @@ module SolidCache
 
       def trimming_id_candidates
         relation = Entry.least_recently_used.limit(@trim_select_limit)
-        relation = relation.where("updated_at < ?", @min_age.ago) unless cache_full?
+        relation = relation.where("updated_at < ?", @max_age.ago) unless cache_full?
         relation.ids.sample(@trim_batch_size)
       end
 
