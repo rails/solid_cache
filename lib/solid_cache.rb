@@ -3,5 +3,21 @@ require "solid_cache/engine"
 require "solid_cache/store"
 
 module SolidCache
-  mattr_accessor :executor
+  mattr_accessor :executor, :connects_to
+
+  def self.all_shard_keys
+    all_shards_config&.keys
+  end
+
+  def self.all_shards_config
+    connects_to && connects_to[:shards]
+  end
+
+  def self.shard_config(shard)
+    all_shards_config && all_shards_config[shard]
+  end
+
+  def self.shard_first_role(shard)
+    shard_config(shard)&.first&.first
+  end
 end
