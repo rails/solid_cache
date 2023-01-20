@@ -14,7 +14,7 @@ module Dummy
     # For compatibility with applications that use this config
     config.action_controller.include_all_helpers = false
 
-    config.cache_store = [:database, writing_role: :writing, reading_role: :reading]
+    config.cache_store = [:solid_cache_store]
 
     # Configuration for the application, engines, and railties goes here.
     #
@@ -23,5 +23,12 @@ module Dummy
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+
+    config.solid_cache.connects_to = {
+      shards: {
+        default: { writing: :primary, reading: :primary_replica },
+        shard_one: { writing: :primary_shard_one, reading: :primary_shard_one_replica }
+      }
+    }
   end
 end

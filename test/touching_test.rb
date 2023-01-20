@@ -9,7 +9,7 @@ class SolidCache::TrimmingTest < ActiveSupport::TestCase
   end
 
   def test_touches_read_records_single_shard
-    @cache = lookup_store(touch_batch_size: 2, trim_batch_size: 2, shards: nil)
+    @cache = lookup_store(touch_batch_size: 2, trim_batch_size: 2, shards: [:default])
     @cache.write("foo", 1)
     @cache.write("bar", 2)
     assert_equal 1, @cache.read("foo")
@@ -28,7 +28,7 @@ class SolidCache::TrimmingTest < ActiveSupport::TestCase
   end
 
   def test_touches_read_records_multiple_shards
-    @cache = lookup_store(touch_batch_size: 2, trim_batch_size: 2, shards: [:default, :shard_one])
+    @cache = lookup_store(touch_batch_size: 2, trim_batch_size: 2)
     default_shard_keys, shard_one_keys = 20.times.map { |i| "key#{i}" }.partition { |key| @cache.shard_for_key(key) == :default }
 
     @cache.write(default_shard_keys[0], 1)

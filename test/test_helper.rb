@@ -16,7 +16,7 @@ if ActiveSupport::TestCase.respond_to?(:fixture_path=)
 end
 
 def lookup_store(options = {})
-  ActiveSupport::Cache.lookup_store(:solid_cache_store, { namespace: @namespace, writing_role: :writing, reading_role: :reading, shards: [:default, :shard_one] }.merge(options))
+  ActiveSupport::Cache.lookup_store(:solid_cache_store, { namespace: @namespace }.merge(options))
 end
 
 def send_entries_back_in_time(distance)
