@@ -1,0 +1,9 @@
+Description:
+    Installs solid_cache as the Rails cache store
+
+Example:
+    bin/rails generate solid_cache:install
+
+    This will create:
+        Installs the solid_cache migrations
+        Replaces the cache store in envionment configuration
