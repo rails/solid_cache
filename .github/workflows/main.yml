@@ -38,6 +38,7 @@ jobs:
           bundler-cache: true
       - name: Setup test database
         run: |
+          sleep 2
           bin/rails db:setup
       - name: Run tests
         run: bin/rails test
