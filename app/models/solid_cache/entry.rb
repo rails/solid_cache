@@ -1,6 +1,7 @@
 module SolidCache
   class Entry < Record
     scope :least_recently_used, -> { order(:updated_at) }
+    scope :longest_expired, -> { where.not(expires_at: nil).order(:expires_at) }
 
     class << self
       def set(key, value, expires_at: nil)

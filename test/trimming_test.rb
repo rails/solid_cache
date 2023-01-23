@@ -67,4 +67,38 @@ class SolidCache::TrimmingTest < ActiveSupport::TestCase
       end
     end
   end
+
+  def test_trims_by_expiry
+    @cache = lookup_store(touch_batch_size: 2, trim_batch_size: 2, shards: [:default], trim_by: :expiry)
+    @cache.write("foo", 1, expires_at: Time.now + 1.minute)
+    @cache.write("bar", 2, expires_at: Time.now + 2.minutes)
+    @cache.write("baz", 3, expires_at: Time.now + 60.minutes)
+    @cache.write("zab", 4, expires_at: nil)
+    assert_equal 1, @cache.read("foo")
+    assert_equal 2, @cache.read("bar")
+    sleep 0.1 # ensure they are marked as read
+
+    @cache.read("foo")
+    @cache.read("bar")
+
+    travel_to Time.now + 5.minutes
+    @cache.write("daz", 5)
+    @cache.write("haz", 6)
+
+    sleep 0.1
+    assert_nil @cache.read("foo")
+    assert_nil @cache.read("bar")
+    assert_equal 3, @cache.read("baz")
+    assert_equal 4, @cache.read("zab")
+
+    SolidCache::Record.connected_to(shard: :default) do
+      assert_equal 4, SolidCache::Entry.count
+      assert_equal namespaced_keys(%w{ baz daz haz zab }), SolidCache::Entry.pluck(:key).sort
+    end
+  end
+
+  private
+    def namespaced_keys(keys)
+      keys.map { |key| "#{@namespace}:#{key}" }
+    end
 end
