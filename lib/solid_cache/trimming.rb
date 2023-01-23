@@ -12,35 +12,62 @@ module SolidCache
     def initialize(options = {})
       super(options)
       @trim_batch_size = options.delete(:trim_batch_size) || 100
+      @trim_by = options.delete(:trim_by) || :lru
+
+      raise ArgumentError, ":trim_by must be :lru (default) or :expiry" unless %i[ lru expiry ].include?(@trim_by)
+
       @max_age = options.delete(:max_age) || 2.weeks
 
       @cache_full = options.delete(:cache_full)
       @cache_full_callable = @cache_full.respond_to?(:call)
-
-      @trim_select_limit = @trim_batch_size * TRIM_SELECT_MULTIPLIER
     end
 
     private
       def trim(write_count)
         async do |shard|
-          increment_trim_counter(write_count, shard)
+          trim_count(write_count, shard)
         end
       end
 
-      def increment_trim_counter(count, shard)
+      def trim_count(count, shard)
         trim_counters[shard] += count * TRIM_DELETE_MULTIPLIER
         while trim_counters[shard] > @trim_batch_size
           with_role_and_shard(role: @writing_role, shard: shard) do
-            Entry.delete(trimming_id_candidates)
+            trim_batch
             trim_counters[shard] -= @trim_batch_size
           end
         end
       end
 
-      def trimming_id_candidates
-        relation = Entry.least_recently_used.limit(@trim_select_limit)
+      def trim_batch
+        if @trim_by == :lru
+          trim_batch_by_lru
+        else
+          trim_batch_by_expiry
+        end
+      end
+
+      def trim_batch_by_lru(batch_size: @trim_batch_size)
+        relation = Entry.least_recently_used
         relation = relation.where("updated_at < ?", @max_age.ago) unless cache_full?
-        relation.ids.sample(@trim_batch_size)
+
+        Entry.delete(trim_candidate_ids(relation, batch_size: batch_size))
+      end
+
+      def trim_batch_by_expiry(batch_size: @trim_batch_size)
+        relation = Entry.longest_expired
+        relation = relation.where("expires_at < ?", Time.now) unless cache_full?
+
+        ids = trim_candidate_ids(relation, batch_size: batch_size)
+        Entry.delete(ids)
+
+        # Fall back to LRU if the cache is full and there are not enough expired records available
+        shortfall = batch_size - ids.count
+        trim_batch_by_lru(batch_size: shortfall) if cache_full? && shortfall > 0
+      end
+
+      def trim_candidate_ids(relation, batch_size:)
+        relation.limit(batch_size * TRIM_SELECT_MULTIPLIER).ids.sample(batch_size)
       end
 
       def trim_counters
