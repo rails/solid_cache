@@ -28,6 +28,27 @@ class SolidCache::TrimmingTest < ActiveSupport::TestCase
     assert_equal 4, @cache.read("haz")
   end
 
+  def test_trims_newer_records_when_the_cache_is_full
+    cache_full_value = false
+    cache_full = ->() { cache_full_value }
+    @cache = lookup_store(touch_batch_size: 2, trim_batch_size: 2, shards: [:default], max_age: 2.weeks, cache_full: cache_full)
+    @cache.write("foo", 1)
+    @cache.write("bar", 2)
+    assert_equal 1, @cache.read("foo")
+    assert_equal 2, @cache.read("bar")
+    sleep 0.1 # ensure they are marked as read
+
+    cache_full_value = true
+
+    @cache.write("baz", 3)
+    @cache.write("haz", 4)
+
+    sleep 0.1
+
+    # Two records have been deleted
+    assert_equal 2, SolidCache::Entry.count
+  end
+
   def test_trims_old_records_multiple_shards
     @cache = lookup_store(touch_batch_size: 2, trim_batch_size: 2)
     default_shard_keys, shard_one_keys = 20.times.map { |i| "key#{i}" }.partition { |key| @cache.shard_for_key(key) == :default }
@@ -91,14 +112,40 @@ class SolidCache::TrimmingTest < ActiveSupport::TestCase
     assert_equal 3, @cache.read("baz")
     assert_equal 4, @cache.read("zab")
 
-    SolidCache::Record.connected_to(shard: :default) do
-      assert_equal 4, SolidCache::Entry.count
-      assert_equal namespaced_keys(%w{ baz daz haz zab }), SolidCache::Entry.pluck(:key).sort
-    end
+    assert_equal 4, SolidCache::Entry.count
+    assert_equal namespaced_keys(%w{ baz daz haz zab }), SolidCache::Entry.pluck(:key).sort
+  end
+
+  def test_trims_by_expiry_with_lru_shortfall
+    cache_full_value = false
+    cache_full = ->() { cache_full_value }
+    @cache = lookup_store(touch_batch_size: 2, trim_batch_size: 2, shards: [:default], max_age: 2.weeks, cache_full: cache_full, trim_by: :expiry)
+
+    @cache.write("foo", 1, expires_at: Time.now + 1.minute)
+    @cache.write("bar", 2, expires_at: nil)
+    @cache.write("baz", 3, expires_at: nil)
+    @cache.write("zab", 4, expires_at: nil)
+    sleep 0.1
+
+    travel_to Time.now + 5.minutes
+    cache_full_value = true
+    @cache.write("daz", 5)
+    @cache.write("haz", 6)
+
+    sleep 0.1
+
+    # 2 records have been deleted
+    assert_equal 4, SolidCache::Entry.count
+    # 1 of them is the expired record
+    assert_not SolidCache::Entry.where(key: namespaced_key("foo")).exists?
   end
 
   private
     def namespaced_keys(keys)
-      keys.map { |key| "#{@namespace}:#{key}" }
+      keys.map { |key| namespaced_key(key) }
+    end
+
+    def namespaced_key(key)
+      "#{@namespace}:#{key}"
     end
 end
