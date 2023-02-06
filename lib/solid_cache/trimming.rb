@@ -16,7 +16,7 @@ module SolidCache
 
       raise ArgumentError, ":trim_by must be :lru (default) or :expiry" unless %i[ lru expiry ].include?(@trim_by)
 
-      @max_age = options.delete(:max_age) || 2.weeks
+      @max_age = options.delete(:max_age) || 2.weeks.to_i
 
       @cache_full = options.delete(:cache_full)
       @cache_full_callable = @cache_full.respond_to?(:call)
@@ -49,7 +49,7 @@ module SolidCache
 
       def trim_batch_by_lru(batch_size: @trim_batch_size)
         relation = Entry.least_recently_used
-        relation = relation.where("updated_at < ?", @max_age.ago) unless cache_full?
+        relation = relation.where("updated_at < ?", @max_age.seconds.ago) unless cache_full?
 
         Entry.delete(trim_candidate_ids(relation, batch_size: batch_size))
       end
