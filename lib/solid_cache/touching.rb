@@ -1,5 +1,7 @@
 module SolidCache
   module Touching
+    attr_reader :touch_batch_size
+
     def initialize(options)
       super(options)
       @touch_batch_size = options.delete(:touch_batch_size) || 100
@@ -14,9 +16,9 @@ module SolidCache
 
       def touch_add_ids(ids, shard)
         touch_ids[shard].concat(ids)
-        while touch_ids[shard].size > @touch_batch_size
-          with_role_and_shard(role: @writing_role, shard: shard) do
-            Entry.touch_by_ids(touch_ids[shard].shift(@touch_batch_size).uniq)
+        while touch_ids[shard].size > touch_batch_size
+          with_role_and_shard(role: writing_role, shard: shard) do
+            Entry.touch_by_ids(touch_ids[shard].shift(touch_batch_size).uniq)
           end
         end
       end
