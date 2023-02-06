@@ -51,7 +51,7 @@ module SolidCache
         relation = Entry.least_recently_used
         relation = relation.where("updated_at < ?", @max_age.seconds.ago) unless cache_full?
 
-        Entry.delete(trim_candidate_ids(relation, batch_size: batch_size))
+        trim_ids(trim_candidate_ids(relation, batch_size: batch_size))
       end
 
       def trim_batch_by_expiry(batch_size: @trim_batch_size)
@@ -59,7 +59,7 @@ module SolidCache
         relation = relation.where("expires_at < ?", Time.now) unless cache_full?
 
         ids = trim_candidate_ids(relation, batch_size: batch_size)
-        Entry.delete(ids)
+        trim_ids(ids)
 
         # Fall back to LRU if the cache is full and there are not enough expired records available
         shortfall = batch_size - ids.count
@@ -72,6 +72,10 @@ module SolidCache
 
       def trim_counters
         @trim_counters ||= shards.to_h { |shard| [shard, 0] }
+      end
+
+      def trim_ids(ids)
+        Entry.delete(ids) if ids.any?
       end
 
       def cache_full?
