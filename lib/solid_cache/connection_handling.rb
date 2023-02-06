@@ -2,7 +2,7 @@ require "solid_cache/hash_ring"
 
 module SolidCache
   module ConnectionHandling
-    attr_reader :shards, :writing_role, :reading_role
+    attr_reader :writing_role, :reading_role
 
     def initialize(options = {})
       super(options)

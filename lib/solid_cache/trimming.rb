@@ -9,12 +9,14 @@ module SolidCache
     # might be deleted already. The delete multiplier should compensate for that.
     TRIM_SELECT_MULTIPLIER = 5
 
+    attr_reader :trim_batch_size, :trim_by, :max_age
+
     def initialize(options = {})
       super(options)
       @trim_batch_size = options.delete(:trim_batch_size) || 100
       @trim_by = options.delete(:trim_by) || :lru
 
-      raise ArgumentError, ":trim_by must be :lru (default) or :expiry" unless %i[ lru expiry ].include?(@trim_by)
+      raise ArgumentError, ":trim_by must be :lru (default) or :expiry" unless %i[ lru expiry ].include?(trim_by)
 
       @max_age = options.delete(:max_age) || 2.weeks.to_i
 
@@ -31,30 +33,30 @@ module SolidCache
 
       def trim_count(count, shard)
         trim_counters[shard] += count * TRIM_DELETE_MULTIPLIER
-        while trim_counters[shard] > @trim_batch_size
-          with_role_and_shard(role: @writing_role, shard: shard) do
+        while trim_counters[shard] > trim_batch_size
+          with_role_and_shard(role: writing_role, shard: shard) do
             trim_batch
-            trim_counters[shard] -= @trim_batch_size
+            trim_counters[shard] -= trim_batch_size
           end
         end
       end
 
       def trim_batch
-        if @trim_by == :lru
+        if trim_by == :lru
           trim_batch_by_lru
         else
           trim_batch_by_expiry
         end
       end
 
-      def trim_batch_by_lru(batch_size: @trim_batch_size)
+      def trim_batch_by_lru(batch_size: trim_batch_size)
         relation = Entry.least_recently_used
-        relation = relation.where("updated_at < ?", @max_age.seconds.ago) unless cache_full?
+        relation = relation.where("updated_at < ?", max_age.seconds.ago) unless cache_full?
 
         trim_ids(trim_candidate_ids(relation, batch_size: batch_size))
       end
 
-      def trim_batch_by_expiry(batch_size: @trim_batch_size)
+      def trim_batch_by_expiry(batch_size: trim_batch_size)
         relation = Entry.longest_expired
         relation = relation.where("expires_at < ?", Time.now) unless cache_full?
 
