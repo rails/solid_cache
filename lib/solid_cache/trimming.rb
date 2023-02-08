@@ -73,7 +73,9 @@ module SolidCache
       end
 
       def trim_counters
-        @trim_counters ||= shards.to_h { |shard| [shard, 0] }
+        # Pre-fill the first counter to prevent herding and to account
+        # for discarded counters from the last shutdown
+        @trim_counters ||= shards.to_h { |shard| [shard, rand(trim_batch_size)] }
       end
 
       def trim_ids(ids)
