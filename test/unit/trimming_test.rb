@@ -131,11 +131,12 @@ class SolidCache::TrimmingTest < ActiveSupport::TestCase
     cache_full_value = true
     @cache.write("daz", 5)
     @cache.write("haz", 6)
+    @cache.write("maz", 7)
 
     sleep 0.1
 
-    # 2 records have been deleted
-    assert_equal 4, SolidCache::Entry.count
+    # 4 records have been deleted
+    assert_equal 3, SolidCache::Entry.count
     # 1 of them is the expired record
     assert_not SolidCache::Entry.where(key: namespaced_key("foo")).exists?
   end
