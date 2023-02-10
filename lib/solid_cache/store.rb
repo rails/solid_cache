@@ -1,11 +1,13 @@
 require "solid_cache/connection_handling"
 require "solid_cache/async_execution"
 require "solid_cache/trimming"
+require "solid_cache/stats"
 
 module SolidCache
   class Store < ActiveSupport::Cache::Store
     include ConnectionHandling, AsyncExecution
     include Trimming
+    include Stats
 
     MAX_KEY_BYTESIZE = 1024
     SQL_WILDCARD_CHARS = [ '_', '%' ]

@@ -13,6 +13,8 @@ module SolidCache
     end
 
     def writing_all_shards
+      return enum_for(:writing_all_shards) unless block_given?
+
       shards.each do |shard|
         with_role_and_shard(role: writing_role, shard: shard) { yield }
       end
