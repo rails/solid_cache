@@ -1,12 +1,13 @@
 require "solid_cache/connection_handling"
 require "solid_cache/async_execution"
-require "solid_cache/touching"
 require "solid_cache/trimming"
+require "solid_cache/stats"
 
 module SolidCache
   class Store < ActiveSupport::Cache::Store
     include ConnectionHandling, AsyncExecution
-    include Touching, Trimming
+    include Trimming
+    include Stats
 
     MAX_KEY_BYTESIZE = 1024
     SQL_WILDCARD_CHARS = [ '_', '%' ]
@@ -70,7 +71,6 @@ module SolidCache
       def read_serialized_entry(key, raw: false, **options)
         reading_shard(normalized_key: key) do
           id, serialized_entry = Entry.get(key)
-          touch([id]) if id
           serialized_entry
         end
       end
@@ -81,7 +81,7 @@ module SolidCache
         write_serialized_entry(key, payload, raw: raw, **options)
 
         writing_shard(normalized_key: key) do
-          Entry.set(key, payload, expires_at: expires_at(entry))
+          Entry.set(key, payload)
           trim(1)
         end
       end
@@ -99,7 +99,6 @@ module SolidCache
             ids << id
             serialize_entries[key] = value
           end
-          touch(ids)
         end
         serialize_entries
       end
@@ -133,7 +132,7 @@ module SolidCache
           end
 
           writing_across_shards(list: serialized_entries) do |serialized_entries|
-            Entry.set_all(serialized_entries, expires_at: expires_at(entries.first[1]))
+            Entry.set_all(serialized_entries)
             trim(serialized_entries.count)
           end
         end
@@ -181,10 +180,6 @@ module SolidCache
         else
           key
         end
-      end
-
-      def expires_at(entry)
-        entry.expires_at ? Time.at(entry.expires_at) : nil
       end
   end
 end

@@ -9,12 +9,11 @@ class SolidCache::TrimmingTest < ActiveSupport::TestCase
   end
 
   def test_trims_old_records
-    @cache = lookup_store(touch_batch_size: 2, trim_batch_size: 2, shards: [:default])
+    @cache = lookup_store(touch_batch_size: 2, trim_batch_size: 2, max_age: 2.weeks, shards: [:default])
     @cache.write("foo", 1)
     @cache.write("bar", 2)
     assert_equal 1, @cache.read("foo")
     assert_equal 2, @cache.read("bar")
-    sleep 0.1 # ensure they are marked as read
 
     send_entries_back_in_time(3.weeks)
 
@@ -28,17 +27,12 @@ class SolidCache::TrimmingTest < ActiveSupport::TestCase
     assert_equal 4, @cache.read("haz")
   end
 
-  def test_trims_newer_records_when_the_cache_is_full
-    cache_full_value = false
-    cache_full = ->() { cache_full_value }
-    @cache = lookup_store(touch_batch_size: 2, trim_batch_size: 2, shards: [:default], max_age: 2.weeks, cache_full: cache_full)
+  def test_trims_records_when_the_cache_is_full
+    @cache = lookup_store(touch_batch_size: 2, trim_batch_size: 2, shards: [:default], max_age: 2.weeks, max_entries: 2)
     @cache.write("foo", 1)
     @cache.write("bar", 2)
     assert_equal 1, @cache.read("foo")
     assert_equal 2, @cache.read("bar")
-    sleep 0.1 # ensure they are marked as read
-
-    cache_full_value = true
 
     @cache.write("baz", 3)
     @cache.write("haz", 4)
@@ -87,58 +81,6 @@ class SolidCache::TrimmingTest < ActiveSupport::TestCase
         assert_equal 2, SolidCache::Entry.count
       end
     end
-  end
-
-  def test_trims_by_expiry
-    @cache = lookup_store(touch_batch_size: 2, trim_batch_size: 2, shards: [:default], trim_by: :expiry)
-    @cache.write("foo", 1, expires_at: Time.now + 1.minute)
-    @cache.write("bar", 2, expires_at: Time.now + 2.minutes)
-    @cache.write("baz", 3, expires_at: Time.now + 60.minutes)
-    @cache.write("zab", 4, expires_at: nil)
-    assert_equal 1, @cache.read("foo")
-    assert_equal 2, @cache.read("bar")
-    sleep 0.1 # ensure they are marked as read
-
-    @cache.read("foo")
-    @cache.read("bar")
-
-    travel_to Time.now + 5.minutes
-    @cache.write("daz", 5)
-    @cache.write("haz", 6)
-
-    sleep 0.1
-    assert_nil @cache.read("foo")
-    assert_nil @cache.read("bar")
-    assert_equal 3, @cache.read("baz")
-    assert_equal 4, @cache.read("zab")
-
-    assert_equal 4, SolidCache::Entry.count
-    assert_equal namespaced_keys(%w{ baz daz haz zab }), SolidCache::Entry.pluck(:key).sort
-  end
-
-  def test_trims_by_expiry_with_lru_shortfall
-    cache_full_value = false
-    cache_full = ->() { cache_full_value }
-    @cache = lookup_store(touch_batch_size: 2, trim_batch_size: 2, shards: [:default], max_age: 2.weeks, cache_full: cache_full, trim_by: :expiry)
-
-    @cache.write("foo", 1, expires_at: Time.now + 1.minute)
-    @cache.write("bar", 2, expires_at: nil)
-    @cache.write("baz", 3, expires_at: nil)
-    @cache.write("zab", 4, expires_at: nil)
-    sleep 0.1
-
-    travel_to Time.now + 5.minutes
-    cache_full_value = true
-    @cache.write("daz", 5)
-    @cache.write("haz", 6)
-    @cache.write("maz", 7)
-
-    sleep 0.1
-
-    # 4 records have been deleted
-    assert_equal 3, SolidCache::Entry.count
-    # 1 of them is the expired record
-    assert_not SolidCache::Entry.where(key: namespaced_key("foo")).exists?
   end
 
   private
