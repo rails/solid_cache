@@ -1,12 +1,11 @@
 require "solid_cache/connection_handling"
 require "solid_cache/async_execution"
-require "solid_cache/touching"
 require "solid_cache/trimming"
 
 module SolidCache
   class Store < ActiveSupport::Cache::Store
     include ConnectionHandling, AsyncExecution
-    include Touching, Trimming
+    include Trimming
 
     MAX_KEY_BYTESIZE = 1024
     SQL_WILDCARD_CHARS = [ '_', '%' ]
@@ -70,7 +69,6 @@ module SolidCache
       def read_serialized_entry(key, raw: false, **options)
         reading_shard(normalized_key: key) do
           id, serialized_entry = Entry.get(key)
-          touch([id]) if id
           serialized_entry
         end
       end
@@ -99,7 +97,6 @@ module SolidCache
             ids << id
             serialize_entries[key] = value
           end
-          touch(ids)
         end
         serialize_entries
       end
