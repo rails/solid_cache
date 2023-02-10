@@ -22,7 +22,7 @@ end
 def send_entries_back_in_time(distance)
   @cache.writing_all_shards do
     SolidCache::Entry.all.each do |entry|
-      entry.update_columns(created_at: entry.created_at - distance, updated_at: entry.updated_at - distance)
+      entry.update_columns(created_at: entry.created_at - distance)
     end
   end
 end

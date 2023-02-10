@@ -79,7 +79,7 @@ module SolidCache
         write_serialized_entry(key, payload, raw: raw, **options)
 
         writing_shard(normalized_key: key) do
-          Entry.set(key, payload, expires_at: expires_at(entry))
+          Entry.set(key, payload)
           trim(1)
         end
       end
@@ -130,7 +130,7 @@ module SolidCache
           end
 
           writing_across_shards(list: serialized_entries) do |serialized_entries|
-            Entry.set_all(serialized_entries, expires_at: expires_at(entries.first[1]))
+            Entry.set_all(serialized_entries)
             trim(serialized_entries.count)
           end
         end
@@ -178,10 +178,6 @@ module SolidCache
         else
           key
         end
-      end
-
-      def expires_at(entry)
-        entry.expires_at ? Time.at(entry.expires_at) : nil
       end
   end
 end

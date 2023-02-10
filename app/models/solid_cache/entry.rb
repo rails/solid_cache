@@ -1,15 +1,12 @@
 module SolidCache
   class Entry < Record
-    scope :least_recently_used, -> { order(:updated_at) }
-    scope :longest_expired, -> { where.not(expires_at: nil).order(:expires_at) }
-
     class << self
-      def set(key, value, expires_at: nil)
-        upsert_all([{key: key, value: value, expires_at: expires_at}], unique_by: upsert_unique_by, update_only: [:value, :expires_at])
+      def set(key, value)
+        upsert_all([{key: key, value: value}], unique_by: upsert_unique_by, update_only: [:value])
       end
 
-      def set_all(payloads, expires_at: nil)
-        upsert_all(payloads, unique_by: upsert_unique_by, update_only: [:value, :expires_at])
+      def set_all(payloads)
+        upsert_all(payloads, unique_by: upsert_unique_by, update_only: [:value])
       end
 
       def get(key)
@@ -41,6 +38,10 @@ module SolidCache
 
       def touch_by_ids(ids)
         where(id: ids).touch_all
+      end
+
+      def id_range
+        pick(Arel.sql("max(id) - min(id) + 1")) || 0
       end
 
       private
