@@ -41,8 +41,6 @@ module SolidCache
         candidates = candidates.sample(trim_batch_size)
 
         Entry.delete(candidates.map(&:id)) if candidates.any?
-      rescue => e
-        debugger
       end
 
       def trim_counters
