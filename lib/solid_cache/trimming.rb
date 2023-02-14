@@ -36,24 +36,19 @@ module SolidCache
       end
 
       def trim_batch
-        relation = Entry.order(:id)
-        relation = relation.where("created_at < ?", max_age.seconds.ago) unless cache_full?
+        candidates = Entry.order(:id).limit(trim_batch_size * TRIM_SELECT_MULTIPLIER).select(:id, :created_at).to_a
+        candidates.select! { |entry| entry.created_at < max_age.seconds.ago } unless cache_full?
+        candidates = candidates.sample(trim_batch_size)
 
-        trim_ids(trim_candidate_ids(relation))
-      end
-
-      def trim_candidate_ids(relation)
-        relation.limit(trim_batch_size * TRIM_SELECT_MULTIPLIER).ids.sample(trim_batch_size)
+        Entry.delete(candidates.map(&:id)) if candidates.any?
+      rescue => e
+        debugger
       end
 
       def trim_counters
         # Pre-fill the first counter to prevent herding and to account
         # for discarded counters from the last shutdown
         @trim_counters ||= shards.to_h { |shard| [shard, rand(trim_batch_size)] }
-      end
-
-      def trim_ids(ids)
-        Entry.delete(ids) if ids.any?
       end
 
       def cache_full?
