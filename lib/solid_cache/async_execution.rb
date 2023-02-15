@@ -11,7 +11,9 @@ module SolidCache
         current_shard = Entry.current_shard
         @executor << ->() do
           wrap_in_rails_executor do
-            block.call(current_shard)
+            with_role_and_shard(role: writing_role, shard: current_shard) do
+              block.call(current_shard)
+            end
           end
         end
       end
