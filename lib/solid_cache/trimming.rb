@@ -25,10 +25,8 @@ module SolidCache
         counter = trim_counters[Entry.current_shard]
         counter.increment(write_count * TRIM_DELETE_MULTIPLIER)
         value = counter.value
-        if value > trim_batch_size &&
-          if counter.compare_and_set(value, value - trim_batch_size)
-            async { trim_batch }
-          end
+        if value > trim_batch_size && counter.compare_and_set(value, value - trim_batch_size)
+          async { trim_batch }
         end
       end
 
