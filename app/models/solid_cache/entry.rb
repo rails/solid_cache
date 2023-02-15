@@ -10,11 +10,11 @@ module SolidCache
       end
 
       def get(key)
-        where(key: key).skip_query_cache!.pick(:id, :value)
+        where(key: key).skip_query_cache!.pick(:value)
       end
 
       def get_all(keys)
-        where(key: keys).skip_query_cache!.pluck(:key, :id, :value)
+        where(key: keys).skip_query_cache!.pluck(:key, :value).to_h
       end
 
       def delete_by_key(key)
