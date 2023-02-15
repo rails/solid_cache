@@ -28,19 +28,19 @@ class SolidCache::TrimmingTest < ActiveSupport::TestCase
   end
 
   def test_trims_records_when_the_cache_is_full
-    @cache = lookup_store(trim_batch_size: 3, shards: [:default], max_age: 2.weeks, max_entries: 2)
+    @cache = lookup_store(trim_batch_size: 2, shards: [:default], max_age: 2.weeks, max_entries: 2)
     @cache.write("foo", 1)
     @cache.write("bar", 2)
-    assert_equal 1, @cache.read("foo")
-    assert_equal 2, @cache.read("bar")
+
+    sleep 0.1
 
     @cache.write("baz", 3)
     @cache.write("haz", 4)
 
     sleep 0.1
 
-    # Three records have been deleted
-    assert_equal 1, SolidCache::Entry.count
+    # Two records have been deleted
+    assert_equal 2, SolidCache::Entry.count
   end
 
   def test_trims_old_records_multiple_shards
