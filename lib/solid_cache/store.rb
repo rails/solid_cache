@@ -70,8 +70,7 @@ module SolidCache
 
       def read_serialized_entry(key, raw: false, **options)
         reading_shard(normalized_key: key) do
-          id, serialized_entry = Entry.get(key)
-          serialized_entry
+          Entry.get(key)
         end
       end
 
@@ -83,6 +82,7 @@ module SolidCache
         writing_shard(normalized_key: key) do
           Entry.set(key, payload)
           trim(1)
+          true
         end
       end
 
@@ -91,16 +91,7 @@ module SolidCache
       end
 
       def read_serialized_entries(keys)
-        serialize_entries = {}
-        reading_across_shards(list: keys) do |keys|
-          rows = Entry.get_all(keys)
-          ids = []
-          rows.each do |(key, id, value)|
-            ids << id
-            serialize_entries[key] = value
-          end
-        end
-        serialize_entries
+        reading_across_shards(list: keys) { |keys| Entry.get_all(keys) }.reduce(&:merge!)
       end
 
       def read_multi_entries(names, **options)
@@ -134,6 +125,7 @@ module SolidCache
           writing_across_shards(list: serialized_entries) do |serialized_entries|
             Entry.set_all(serialized_entries)
             trim(serialized_entries.count)
+            true
           end
         end
       end
