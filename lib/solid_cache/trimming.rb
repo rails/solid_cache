@@ -1,3 +1,5 @@
+require "concurrent/atomic/atomic_fixnum"
+
 module SolidCache
   module Trimming
     # For every write that we do, we attempt to delete TRIM_DELETE_MULTIPLIER times as many records.
@@ -20,17 +22,12 @@ module SolidCache
 
     private
       def trim(write_count)
-        async do |shard|
-          trim_count(write_count, shard)
-        end
-      end
-
-      def trim_count(count, shard)
-        trim_counters[shard] += count * TRIM_DELETE_MULTIPLIER
-        while trim_counters[shard] > trim_batch_size
-          with_role_and_shard(role: writing_role, shard: shard) do
-            trim_batch
-            trim_counters[shard] -= trim_batch_size
+        counter = trim_counters[Entry.current_shard]
+        counter.increment(write_count * TRIM_DELETE_MULTIPLIER)
+        value = counter.value
+        if value > trim_batch_size &&
+          if counter.compare_and_set(value, value - trim_batch_size)
+            async { trim_batch }
           end
         end
       end
@@ -46,7 +43,7 @@ module SolidCache
       def trim_counters
         # Pre-fill the first counter to prevent herding and to account
         # for discarded counters from the last shutdown
-        @trim_counters ||= shards.to_h { |shard| [shard, rand(trim_batch_size)] }
+        @trim_counters ||= shards.to_h { |shard| [shard, Concurrent::AtomicFixnum.new(rand(trim_batch_size))] }
       end
 
       def cache_full?

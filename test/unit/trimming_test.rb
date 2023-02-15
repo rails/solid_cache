@@ -9,7 +9,7 @@ class SolidCache::TrimmingTest < ActiveSupport::TestCase
   end
 
   def test_trims_old_records
-    @cache = lookup_store(touch_batch_size: 2, trim_batch_size: 2, max_age: 2.weeks, shards: [:default])
+    @cache = lookup_store(trim_batch_size: 2, max_age: 2.weeks, shards: [:default])
     @cache.write("foo", 1)
     @cache.write("bar", 2)
     assert_equal 1, @cache.read("foo")
@@ -28,7 +28,7 @@ class SolidCache::TrimmingTest < ActiveSupport::TestCase
   end
 
   def test_trims_records_when_the_cache_is_full
-    @cache = lookup_store(touch_batch_size: 2, trim_batch_size: 2, shards: [:default], max_age: 2.weeks, max_entries: 2)
+    @cache = lookup_store(trim_batch_size: 3, shards: [:default], max_age: 2.weeks, max_entries: 2)
     @cache.write("foo", 1)
     @cache.write("bar", 2)
     assert_equal 1, @cache.read("foo")
@@ -39,12 +39,12 @@ class SolidCache::TrimmingTest < ActiveSupport::TestCase
 
     sleep 0.1
 
-    # Two records have been deleted
-    assert_equal 2, SolidCache::Entry.count
+    # Three records have been deleted
+    assert_equal 1, SolidCache::Entry.count
   end
 
   def test_trims_old_records_multiple_shards
-    @cache = lookup_store(touch_batch_size: 2, trim_batch_size: 2)
+    @cache = lookup_store(trim_batch_size: 2)
     default_shard_keys, shard_one_keys = 20.times.map { |i| "key#{i}" }.partition { |key| @cache.shard_for_key(key) == :default }
 
     @cache.write(default_shard_keys[0], 1)
