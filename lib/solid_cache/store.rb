@@ -12,6 +12,12 @@ module SolidCache
     MAX_KEY_BYTESIZE = 1024
     SQL_WILDCARD_CHARS = [ '_', '%' ]
 
+    DEFAULT_ERROR_HANDLER = -> (method:, returning:, exception:) do
+      if logger
+        logger.error { "SolidCacheStore: #{method} failed, returned #{returning.inspect}: #{exception.class}: #{exception.message}" }
+      end
+    end
+
     def self.supports_cache_versioning?
       true
     end
@@ -23,6 +29,7 @@ module SolidCache
     def initialize(options = {})
       super(options)
       @max_key_bytesize = MAX_KEY_BYTESIZE
+      @error_handler = options.delete(:error_handler) || DEFAULT_ERROR_HANDLER
     end
 
     def delete_matched(matcher, options = {})
@@ -35,20 +42,32 @@ module SolidCache
 
         matcher = namespace_key(matcher, options)
 
-        writing_all_shards { Entry.delete_matched(matcher, batch_size: batch_size) }
+        writing_all_shards do
+          failsafe :decrement do
+            Entry.delete_matched(matcher, batch_size: batch_size)
+          end
+        end
       end
     end
 
     def increment(name, amount = 1, options = nil)
       options = merged_options(options)
       key = normalize_key(name, options)
-      writing_shard(normalized_key: key) { Entry.increment(key, amount) }
+      writing_shard(normalized_key: key) do
+        failsafe :increment do
+          Entry.increment(key, amount)
+        end
+      end
     end
 
     def decrement(name, amount = 1, options = nil)
       options = merged_options(options)
       key = normalize_key(name, options)
-      writing_shard(normalized_key: key) { Entry.increment(key, -amount) }
+      writing_shard(normalized_key: key) do
+        failsafe :increment do
+          Entry.increment(key, -amount)
+        end
+      end
     end
 
     def cleanup(options = nil)
@@ -70,7 +89,9 @@ module SolidCache
 
       def read_serialized_entry(key, raw: false, **options)
         reading_shard(normalized_key: key) do
-          Entry.get(key)
+          failsafe(:read_entry) do
+            Entry.get(key)
+          end
         end
       end
 
@@ -80,9 +101,11 @@ module SolidCache
         write_serialized_entry(key, payload, raw: raw, **options)
 
         writing_shard(normalized_key: key) do
-          Entry.set(key, payload)
-          trim(1)
-          true
+          failsafe(:write_entry, returning: false) do
+            Entry.set(key, payload)
+            trim(1)
+            true
+          end
         end
       end
 
@@ -91,7 +114,13 @@ module SolidCache
       end
 
       def read_serialized_entries(keys)
-        reading_across_shards(list: keys) { |keys| Entry.get_all(keys) }.reduce(&:merge!)
+        results = reading_across_shards(list: keys) do |keys|
+          failsafe(:read_multi_mget, returning: {}) do
+            Entry.get_all(keys)
+          end
+        end
+
+        results.reduce(&:merge!)
       end
 
       def read_multi_entries(names, **options)
@@ -123,15 +152,21 @@ module SolidCache
           end
 
           writing_across_shards(list: serialized_entries) do |serialized_entries|
-            Entry.set_all(serialized_entries)
-            trim(serialized_entries.count)
-            true
+            failsafe(:write_multi_entries) do
+              Entry.set_all(serialized_entries)
+              trim(serialized_entries.count)
+              true
+            end
           end
         end
       end
 
       def delete_entry(key, **options)
-        writing_shard(normalized_key: key) { Entry.delete_by_key(key) }
+        writing_shard(normalized_key: key) do
+          failsafe(:delete_entry, returning: false) do
+            Entry.delete_by_key(key)
+          end
+        end
       end
 
       def delete_multi_entries(entries, **options)
@@ -172,6 +207,14 @@ module SolidCache
         else
           key
         end
+      end
+
+      def failsafe(method, returning: nil)
+        yield
+      rescue ActiveRecord::ActiveRecordError => error
+        ActiveSupport.error_reporter&.report(error, handled: true, severity: :warning)
+        @error_handler&.call(method: method, exception: error, returning: returning)
+        returning
       end
   end
 end
