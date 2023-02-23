@@ -2,7 +2,7 @@ require "test_helper"
 
 class RoleTest < ActiveSupport::TestCase
   test "can't write to reading role" do
-    cache = lookup_store(expires_in: 60, writing_role: :reading)
+    cache = lookup_store(expires_in: 60, writing_role: :reading, error_handler: -> (method:, returning:, exception:) { raise exception })
     assert_raises(ActiveRecord::ReadOnlyError) do
       cache.write("foo", 1)
     end

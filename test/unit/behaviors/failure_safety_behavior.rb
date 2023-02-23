@@ -117,10 +117,4 @@ module FailureSafetyBehavior
       assert_nil cache.decrement(key)
     end
   end
-
-  def test_clear_failure_returns_nil
-    emulating_unavailability do |cache|
-      assert_nil cache.clear
-    end
-  end
 end

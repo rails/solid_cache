@@ -76,6 +76,7 @@ end
 
 Solid cache supports these options in addition to the universal `ActiveSupport::Cache::Store` options.
 
+- `error_handler` - a Proc to call to handle any `ActiveRecord::ActiveRecordError`s that are raises (default: log errors as warnings)
 - `role` - the database role to use for reading and writing
 - `writing_role` - the database role to use for writing
 - `reading_role` - the database role to use for reading
