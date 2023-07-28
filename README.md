@@ -99,7 +99,15 @@ Only triggering trimming when we write means that the if the cache is idle the b
 
 ### Using a dedicated cache database
 
-Add database configuration to database.yml.
+Add database configuration to database.yml, e.g.:
+
+```
+development
+  cache:
+    database: cache_development
+    host: 127.0.0.1
+    migrations_paths: "db/cache/migrate"
+```
 
 Create database:
 ```
@@ -114,13 +122,13 @@ $ bin/rails solid_cache:install:migrations
 Move migrations to custom migrations folder:
 ```
 $ mkdir -p db/cache/migrate
-$ mv db/migration/*_create_solid_cache_entries.solid_cache.rb db/cache/migrate
+$ mv db/migrate/*.solid_cache.rb db/cache/migrate
 ```
 
 Set the engine configuration to point to the new database:
 ```
 Rails.application.configure do
-  config.solid_cache.connects_to = { database: { writing: :cache_primary, reading: :cache_primary } }
+  config.solid_cache.connects_to = { database: { writing: :cache, reading: :cache } }
 end
 ```
 
