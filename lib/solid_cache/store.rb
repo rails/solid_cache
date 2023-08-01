@@ -23,10 +23,14 @@ module SolidCache
       super(options)
       @max_key_bytesize = MAX_KEY_BYTESIZE
       @error_handler = options.delete(:error_handler) || DEFAULT_ERROR_HANDLER
-      clusters_options = (options.key?(:cluster) ? [options.delete(:cluster)] : options.delete(:clusters)) || [{}]
+
+      clusters_options = options.key?(:cluster) ? [options.delete(:cluster)] : options.delete(:clusters)
+      clusters_options ||= [{}]
+
       @clusters = clusters_options.map.with_index do |cluster_options, index|
         Cluster.new(options.merge(cluster_options).merge(async_writes: index != 0))
       end
+
       @primary_cluster = clusters.first
     end
 
