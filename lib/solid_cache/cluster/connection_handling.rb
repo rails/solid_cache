@@ -1,16 +1,21 @@
 module SolidCache
   class Cluster
     module ConnectionHandling
+      attr_reader :async_writes
+
       def initialize(options = {})
         super(options)
         @shards = options.delete(:shards)
+        @async_writes = options.delete(:async_writes)
       end
 
       def writing_all_shards
         return enum_for(:writing_all_shards) unless block_given?
 
         shards.each do |shard|
-          with_shard(shard) { yield }
+          with_shard(shard) do
+            async_if_required { yield }
+          end
         end
       end
 
@@ -20,9 +25,11 @@ module SolidCache
 
       def writing_across_shards(list:, trim: false)
         across_shards(list:) do |list|
-          result = yield list
-          trim(list.size) if trim
-          result
+          async_if_required do
+            result = yield list
+            trim(list.size) if trim
+            result
+          end
         end
       end
 
@@ -31,10 +38,12 @@ module SolidCache
       end
 
       def writing_shard(normalized_key:, trim: false)
-        with_shard(shard: shard_for_normalized_key(normalized_key)) do
-          result = yield
-          trim(1) if trim
-          result
+         with_shard(shard: shard_for_normalized_key(normalized_key)) do
+          async_if_required do
+            result = yield
+            trim(1) if trim
+            result
+          end
         end
       end
 
@@ -71,6 +80,14 @@ module SolidCache
 
         def hash_ring
           @hash_ring ||= shards.count > 0 ? HashRing.new(shards) : nil
+        end
+
+        def async_if_required
+          if async_writes
+            async { yield }
+          else
+            yield
+          end
         end
     end
   end
