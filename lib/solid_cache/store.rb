@@ -17,13 +17,15 @@ module SolidCache
 
     prepend ActiveSupport::Cache::Strategy::LocalCache
 
-    attr_reader :max_key_bytesize, :cluster
+    attr_reader :max_key_bytesize, :primary_cluster, :clusters
 
     def initialize(options = {})
       super(options)
       @max_key_bytesize = MAX_KEY_BYTESIZE
       @error_handler = options.delete(:error_handler) || DEFAULT_ERROR_HANDLER
-      @cluster = Cluster.new(options)
+      clusters_options = (options.key?(:cluster) ? [options.delete(:cluster)] : options.delete(:clusters)) || [{}]
+      @clusters = clusters_options.map { |cluster_options| Cluster.new(options.merge(cluster_options)) }
+      @primary_cluster = clusters.first
     end
 
     def delete_matched(matcher, options = {})
@@ -36,7 +38,7 @@ module SolidCache
 
         matcher = namespace_key(matcher, options)
 
-        cluster.writing_all_shards do
+        primary_cluster.writing_all_shards do
           failsafe :decrement do
             Entry.delete_matched(matcher, batch_size: batch_size)
           end
@@ -47,7 +49,7 @@ module SolidCache
     def increment(name, amount = 1, options = nil)
       options = merged_options(options)
       key = normalize_key(name, options)
-      cluster.with_shard_for_key(normalized_key: key) do
+      primary_cluster.with_shard_for_key(normalized_key: key) do
         failsafe :increment do
           Entry.increment(key, amount)
         end
@@ -57,7 +59,7 @@ module SolidCache
     def decrement(name, amount = 1, options = nil)
       options = merged_options(options)
       key = normalize_key(name, options)
-      cluster.with_shard_for_key(normalized_key: key) do
+      primary_cluster.with_shard_for_key(normalized_key: key) do
         failsafe :increment do
           Entry.increment(key, -amount)
         end
@@ -73,7 +75,7 @@ module SolidCache
     end
 
     def stats
-      cluster.stats
+      primary_cluster.stats
     end
 
     private
@@ -82,7 +84,7 @@ module SolidCache
       end
 
       def read_serialized_entry(key, raw: false, **options)
-        cluster.with_shard_for_key(normalized_key: key) do
+        primary_cluster.with_shard_for_key(normalized_key: key) do
           failsafe(:read_entry) do
             Entry.get(key)
           end
@@ -94,10 +96,10 @@ module SolidCache
         payload = serialize_entry(entry, raw: raw, **options)
         write_serialized_entry(key, payload, raw: raw, **options)
 
-        cluster.with_shard_for_key(normalized_key: key) do
+        primary_cluster.with_shard_for_key(normalized_key: key) do
           failsafe(:write_entry, returning: false) do
             Entry.set(key, payload)
-            cluster.trim(1)
+            primary_cluster.trim(1)
             true
           end
         end
@@ -108,7 +110,7 @@ module SolidCache
       end
 
       def read_serialized_entries(keys)
-        results = cluster.reading_across_shards(list: keys) do |keys|
+        results = primary_cluster.reading_across_shards(list: keys) do |keys|
           failsafe(:read_multi_mget, returning: {}) do
             Entry.get_all(keys)
           end
@@ -145,10 +147,10 @@ module SolidCache
             write_serialized_entry(entries[:key], entries[:value])
           end
 
-          cluster.writing_across_shards(list: serialized_entries) do |serialized_entries|
+          primary_cluster.writing_across_shards(list: serialized_entries) do |serialized_entries|
             failsafe(:write_multi_entries) do
               Entry.set_all(serialized_entries)
-              cluster.trim(serialized_entries.count)
+              primary_cluster.trim(serialized_entries.count)
               true
             end
           end
@@ -156,7 +158,7 @@ module SolidCache
       end
 
       def delete_entry(key, **options)
-        cluster.with_shard_for_key(normalized_key: key) do
+        primary_cluster.with_shard_for_key(normalized_key: key) do
           failsafe(:delete_entry, returning: false) do
             Entry.delete_by_key(key)
           end

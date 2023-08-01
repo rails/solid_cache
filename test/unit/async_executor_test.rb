@@ -15,7 +15,7 @@ class SolidCache::AsyncExecutorTest < ActiveSupport::TestCase
     error_subscriber = ErrorSubscriber.new
     Rails.error.subscribe(error_subscriber)
 
-    @cache.cluster.send(:async) do
+    @cache.primary_cluster.send(:async) do
       raise "Boom!"
     end
 
