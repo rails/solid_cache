@@ -1,3 +1,13 @@
+<%
+  def database(name)
+    if ENV["TARGET_DB"]=="mysql" || ENV["TARGET_DB"]=="postgres"
+      name
+    else
+      "db/#{name}.sqlite3"
+    end
+  end
+%>
+
 <% if ENV["TARGET_DB"]=="mysql" %>
 
 # MySQL
@@ -7,39 +17,6 @@ default: &default
   pool: 5
   host: "127.0.0.1"
   port: 33060
-
-development:
-  primary:
-    <<: *default
-    database: database_cache_development
-  primary_replica:
-    <<: *default
-    database: database_cache_development
-    replica: true
-  primary_shard_one:
-    <<: *default
-    database: database_cache1_development
-  primary_shard_one_replica:
-    <<: *default
-    database: database_cache1_development
-    replica: true
-
-test:
-  primary:
-    <<: *default
-    database: database_cache_test
-  primary_replica:
-    <<: *default
-    database: database_cache_test
-    replica: true
-  primary_shard_one:
-    <<: *default
-    database: database_cache1_test
-  primary_shard_one_replica:
-    <<: *default
-    database: database_cache1_test
-    replica: true
-
 
 <% elsif ENV["TARGET_DB"]=="postgres" %>
 
@@ -52,82 +29,61 @@ default: &default
   host: "127.0.0.1"
   port: 55432
 
-development:
-  primary:
-    <<: *default
-    database: database_cache_development
-  primary_replica:
-    <<: *default
-    database: database_cache_development
-    replica: true
-  primary_shard_one:
-    <<: *default
-    database: database_cache1_development
-  primary_shard_one_replica:
-    <<: *default
-    database: database_cache1_development
-    replica: true
-
-test:
-  primary:
-    <<: *default
-    database: database_cache_test
-  primary_replica:
-    <<: *default
-    database: database_cache_test
-    replica: true
-  primary_shard_one:
-    <<: *default
-    database: database_cache1_test
-  primary_shard_one_replica:
-    <<: *default
-    database: database_cache1_test
-    replica: true
-
 <% else %>
-# SQLite. Versions 3.8.0 and up are supported.
-#   gem install sqlite3
-#
-#   Ensure the SQLite 3 gem is defined in your Gemfile
-#   gem "sqlite3"
-#
+
 default: &default
   adapter: sqlite3
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   timeout: 5000
 
+<% end %>
+
 development:
   primary:
     <<: *default
-    database: db/development.sqlite3
+    database: <%= database("database_cache_development") %>
   primary_replica:
     <<: *default
-    database: db/development.sqlite3
+    database: <%= database("database_cache_development") %>
     replica: true
   primary_shard_one:
     <<: *default
-    database: db/development1.sqlite3
+    database: <%= database("database_cache1_development") %>
   primary_shard_one_replica:
     <<: *default
-    database: db/development1.sqlite3
+    database: <%= database("database_cache1_development") %>
     replica: true
+  primary_shard_two:
+    <<: *default
+    database: <%= database("database_cache2_development") %>
+  secondary_shard_one:
+    <<: *default
+    database: <%= database("database_cache1s_development") %>
+  secondary_shard_two:
+    <<: *default
+    database: <%= database("database_cache2s_development") %>
 
-# Warning: The database defined as "test" will be erased and
-# re-generated from your development database when you run "rake".
-# Do not set this db to the same as development or production.
 test:
   primary:
     <<: *default
-    database: db/test.sqlite3
+    database: <%= database("database_cache_development") %>
   primary_replica:
     <<: *default
-    database: db/test.sqlite3
+    database: <%= database("database_cache_development") %>
     replica: true
   primary_shard_one:
     <<: *default
-    database: db/test1.sqlite3
+    database: <%= database("database_cache1_development") %>
   primary_shard_one_replica:
     <<: *default
-    database: db/test1.sqlite3
+    database: <%= database("database_cache1_development") %>
     replica: true
-<% end %>
+  primary_shard_two:
+    <<: *default
+    database: <%= database("database_cache2_development") %>
+  secondary_shard_one:
+    <<: *default
+    database: <%= database("database_cache1s_development") %>
+  secondary_shard_two:
+    <<: *default
+    database: <%= database("database_cache2s_development") %>

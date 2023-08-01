@@ -1,14 +1,7 @@
-require "solid_cache/connection_handling"
-require "solid_cache/async_execution"
-require "solid_cache/trimming"
-require "solid_cache/stats"
+require "solid_cache/cluster"
 
 module SolidCache
   class Store < ActiveSupport::Cache::Store
-    include ConnectionHandling, AsyncExecution
-    include Trimming
-    include Stats
-
     MAX_KEY_BYTESIZE = 1024
     SQL_WILDCARD_CHARS = [ '_', '%' ]
 
@@ -24,12 +17,13 @@ module SolidCache
 
     prepend ActiveSupport::Cache::Strategy::LocalCache
 
-    attr_reader :max_key_bytesize
+    attr_reader :max_key_bytesize, :cluster
 
     def initialize(options = {})
       super(options)
       @max_key_bytesize = MAX_KEY_BYTESIZE
       @error_handler = options.delete(:error_handler) || DEFAULT_ERROR_HANDLER
+      @cluster = Cluster.new(options)
     end
 
     def delete_matched(matcher, options = {})
@@ -42,7 +36,7 @@ module SolidCache
 
         matcher = namespace_key(matcher, options)
 
-        writing_all_shards do
+        cluster.writing_all_shards do
           failsafe :decrement do
             Entry.delete_matched(matcher, batch_size: batch_size)
           end
@@ -53,7 +47,7 @@ module SolidCache
     def increment(name, amount = 1, options = nil)
       options = merged_options(options)
       key = normalize_key(name, options)
-      with_shard_for_key(normalized_key: key) do
+      cluster.with_shard_for_key(normalized_key: key) do
         failsafe :increment do
           Entry.increment(key, amount)
         end
@@ -63,7 +57,7 @@ module SolidCache
     def decrement(name, amount = 1, options = nil)
       options = merged_options(options)
       key = normalize_key(name, options)
-      with_shard_for_key(normalized_key: key) do
+      cluster.with_shard_for_key(normalized_key: key) do
         failsafe :increment do
           Entry.increment(key, -amount)
         end
@@ -78,8 +72,8 @@ module SolidCache
       raise NotImplementedError.new("#{self.class.name} does not support clear")
     end
 
-    def shard_for_key(key, options = nil)
-      shard_for_normalized_key(normalize_key(key, merged_options(options)))
+    def stats
+      cluster.stats
     end
 
     private
@@ -88,7 +82,7 @@ module SolidCache
       end
 
       def read_serialized_entry(key, raw: false, **options)
-        with_shard_for_key(normalized_key: key) do
+        cluster.with_shard_for_key(normalized_key: key) do
           failsafe(:read_entry) do
             Entry.get(key)
           end
@@ -100,10 +94,10 @@ module SolidCache
         payload = serialize_entry(entry, raw: raw, **options)
         write_serialized_entry(key, payload, raw: raw, **options)
 
-        with_shard_for_key(normalized_key: key) do
+        cluster.with_shard_for_key(normalized_key: key) do
           failsafe(:write_entry, returning: false) do
             Entry.set(key, payload)
-            trim(1)
+            cluster.trim(1)
             true
           end
         end
@@ -114,7 +108,7 @@ module SolidCache
       end
 
       def read_serialized_entries(keys)
-        results = reading_across_shards(list: keys) do |keys|
+        results = cluster.reading_across_shards(list: keys) do |keys|
           failsafe(:read_multi_mget, returning: {}) do
             Entry.get_all(keys)
           end
@@ -151,10 +145,10 @@ module SolidCache
             write_serialized_entry(entries[:key], entries[:value])
           end
 
-          writing_across_shards(list: serialized_entries) do |serialized_entries|
+          cluster.writing_across_shards(list: serialized_entries) do |serialized_entries|
             failsafe(:write_multi_entries) do
               Entry.set_all(serialized_entries)
-              trim(serialized_entries.count)
+              cluster.trim(serialized_entries.count)
               true
             end
           end
@@ -162,7 +156,7 @@ module SolidCache
       end
 
       def delete_entry(key, **options)
-        with_shard_for_key(normalized_key: key) do
+        cluster.with_shard_for_key(normalized_key: key) do
           failsafe(:delete_entry, returning: false) do
             Entry.delete_by_key(key)
           end

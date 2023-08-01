@@ -17,11 +17,11 @@ if ActiveSupport::TestCase.respond_to?(:fixture_path=)
 end
 
 def lookup_store(options = {})
-  ActiveSupport::Cache.lookup_store(:solid_cache_store, { namespace: @namespace }.merge(options))
+  ActiveSupport::Cache.lookup_store(:solid_cache_store, { namespace: @namespace, shards: [:default, :default2] }.merge(options))
 end
 
 def send_entries_back_in_time(distance)
-  @cache.writing_all_shards do
+  @cache.cluster.writing_all_shards do
     SolidCache::Entry.all.each do |entry|
       entry.update_columns(created_at: entry.created_at - distance)
     end

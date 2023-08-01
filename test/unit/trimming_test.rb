@@ -45,7 +45,7 @@ class SolidCache::TrimmingTest < ActiveSupport::TestCase
 
   def test_trims_old_records_multiple_shards
     @cache = lookup_store(trim_batch_size: 2)
-    default_shard_keys, shard_one_keys = 20.times.map { |i| "key#{i}" }.partition { |key| @cache.shard_for_key(key) == :default }
+    default_shard_keys, shard_one_keys = 20.times.map { |i| "key#{i}" }.partition { |key| @cache.cluster.send(:shard_for_normalized_key, @cache.send(:normalize_key, key, {})) == :default }
 
     @cache.write(default_shard_keys[0], 1)
     @cache.write(default_shard_keys[1], 2)
@@ -76,7 +76,7 @@ class SolidCache::TrimmingTest < ActiveSupport::TestCase
     assert_equal 7, @cache.read(shard_one_keys[2])
     assert_equal 8, @cache.read(shard_one_keys[3])
 
-    [:default, :shard_one].each do |shard|
+    [:default, :default2].each do |shard|
       SolidCache::Record.connected_to(shard: shard) do
         assert_equal 2, SolidCache::Entry.count
       end

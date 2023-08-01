@@ -27,7 +27,11 @@ module Dummy
     config.solid_cache.connects_to = {
       shards: {
         default: { writing: :primary, reading: :primary_replica },
-        shard_one: { writing: :primary_shard_one, reading: :primary_shard_one_replica }
+        default2: { writing: :primary_shard_one, reading: :primary_shard_one_replica },
+        primary_shard_one: { writing: :primary_shard_one },
+        primary_shard_two: { writing: :primary_shard_two },
+        secondary_shard_one: { writing: :secondary_shard_one },
+        secondary_shard_two: { writing: :secondary_shard_two }
       }
     }
   end
