@@ -18,20 +18,32 @@ module SolidCache
         @shards || SolidCache.all_shard_keys || [nil]
       end
 
+      def writing_across_shards(list:, trim: false)
+        across_shards(list:) do |list|
+          result = yield list
+          trim(list.size) if trim
+          result
+        end
+      end
+
+      def reading_across_shards(list:)
+        across_shards(list:) { |list| yield list }
+      end
+
+      def writing_shard(normalized_key:, trim: false)
+        with_shard(shard: shard_for_normalized_key(normalized_key)) do
+          result = yield
+          trim(1) if trim
+          result
+        end
+      end
+
+      def reading_shard(normalized_key:)
+        with_shard(shard_for_normalized_key(normalized_key)) { yield }
+      end
+
       private
-        def writing_across_shards(list:)
-          across_shards(list:) { |list| yield list }
-        end
-
-        def reading_across_shards(list:)
-          across_shards(list:) { |list| yield list }
-        end
-
-        def with_shard_for_key(normalized_key:)
-          with_shard(shard_for_normalized_key(normalized_key)) { yield }
-        end
-
-        def with_shard(shard)
+        def with_shard(shard:)
           if shard
             Record.connected_to(shard: shard) { yield }
           else

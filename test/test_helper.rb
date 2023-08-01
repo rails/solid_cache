@@ -17,7 +17,9 @@ if ActiveSupport::TestCase.respond_to?(:fixture_path=)
 end
 
 def lookup_store(options = {})
-  ActiveSupport::Cache.lookup_store(:solid_cache_store, { namespace: @namespace, cluster: { shards: [:default, :default2] } }.merge(options))
+  store_options = { namespace: @namespace }.merge(options)
+  store_options.merge!(cluster: { shards: [:default, :default2] }) unless store_options.key?(:cluster) || store_options.key?(:clusters)
+  ActiveSupport::Cache.lookup_store(:solid_cache_store, store_options)
 end
 
 def send_entries_back_in_time(distance)

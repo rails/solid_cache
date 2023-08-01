@@ -38,8 +38,8 @@ module SolidCache
 
         matcher = namespace_key(matcher, options)
 
-        primary_cluster.writing_all_shards do
-          failsafe :decrement do
+        writing do
+          failsafe :delete_matched do
             Entry.delete_matched(matcher, batch_size: batch_size)
           end
         end
@@ -49,7 +49,7 @@ module SolidCache
     def increment(name, amount = 1, options = nil)
       options = merged_options(options)
       key = normalize_key(name, options)
-      primary_cluster.with_shard_for_key(normalized_key: key) do
+      writing_key(key) do
         failsafe :increment do
           Entry.increment(key, amount)
         end
@@ -59,8 +59,8 @@ module SolidCache
     def decrement(name, amount = 1, options = nil)
       options = merged_options(options)
       key = normalize_key(name, options)
-      primary_cluster.with_shard_for_key(normalized_key: key) do
-        failsafe :increment do
+      writing_key(key) do
+        failsafe :decrement do
           Entry.increment(key, -amount)
         end
       end
@@ -96,10 +96,9 @@ module SolidCache
         payload = serialize_entry(entry, raw: raw, **options)
         write_serialized_entry(key, payload, raw: raw, **options)
 
-        primary_cluster.with_shard_for_key(normalized_key: key) do
+        writing_key(key, trim: true) do
           failsafe(:write_entry, returning: false) do
             Entry.set(key, payload)
-            primary_cluster.trim(1)
             true
           end
         end
@@ -147,10 +146,9 @@ module SolidCache
             write_serialized_entry(entries[:key], entries[:value])
           end
 
-          primary_cluster.writing_across_shards(list: serialized_entries) do |serialized_entries|
+          writing_list(serialized_entries, trim: true) do |serialized_entries|
             failsafe(:write_multi_entries) do
               Entry.set_all(serialized_entries)
-              primary_cluster.trim(serialized_entries.count)
               true
             end
           end
@@ -158,7 +156,7 @@ module SolidCache
       end
 
       def delete_entry(key, **options)
-        primary_cluster.with_shard_for_key(normalized_key: key) do
+        writing_key(key) do
           failsafe(:delete_entry, returning: false) do
             Entry.delete_by_key(key)
           end
@@ -211,6 +209,34 @@ module SolidCache
         ActiveSupport.error_reporter&.report(error, handled: true, severity: :warning)
         @error_handler&.call(method: method, exception: error, returning: returning)
         returning
+      end
+
+      def writing_key(key, trim: false)
+        writing_clusters do |cluster|
+          cluster.with_shard_for_key(normalized_key: key, trim: trim) do
+            yield
+          end
+        end
+      end
+
+      def writing_list(list, trim: false)
+        writing_clusters do |cluster|
+          cluster.writing_across_shards(list: list, trim: trim) do |list|
+            yield list
+          end
+        end
+      end
+
+      def writing
+        writing_clusters do |cluster|
+          cluster.writing_all_shards do
+            yield
+          end
+        end
+      end
+
+      def writing_clusters
+        clusters.map { |cluster| yield cluster }.first
       end
   end
 end
