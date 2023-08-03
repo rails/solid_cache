@@ -77,9 +77,6 @@ end
 Solid cache supports these options in addition to the universal `ActiveSupport::Cache::Store` options.
 
 - `error_handler` - a Proc to call to handle any `ActiveRecord::ActiveRecordError`s that are raises (default: log errors as warnings)
-- `role` - the database role to use for reading and writing
-- `writing_role` - the database role to use for writing
-- `reading_role` - the database role to use for reading
 - `shards` - an Array of the database shards to connect to (shard connects_to must be configured separately via the SolidCache engine config)
 - `trim_batch_size` - the batch size to use when deleting old records (default: `100`)
 - `max_age` - the maximum age of entries in the cache (default: `2.weeks.to_i`)
