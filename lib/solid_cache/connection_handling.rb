@@ -11,7 +11,7 @@ module SolidCache
       return enum_for(:writing_all_shards) unless block_given?
 
       shards.each do |shard|
-        with_role_and_shard(role: ActiveRecord.writing_role, shard: shard) { yield }
+        with_shard(shard) { yield }
       end
     end
 
@@ -21,33 +21,28 @@ module SolidCache
 
     private
       def writing_across_shards(list:)
-        across_shards(role: ActiveRecord.writing_role, list:) { |list| yield list }
+        across_shards(list:) { |list| yield list }
       end
 
       def reading_across_shards(list:)
-        across_shards(role: ActiveRecord.reading_role, list:) { |list| yield list }
+        across_shards(list:) { |list| yield list }
       end
 
-      def writing_shard(normalized_key:)
-        with_role_and_shard(role: ActiveRecord.writing_role, shard: shard_for_normalized_key(normalized_key)) { yield }
+      def with_shard_for_key(normalized_key:)
+        with_shard(shard_for_normalized_key(normalized_key)) { yield }
       end
 
-      def reading_shard(normalized_key:)
-        with_role_and_shard(role: ActiveRecord.reading_role, shard: shard_for_normalized_key(normalized_key)) { yield }
-      end
-
-      def with_role_and_shard(role:, shard:)
-        if role || shard
-          role ||= SolidCache.shard_first_role(shard)
-          Record.connected_to(role: role, shard: shard) { yield }
+      def with_shard(shard)
+        if shard
+          Record.connected_to(shard: shard) { yield }
         else
           yield
         end
       end
 
-      def across_shards(role:, list:)
+      def across_shards(list:)
         in_shards(list).map do |shard, list|
-          with_role_and_shard(role: role, shard: shard) { yield list }
+          with_shard(shard) { yield list }
         end
       end
 

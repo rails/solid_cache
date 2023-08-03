@@ -53,7 +53,7 @@ module SolidCache
     def increment(name, amount = 1, options = nil)
       options = merged_options(options)
       key = normalize_key(name, options)
-      writing_shard(normalized_key: key) do
+      with_shard_for_key(normalized_key: key) do
         failsafe :increment do
           Entry.increment(key, amount)
         end
@@ -63,7 +63,7 @@ module SolidCache
     def decrement(name, amount = 1, options = nil)
       options = merged_options(options)
       key = normalize_key(name, options)
-      writing_shard(normalized_key: key) do
+      with_shard_for_key(normalized_key: key) do
         failsafe :increment do
           Entry.increment(key, -amount)
         end
@@ -88,7 +88,7 @@ module SolidCache
       end
 
       def read_serialized_entry(key, raw: false, **options)
-        reading_shard(normalized_key: key) do
+        with_shard_for_key(normalized_key: key) do
           failsafe(:read_entry) do
             Entry.get(key)
           end
@@ -100,7 +100,7 @@ module SolidCache
         payload = serialize_entry(entry, raw: raw, **options)
         write_serialized_entry(key, payload, raw: raw, **options)
 
-        writing_shard(normalized_key: key) do
+        with_shard_for_key(normalized_key: key) do
           failsafe(:write_entry, returning: false) do
             Entry.set(key, payload)
             trim(1)
@@ -162,7 +162,7 @@ module SolidCache
       end
 
       def delete_entry(key, **options)
-        writing_shard(normalized_key: key) do
+        with_shard_for_key(normalized_key: key) do
           failsafe(:delete_entry, returning: false) do
             Entry.delete_by_key(key)
           end

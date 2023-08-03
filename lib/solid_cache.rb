@@ -16,8 +16,4 @@ module SolidCache
   def self.shard_config(shard)
     all_shards_config && all_shards_config[shard]
   end
-
-  def self.shard_first_role(shard)
-    shard_config(shard)&.first&.first
-  end
 end
