@@ -2,13 +2,8 @@ require "solid_cache/hash_ring"
 
 module SolidCache
   module ConnectionHandling
-    attr_reader :writing_role, :reading_role
-
     def initialize(options = {})
       super(options)
-      role = options.delete(:role)
-      @writing_role = options.delete(:writing_role) || role
-      @reading_role = options.delete(:reading_role) || role
       @shards = options.delete(:shards)
     end
 
@@ -16,7 +11,7 @@ module SolidCache
       return enum_for(:writing_all_shards) unless block_given?
 
       shards.each do |shard|
-        with_role_and_shard(role: writing_role, shard: shard) { yield }
+        with_role_and_shard(role: ActiveRecord.writing_role, shard: shard) { yield }
       end
     end
 
@@ -26,19 +21,19 @@ module SolidCache
 
     private
       def writing_across_shards(list:)
-        across_shards(role: writing_role, list:) { |list| yield list }
+        across_shards(role: ActiveRecord.writing_role, list:) { |list| yield list }
       end
 
       def reading_across_shards(list:)
-        across_shards(role: reading_role, list:) { |list| yield list }
+        across_shards(role: ActiveRecord.reading_role, list:) { |list| yield list }
       end
 
       def writing_shard(normalized_key:)
-        with_role_and_shard(role: writing_role, shard: shard_for_normalized_key(normalized_key)) { yield }
+        with_role_and_shard(role: ActiveRecord.writing_role, shard: shard_for_normalized_key(normalized_key)) { yield }
       end
 
       def reading_shard(normalized_key:)
-        with_role_and_shard(role: reading_role, shard: shard_for_normalized_key(normalized_key)) { yield }
+        with_role_and_shard(role: ActiveRecord.reading_role, shard: shard_for_normalized_key(normalized_key)) { yield }
       end
 
       def with_role_and_shard(role:, shard:)
