@@ -2,7 +2,7 @@ module SolidCache
   class Cluster
     module AsyncExecution
       def initialize(options)
-        super(options)
+        super()
         @executor = Concurrent::SingleThreadExecutor.new(max_queue: 100, fallback_policy: :discard)
       end
 

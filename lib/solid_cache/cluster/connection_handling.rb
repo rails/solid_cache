@@ -38,7 +38,7 @@ module SolidCache
       end
 
       def writing_shard(normalized_key:, trim: false)
-         with_shard(shard: shard_for_normalized_key(normalized_key)) do
+        with_shard(shard_for_normalized_key(normalized_key)) do
           async_if_required do
             result = yield
             trim(1) if trim
@@ -52,7 +52,7 @@ module SolidCache
       end
 
       private
-        def with_shard(shard:)
+        def with_shard(shard)
           if shard
             Record.connected_to(shard: shard) { yield }
           else

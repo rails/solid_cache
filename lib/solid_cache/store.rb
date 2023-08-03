@@ -90,7 +90,7 @@ module SolidCache
       end
 
       def read_serialized_entry(key, raw: false, **options)
-        primary_cluster.with_shard_for_key(normalized_key: key) do
+        primary_cluster.reading_shard(normalized_key: key) do
           failsafe(:read_entry) do
             Entry.get(key)
           end
@@ -219,7 +219,7 @@ module SolidCache
 
       def writing_key(key, trim: false)
         writing_clusters do |cluster|
-          cluster.with_shard_for_key(normalized_key: key, trim: trim) do
+          cluster.writing_shard(normalized_key: key, trim: trim) do
             yield
           end
         end
