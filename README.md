@@ -1,7 +1,7 @@
 # SolidCache
-SolidCache is a database backed ActiveSupport cache store implementation.
+SolidCache is a database-backed ActiveSupport cache store implementation.
 
-Using SQL databases backed by solid state storage we can have caches that are much larger and cheaper than traditional memory only Redis or Memcached backed caches.
+Using SQL databases backed by SSDs we can have caches that are much larger and cheaper than traditional memory only Redis or Memcached backed caches.
 
 Testing on HEY shows that reads and writes are 25%-50% slower than with a Redis cache. However this is not a significant percentage of the overall request time.
 
@@ -9,14 +9,15 @@ If cache misses are expensive (up to 50x the cost of a hit on HEY), then there a
 
 ## Usage
 
-To set solid cache as your Rails cache, you should add this to your environment config:
+To set SolidCache as your Rails cache, you should add this to your environment config:
 
 ```ruby
 config.cache_store = :solid_cache_store
 ```
 
-SolidCache is a FIFO (first in, first out) cache. While this is not as efficient as an LRU cache, this is mitigated by the longer cache lifespans and it provides some advantages:
+SolidCache is a FIFO (first in, first out) cache. While this is not as efficient as an LRU cache, this is mitigated by the longer cache lifespans.
 
+A FIFO cache is much easier to manage:
 1. We don't need to track when items are read
 2. We can estimate and control the cache size by comparing the maximum and minimum IDs.
 3. By deleting from one end of the table and adding at the other end we can avoid fragmentation (on MySQL at least).
@@ -65,8 +66,8 @@ These can be set in your Rails configuration:
 Rails.application.configure do
   config.solid_cache.connects_to = {
     shards: {
-      shard1: { writing: :cache_primary_shard1, reading: :cache_primary_shard1 },
-      shard2: { writing: :cache_primary_shard1, reading: :cache_primary_shard1 }
+      shard1: { writing: :cache_primary_shard1 },
+      shard2: { writing: :cache_primary_shard1 }
     }
   }
 end
@@ -77,11 +78,13 @@ end
 Solid cache supports these options in addition to the universal `ActiveSupport::Cache::Store` options.
 
 - `error_handler` - a Proc to call to handle any `ActiveRecord::ActiveRecordError`s that are raises (default: log errors as warnings)
-- `shards` - an Array of the database shards to connect to (shard connects_to must be configured separately via the SolidCache engine config)
 - `trim_batch_size` - the batch size to use when deleting old records (default: `100`)
 - `max_age` - the maximum age of entries in the cache (default: `2.weeks.to_i`)
 - `max_entries` - the maximum number of entries allowed in the cache (default: `2.weeks.to_i`)
+- `cluster` - a Hash of options for the cache database cluster, e.g { shards: [:database1, :database2, :database3] }
+- `clusters` - and Array of Hashes for separate cache clusters (ignored if `:cluster` is set)
 
+For more information on cache clusters see [Sharding the cache](#sharding-the-cache)
 ### Cache trimming
 
 SolidCache tracks when we write to the cache. For every write it increments a counter by 1.25. Once the counter reaches the `trim_batch_size` it add a task to run on a cache trimming thread. That task will:
@@ -92,7 +95,7 @@ SolidCache tracks when we write to the cache. For every write it increments a co
 
 Incrementing the counter by 1.25 per write allows us to trim the cache faster than we write to it if we need to.
 
-Only triggering trimming when we write means that the if the cache is idle the background thread is also idle.
+Only triggering trimming when we write means that the if the cache is idle, the background thread is also idle.
 
 ### Using a dedicated cache database
 
@@ -125,7 +128,7 @@ $ mv db/migrate/*.solid_cache.rb db/cache/migrate
 Set the engine configuration to point to the new database:
 ```
 Rails.application.configure do
-  config.solid_cache.connects_to = { database: { writing: :cache, reading: :cache } }
+  config.solid_cache.connects_to = { default: { writing: :cache } }
 end
 ```
 
@@ -163,15 +166,41 @@ production:
 Rails.application.configure do
   config.solid_cache.connects_to = {
     shards: {
-      cache_shard1: { writing: :cache_shard1, reading: :cache_shard1 },
-      cache_shard2: { writing: :cache_shard2, reading: :cache_shard2 },
-      cache_shard3: { writing: :cache_shard3, reading: :cache_shard3 },
+      cache_shard1: { writing: :cache_shard1 },
+      cache_shard2: { writing: :cache_shard2 },
+      cache_shard3: { writing: :cache_shard3 },
     }
   }
 
-  config.cache_store = :solid_cache_store, shards: [ :cache_shard1, :cache_shard2, :cache_shard3 ]
+  config.cache_store = [ :solid_cache_store, cluster: { shards: [ :cache_shard1, :cache_shard2, :cache_shard3 ] } ]
 end
 ```
+
+### Secondary cache clusters
+
+You can add secondary cache clusters. Reads will only be sent to the primary cluster (i.e. the first one listed).
+
+Writes will go to all clusters. The writes to the primary cluster are synchronous, but asyncronous to the secondary clusters.
+
+To specific multiple clusters you can do:
+
+```ruby
+Rails.application.configure do
+  config.solid_cache.connects_to = {
+    shards: {
+      cache_primary_shard1: { writing: :cache_primary_shard1 },
+      cache_primary_shard2: { writing: :cache_primary_shard2 },
+      cache_secondary_shard1: { writing: :cache_secondary_shard1 },
+      cache_secondary_shard2: { writing: :cache_secondary_shard2 },
+    }
+  }
+
+  primary_cluster = { shards: [ :cache_primary_shard1, :cache_primary_shard2 ] }
+  secondary_cluster = { shards: [ :cache_primary_shard1, :cache_primary_shard2 ] }
+  config.cache_store = [ :solid_cache_store, clusters: [ primary_cluster, secondary_cluster ] ]
+end
+```
+
 ### Enabling encryption
 
 Add this to an initializer:
