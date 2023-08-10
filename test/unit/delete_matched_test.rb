@@ -1,3 +1,5 @@
+require "test_helper"
+
 class DeleteMatchedTest < ActiveSupport::TestCase
   setup do
     @cache = nil

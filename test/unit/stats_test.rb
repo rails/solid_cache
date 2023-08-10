@@ -9,13 +9,13 @@ class SolidCache::StatsTest < ActiveSupport::TestCase
   end
 
   def test_stats
-    @cache = lookup_store(trim_batch_size: 2, max_age: 2.weeks.to_i, max_entries: 1000, shards: [:default, :shard_one])
+    @cache = lookup_store(trim_batch_size: 2, max_age: 2.weeks.to_i, max_entries: 1000, shards: [:default, :default2])
 
     expected = {
       shards: 2,
       shards_stats: {
         default: { max_age: 2.weeks.to_i, oldest_age: nil, max_entries: 1000, entries: 0 },
-        shard_one: { max_age: 2.weeks.to_i, oldest_age: nil, max_entries: 1000, entries: 0 }
+        default2: { max_age: 2.weeks.to_i, oldest_age: nil, max_entries: 1000, entries: 0 }
       }
     }
 
@@ -23,7 +23,7 @@ class SolidCache::StatsTest < ActiveSupport::TestCase
   end
 
   def test_stats_with_entries
-    @cache = lookup_store(trim_batch_size: 2, max_age: 2.weeks.to_i, max_entries: 1000, shards: [:default])
+    @cache = lookup_store(trim_batch_size: 2, max_age: 2.weeks.to_i, max_entries: 1000, cluster: { shards: [:default] })
 
     expected_empty = { shards: 1, shards_stats: { default: { max_age: 2.weeks.to_i, oldest_age: nil, max_entries: 1000, entries: 0 } } }
 
