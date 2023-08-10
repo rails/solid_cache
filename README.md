@@ -139,9 +139,9 @@ $ bin/rails db:migrate
 
 ### Sharding the cache
 
-SolidCache uses a consistant hashing scheme (copied from [the Redis ruby client](https://github.com/redis/redis-rb/blob/master/lib/redis/hash_ring.rb)) to shard the cache across multiple databases.
+SolidCache uses the [Maglev](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/44824.pdf) consistent hashing scheme to shard the cache across multiple databases.
 
-To implement this:
+To shard:
 
 1. Add the configuration for the database shards to database.yml
 2. Configure the shards via `config.solid_cache.connects_to`

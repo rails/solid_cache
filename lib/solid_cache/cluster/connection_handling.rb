@@ -1,3 +1,5 @@
+require "solid_cache/maglev_hash"
+
 module SolidCache
   class Cluster
     module ConnectionHandling
@@ -75,11 +77,11 @@ module SolidCache
         end
 
         def shard_for_normalized_key(normalized_key)
-          hash_ring&.get_node(normalized_key) || shards&.first
+          consistent_hash&.node(normalized_key) || shards&.first
         end
 
-        def hash_ring
-          @hash_ring ||= shards.count > 0 ? HashRing.new(shards) : nil
+        def consistent_hash
+          @consistent_hash ||= shards.count > 1 ? MaglevHash.new(shards) : nil
         end
 
         def async_if_required
