@@ -3,13 +3,21 @@ require "solid_cache/maglev_hash"
 module SolidCache
   class Cluster
     module ConnectionHandling
-      attr_reader :async_writes, :shards, :database_shards
+      attr_reader :async_writes
 
       def initialize(options = {})
         super(options)
-        @shards = options.delete(:shards) || SolidCache.all_shard_keys || [nil]
-        @database_shards = @shards.to_h { |shard| [ SolidCache.shard_databases[shard], shard ] }
+        @shard_options = options.delete(:shards)
         @async_writes = options.delete(:async_writes)
+      end
+
+      def shards
+        # Load lazily as the cache maybe created before the SolidCache connections are initialized
+        @shards ||= @shard_options || SolidCache.all_shard_keys || [nil]
+      end
+
+      def database_shards
+        @database_shards ||= shards.compact.to_h { |shard| [ SolidCache.shard_databases[shard], shard ] }
       end
 
       def writing_all_shards
