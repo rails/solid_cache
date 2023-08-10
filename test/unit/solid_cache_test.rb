@@ -33,10 +33,12 @@ class SolidCacheTest < ActiveSupport::TestCase
     shard_names = [:default, :default2, :primary_shard_one, :primary_shard_two, :secondary_shard_one, :secondary_shard_two]
     expected = shard_names.to_h do |shard_name|
       database_name = SolidCache.connects_to.dig(:shards, shard_name, :writing).to_s
-      [ shard_name, configs.configs_for(env_name: Rails.env, name: database_name).database ]
+      config = configs.configs_for(env_name: Rails.env, name: database_name)
+      destination = [ config.try(:host), config.try(:port), config.try(:database) ].compact.join("-")
+      [ shard_name, destination ]
     end
 
-    assert_equal expected, SolidCache.shard_databases
+    assert_equal expected, SolidCache.shard_destinations
   end
 end
 

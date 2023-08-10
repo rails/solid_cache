@@ -17,8 +17,12 @@ module SolidCache
     all_shards_config && all_shards_config[shard]
   end
 
-  def self.shard_databases
-    @shard_databases ||= each_shard.map.to_h { [ Record.current_shard, Record.connection_db_config.database ] }
+  def self.shard_destinations
+    @shard_databases ||= each_shard.map.to_h do
+      config = Record.connection_db_config
+      destination = [ config.try(:host), config.try(:port), config.try(:database) ].compact.join("-")
+      [ Record.current_shard, destination ]
+    end
   end
 
   def self.each_shard

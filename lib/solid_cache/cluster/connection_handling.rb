@@ -16,8 +16,8 @@ module SolidCache
         @shards ||= @shard_options || SolidCache.all_shard_keys || [nil]
       end
 
-      def database_shards
-        @database_shards ||= shards.compact.to_h { |shard| [ SolidCache.shard_databases[shard], shard ] }
+      def destination_shards
+        @destination_shards ||= shards.compact.to_h { |shard| [ SolidCache.shard_destinations[shard], shard ] }
       end
 
       def writing_all_shards
@@ -84,13 +84,13 @@ module SolidCache
         def shard_for_normalized_key(normalized_key)
           return shards.first if shards.count == 1
 
-          database = consistent_hash.node(normalized_key)
-          database_shards[database]
+          destination = consistent_hash.node(normalized_key)
+          destination_shards[destination]
         end
 
         def consistent_hash
           return nil if shards.count == 1
-          @consistent_hash ||= MaglevHash.new(database_shards.keys)
+          @consistent_hash ||= MaglevHash.new(destination_shards.keys)
         end
 
         def async_if_required
