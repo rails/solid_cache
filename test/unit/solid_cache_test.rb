@@ -22,6 +22,22 @@ class SolidCacheTest < ActiveSupport::TestCase
     # For LocalCacheBehavior tests
     @peek = lookup_store(expires_in: 60)
   end
+
+  test "each_shard" do
+    shards = SolidCache.each_shard.map { SolidCache::Record.current_shard }
+    assert_equal [ :default, :default2, :primary_shard_one, :primary_shard_two, :secondary_shard_one, :secondary_shard_two ], shards
+  end
+
+  test "shard_databases" do
+    configs = SolidCache::Record.configurations
+    shard_names = [:default, :default2, :primary_shard_one, :primary_shard_two, :secondary_shard_one, :secondary_shard_two]
+    expected = shard_names.to_h do |shard_name|
+      database_name = SolidCache.connects_to.dig(:shards, shard_name, :writing).to_s
+      [ shard_name, configs.configs_for(env_name: Rails.env, name: database_name).database ]
+    end
+
+    assert_equal expected, SolidCache.shard_databases
+  end
 end
 
 class SolidCacheFailsafeTest < ActiveSupport::TestCase
