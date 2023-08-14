@@ -7,17 +7,27 @@ module SolidCache
 
       def initialize(options = {})
         super(options)
-        @shard_options = options.delete(:shards)
         @async_writes = options.delete(:async_writes)
+        @shard_options = options.delete(:shards)
+
+        if [Hash, Array, NilClass].none? { |klass| @shard_options.is_a? klass }
+          raise ArgumentError, "`shards` is a `#{shards.class.name}`, it should be one of Array, Hash or nil"
+        end
+
+        # Done lazily as the cache maybe created before ActionRecord initialization
+        @shards_initialized = false
       end
 
       def shards
-        # Load lazily as the cache maybe created before the SolidCache connections are initialized
-        @shards ||= @shard_options || SolidCache.all_shard_keys || [nil]
+        initialize_shards unless shards_initialized?
+
+        @shards
       end
 
-      def destination_shards
-        @destination_shards ||= shards.compact.to_h { |shard| [ SolidCache.shard_destinations[shard], shard ] }
+      def nodes
+        initialize_shards unless shards_initialized?
+
+        @nodes
       end
 
       def writing_all_shards
@@ -59,6 +69,29 @@ module SolidCache
       end
 
       private
+        attr_reader :consistent_hash
+
+        def shards_initialized?
+          @shards_initialized
+        end
+
+        def initialize_shards
+          case @shard_options
+          when Array, NilClass
+            @shards = @shard_options || SolidCache.all_shard_keys || []
+            @nodes = @shards.to_h { |shard| [ shard, shard ] }
+          when Hash
+            @shards = @shard_options.keys
+            @nodes = @shard_options.inverse
+          end
+
+          if @shards.count > 1
+            @consistent_hash = MaglevHash.new(@nodes.keys)
+          end
+
+          @shards_initialized = true
+        end
+
         def with_shard(shard)
           if shard
             Record.connected_to(shard: shard) { yield }
@@ -82,15 +115,10 @@ module SolidCache
         end
 
         def shard_for_normalized_key(normalized_key)
-          return shards.first if shards.count == 1
+          return shards.first if shards.count <= 1
 
-          destination = consistent_hash.node(normalized_key)
-          destination_shards[destination]
-        end
-
-        def consistent_hash
-          return nil if shards.count == 1
-          @consistent_hash ||= MaglevHash.new(destination_shards.keys)
+          node = consistent_hash.node(normalized_key)
+          nodes[node]
         end
 
         def async_if_required

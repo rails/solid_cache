@@ -17,14 +17,6 @@ module SolidCache
     all_shards_config && all_shards_config[shard]
   end
 
-  def self.shard_destinations
-    @shard_databases ||= each_shard.map.to_h do
-      config = Record.connection_db_config
-      destination = [ config.try(:host), config.try(:port), config.try(:database) ].compact.join("-")
-      [ Record.current_shard, destination ]
-    end
-  end
-
   def self.each_shard
     return to_enum(:each_shard) unless block_given?
 

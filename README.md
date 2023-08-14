@@ -201,6 +201,30 @@ Rails.application.configure do
 end
 ```
 
+### Named shard destinations
+
+By default, the node key used for sharding is the name of the database in `database.yml`.
+
+It is possible to add names for the shards in the cluster config. This will allow you to shuffle or remove shards without breaking consistent hashing.
+
+```ruby
+Rails.application.configure do
+  config.solid_cache.connects_to = {
+    shards: {
+      cache_primary_shard1: { writing: :cache_primary_shard1 },
+      cache_primary_shard2: { writing: :cache_primary_shard2 },
+      cache_secondary_shard1: { writing: :cache_secondary_shard1 },
+      cache_secondary_shard2: { writing: :cache_secondary_shard2 },
+    }
+  }
+
+  primary_cluster = { shards: { cache_primary_shard1: :node1, cache_primary_shard2: :node2 } }
+  secondary_cluster = { shards: { cache_primary_shard1: :node3, cache_primary_shard2: :node4 } }
+  config.cache_store = [ :solid_cache_store, clusters: [ primary_cluster, secondary_cluster ] ]
+end
+```
+
+
 ### Enabling encryption
 
 Add this to an initializer:
