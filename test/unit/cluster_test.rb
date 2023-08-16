@@ -119,4 +119,20 @@ class ClusterTest < ActiveSupport::TestCase
     assert_equal 1, @primary_cache.read("foo", raw: true).to_i
     assert_equal 3, @secondary_cache.read("foo", raw: true).to_i
   end
+
+  test "cache with node names" do
+    @namespace = "test-#{SecureRandom.hex}"
+    primary_cluster = { shards: { primary_shard_one: :node1, primary_shard_two: :node2 } }
+    secondary_cluster = { shards: { primary_shard_one: :node3, primary_shard_two: :node4 } }
+
+    @cache = lookup_store(expires_in: 60, clusters: [ primary_cluster, secondary_cluster ])
+    @primary_cache = lookup_store(expires_in: 60, cluster: primary_cluster)
+    @secondary_cache = lookup_store(expires_in: 60, cluster: secondary_cluster)
+
+    @cache.write("foo", 1)
+    sleep 0.1
+    assert_equal 1, @cache.read("foo")
+    assert_equal 1, @primary_cache.read("foo")
+    assert_equal 1, @secondary_cache.read("foo")
+  end
 end

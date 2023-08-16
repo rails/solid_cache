@@ -82,7 +82,7 @@ module SolidCache
             @nodes = @shards.to_h { |shard| [ shard, shard ] }
           when Hash
             @shards = @shard_options.keys
-            @nodes = @shard_options.inverse
+            @nodes = @shard_options.invert
           end
 
           if @shards.count > 1
