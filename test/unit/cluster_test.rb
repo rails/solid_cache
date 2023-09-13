@@ -48,6 +48,7 @@ class ClusterTest < ActiveSupport::TestCase
 
     @primary_cache.delete("foo")
     @cache.fetch("foo") { 2 }
+    sleep 0.1
 
     assert_equal 2, @cache.read("foo")
     assert_equal 2, @primary_cache.read("foo")

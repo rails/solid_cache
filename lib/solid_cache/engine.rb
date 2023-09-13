@@ -13,5 +13,9 @@ module SolidCache
       SolidCache.executor = config.solid_cache.executor
       SolidCache.connects_to = config.solid_cache.connects_to
     end
+
+    config.after_initialize do
+      Rails.cache.setup! if Rails.cache.is_a?(Store)
+    end
   end
 end
