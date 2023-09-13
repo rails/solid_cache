@@ -34,6 +34,10 @@ module SolidCache
       @primary_cluster = clusters.first
     end
 
+    def setup!
+      clusters.each(&:setup!)
+    end
+
     def delete_matched(matcher, options = {})
       instrument :delete_matched, matcher do
         raise ArgumentError, "Only strings are supported: #{matcher.inspect}" unless String === matcher

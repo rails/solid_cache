@@ -15,17 +15,40 @@ module SolidCache
         end
 
         # Done lazily as the cache maybe created before ActionRecord initialization
-        @shards_initialized = false
+        @setup = false
+      end
+
+      def setup?
+        @setup
+      end
+
+      def setup!
+        return if setup?
+
+        case @shard_options
+        when Array, NilClass
+          @shards = @shard_options || SolidCache.all_shard_keys || []
+          @nodes = @shards.to_h { |shard| [ shard, shard ] }
+        when Hash
+          @shards = @shard_options.keys
+          @nodes = @shard_options.invert
+        end
+
+        if @shards.count > 1
+          @consistent_hash = MaglevHash.new(@nodes.keys)
+        end
+
+        @setup = true
       end
 
       def shards
-        initialize_shards unless shards_initialized?
+        setup!
 
         @shards
       end
 
       def nodes
-        initialize_shards unless shards_initialized?
+        setup!
 
         @nodes
       end
@@ -70,27 +93,6 @@ module SolidCache
 
       private
         attr_reader :consistent_hash
-
-        def shards_initialized?
-          @shards_initialized
-        end
-
-        def initialize_shards
-          case @shard_options
-          when Array, NilClass
-            @shards = @shard_options || SolidCache.all_shard_keys || []
-            @nodes = @shards.to_h { |shard| [ shard, shard ] }
-          when Hash
-            @shards = @shard_options.keys
-            @nodes = @shard_options.invert
-          end
-
-          if @shards.count > 1
-            @consistent_hash = MaglevHash.new(@nodes.keys)
-          end
-
-          @shards_initialized = true
-        end
 
         def with_shard(shard)
           if shard
