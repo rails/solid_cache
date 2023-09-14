@@ -26,13 +26,11 @@ module SolidCache
         counter.increment(write_count * TRIM_DELETE_MULTIPLIER)
         value = counter.value
         if value > trim_batch_size && counter.compare_and_set(value, value - trim_batch_size)
-          async { trim_batch }
+          async_on_current_shard { trim_batch }
         end
       end
 
-
       private
-
         def trim_batch
           candidates = Entry.order(:id).limit(trim_batch_size * TRIM_SELECT_MULTIPLIER).select(:id, :created_at).to_a
           candidates.select! { |entry| entry.created_at < max_age.seconds.ago } unless cache_full?

@@ -37,6 +37,12 @@ module SolidCache
 
         if @shards.count > 1
           @consistent_hash = MaglevHash.new(@nodes.keys)
+          # Using a dedicated thread for each shard avoids ActiveRecord connection switching
+          # Connection switching is expensive because the connection is tested before being
+          # checked out, which involves a round trip to the database.
+          @executors = @shards.to_h { |shard| [shard, Concurrent::SingleThreadExecutor.new(max_queue: 10, fallback_policy: :caller_runs)] }
+        else
+          @executors = {}
         end
 
         @setup = true
@@ -54,38 +60,41 @@ module SolidCache
         @nodes
       end
 
-      def writing_all_shards
+      def writing_all_shards(&block)
         return enum_for(:writing_all_shards) unless block_given?
 
-        shards.each do |shard|
-          with_shard(shard, async: async_writes) do
-            yield
-          end
-        end
+        shards \
+          .map { |shard| with_shard(shard, async: async_writes, &block) }
+          .then { |results| realise_all(results) }
       end
 
       def writing_across_shards(list:, trim: false)
-        across_shards(list:, async: async_writes) do |list|
+        results = across_shards(list:, async: async_writes) do |list|
           result = yield list
           trim(list.size) if trim
           result
         end
+
+        realise_all(results)
       end
 
       def reading_across_shards(list:)
-        across_shards(list:) { |list| yield list }
+        across_shards(list:) { |list| yield list }.then { |results| realise_all(results) }
       end
 
       def writing_shard(normalized_key:, trim: false)
-        with_shard(shard_for_normalized_key(normalized_key), async: async_writes) do
+        result = with_shard(shard_for_normalized_key(normalized_key), async: async_writes) do
           result = yield
           trim(1) if trim
           result
         end
+
+        realise(result)
       end
 
       def reading_shard(normalized_key:)
-        with_shard(shard_for_normalized_key(normalized_key)) { yield }
+        result = with_shard(shard_for_normalized_key(normalized_key)) { yield }
+        realise(result)
       end
 
       def active_record_instrumentation?
@@ -95,13 +104,13 @@ module SolidCache
       private
         attr_reader :consistent_hash
 
-        def with_shard(shard, async: false)
-          if shard
-            Record.connected_to(shard: shard) do
-              configure_for_query(async: async) { yield }
-            end
+        def with_shard(shard, async: false, &block)
+          if async
+            async { execute_on_shard(shard, &block) }
+          elsif (executor = @executors[shard])
+            with_executor(executor) { execute_on_shard(shard, &block) }
           else
-            configure_for_query(async: async) { yield }
+            execute_on_shard(shard, &block)
           end
         end
 
@@ -126,30 +135,38 @@ module SolidCache
           nodes[node]
         end
 
-        def configure_for_query(async:)
-          async_if_required(async) do
-            disable_active_record_instrumentation_if_required do
-              yield
-            end
-          end
-        end
-
-        def async_if_required(required)
-          if required
-            async { yield }
-          else
-            yield
-          end
-        end
-
-        def disable_active_record_instrumentation_if_required
+        def disable_active_record_instrumentation_if_required(&block)
           if active_record_instrumentation?
-            yield
+            block.call
           else
-            Record.disable_instrumentation do
-              yield
-            end
+            Record.disable_instrumentation(&block)
           end
+        end
+
+        def execute_on_shard(shard, &block)
+          if shard
+            Record.connected_to(shard: shard) do
+              disable_active_record_instrumentation_if_required(&block)
+            end
+          else
+            disable_active_record_instrumentation_if_required(&block)
+          end
+        end
+
+        def with_executor(executor, &block)
+          Concurrent::Promise.execute(executor: executor, &block)
+        end
+
+        def realise(result)
+          if result.is_a?(Concurrent::Promise)
+            result.value.tap { raise result.reason if result.rejected? }
+          else
+            result
+          end
+        end
+
+        def realise_all(results)
+          results.map { |result| realise(result) }
         end
     end
   end
