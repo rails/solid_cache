@@ -10,11 +10,16 @@ module SolidCache
       end
 
       def get(key)
-        where(key: key).skip_query_cache!.pick(:value)
+        uncached do
+          find_by_sql_bind_or_substitute(get_sql, ActiveModel::Type::Binary.new.serialize(key)).pick(:value)
+        end
       end
 
       def get_all(keys)
-        where(key: keys).skip_query_cache!.pluck(:key, :value).to_h
+        serialized_keys = keys.map { |key| ActiveModel::Type::Binary.new.serialize(key) }
+        uncached do
+          find_by_sql_bind_or_substitute(get_all_sql(serialized_keys), serialized_keys).pluck(:key, :value).to_h
+        end
       end
 
       def delete_by_key(key)
@@ -47,6 +52,36 @@ module SolidCache
       private
         def upsert_unique_by
           connection.supports_insert_conflict_target? ? :key : nil
+        end
+
+        def get_sql
+          @get_sql ||= build_sql(where(key: "placeholder").select(:value))
+        end
+
+        def get_all_sql(keys)
+          if connection.prepared_statements?
+            @get_all_sql_binds ||= {}
+            @get_all_sql_binds[keys.count] ||= build_sql(where(key: keys).select(:key, :value))
+          else
+            @get_all_sql_no_binds ||= build_sql(where(key: ["placeholder1", "placeholder2"]).select(:key, :value)).gsub("?, ?", "?")
+          end
+        end
+
+        def build_sql(relation)
+          collector = Arel::Collectors::Composite.new(
+            Arel::Collectors::SQLString.new,
+            Arel::Collectors::Bind.new,
+          )
+
+          connection.visitor.compile(relation.arel.ast, collector)[0]
+        end
+
+        def find_by_sql_bind_or_substitute(query, values)
+          if connection.prepared_statements?
+            find_by_sql(query, Array(values))
+          else
+            find_by_sql([query, values])
+          end
         end
     end
   end
