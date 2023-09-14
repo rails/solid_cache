@@ -58,19 +58,17 @@ module SolidCache
         return enum_for(:writing_all_shards) unless block_given?
 
         shards.each do |shard|
-          with_shard(shard) do
-            async_if_required { yield }
+          with_shard(shard, async: async_writes) do
+            yield
           end
         end
       end
 
       def writing_across_shards(list:, trim: false)
-        across_shards(list:) do |list|
-          async_if_required do
-            result = yield list
-            trim(list.size) if trim
-            result
-          end
+        across_shards(list:, async: async_writes) do |list|
+          result = yield list
+          trim(list.size) if trim
+          result
         end
       end
 
@@ -79,12 +77,10 @@ module SolidCache
       end
 
       def writing_shard(normalized_key:, trim: false)
-        with_shard(shard_for_normalized_key(normalized_key)) do
-          async_if_required do
-            result = yield
-            trim(1) if trim
-            result
-          end
+        with_shard(shard_for_normalized_key(normalized_key), async: async_writes) do
+          result = yield
+          trim(1) if trim
+          result
         end
       end
 
@@ -99,23 +95,19 @@ module SolidCache
       private
         attr_reader :consistent_hash
 
-        def with_shard(shard)
+        def with_shard(shard, async: false)
           if shard
             Record.connected_to(shard: shard) do
-              disable_active_record_instrumentation_if_required do
-                yield
-              end
+              configure_for_query(async: async) { yield }
             end
           else
-            disable_active_record_instrumentation_if_required do
-              yield
-            end
+            configure_for_query(async: async) { yield }
           end
         end
 
-        def across_shards(list:)
+        def across_shards(list:, async: false)
           in_shards(list).map do |shard, list|
-            with_shard(shard) { yield list }
+            with_shard(shard, async: async) { yield list }
           end
         end
 
@@ -134,8 +126,16 @@ module SolidCache
           nodes[node]
         end
 
-        def async_if_required
-          if async_writes
+        def configure_for_query(async:)
+          async_if_required(async) do
+            disable_active_record_instrumentation_if_required do
+              yield
+            end
+          end
+        end
+
+        def async_if_required(required)
+          if required
             async { yield }
           else
             yield
