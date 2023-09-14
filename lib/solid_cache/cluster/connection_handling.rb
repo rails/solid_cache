@@ -7,8 +7,9 @@ module SolidCache
 
       def initialize(options = {})
         super(options)
-        @async_writes = options.delete(:async_writes)
-        @shard_options = options.delete(:shards)
+        @async_writes = options.fetch(:async_writes, false)
+        @shard_options = options.fetch(:shards, nil)
+        @active_record_instrumentation = options.fetch(:active_record_instrumentation, true)
 
         if [Hash, Array, NilClass].none? { |klass| @shard_options.is_a? klass }
           raise ArgumentError, "`shards` is a `#{shards.class.name}`, it should be one of Array, Hash or nil"
@@ -57,19 +58,17 @@ module SolidCache
         return enum_for(:writing_all_shards) unless block_given?
 
         shards.each do |shard|
-          with_shard(shard) do
-            async_if_required { yield }
+          with_shard(shard, async: async_writes) do
+            yield
           end
         end
       end
 
       def writing_across_shards(list:, trim: false)
-        across_shards(list:) do |list|
-          async_if_required do
-            result = yield list
-            trim(list.size) if trim
-            result
-          end
+        across_shards(list:, async: async_writes) do |list|
+          result = yield list
+          trim(list.size) if trim
+          result
         end
       end
 
@@ -78,12 +77,10 @@ module SolidCache
       end
 
       def writing_shard(normalized_key:, trim: false)
-        with_shard(shard_for_normalized_key(normalized_key)) do
-          async_if_required do
-            result = yield
-            trim(1) if trim
-            result
-          end
+        with_shard(shard_for_normalized_key(normalized_key), async: async_writes) do
+          result = yield
+          trim(1) if trim
+          result
         end
       end
 
@@ -91,20 +88,26 @@ module SolidCache
         with_shard(shard_for_normalized_key(normalized_key)) { yield }
       end
 
+      def active_record_instrumentation?
+        @active_record_instrumentation
+      end
+
       private
         attr_reader :consistent_hash
 
-        def with_shard(shard)
+        def with_shard(shard, async: false)
           if shard
-            Record.connected_to(shard: shard) { yield }
+            Record.connected_to(shard: shard) do
+              configure_for_query(async: async) { yield }
+            end
           else
-            yield
+            configure_for_query(async: async) { yield }
           end
         end
 
-        def across_shards(list:)
+        def across_shards(list:, async: false)
           in_shards(list).map do |shard, list|
-            with_shard(shard) { yield list }
+            with_shard(shard, async: async) { yield list }
           end
         end
 
@@ -123,11 +126,29 @@ module SolidCache
           nodes[node]
         end
 
-        def async_if_required
-          if async_writes
+        def configure_for_query(async:)
+          async_if_required(async) do
+            disable_active_record_instrumentation_if_required do
+              yield
+            end
+          end
+        end
+
+        def async_if_required(required)
+          if required
             async { yield }
           else
             yield
+          end
+        end
+
+        def disable_active_record_instrumentation_if_required
+          if active_record_instrumentation?
+            yield
+          else
+            Record.disable_instrumentation do
+              yield
+            end
           end
         end
     end

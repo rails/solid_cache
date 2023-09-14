@@ -16,9 +16,9 @@ module SolidCache
 
       def initialize(options = {})
         super(options)
-        @trim_batch_size = options.delete(:trim_batch_size) || 100
-        @max_age = options.delete(:max_age) || 2.weeks.to_i
-        @max_entries = options.delete(:max_entries)
+        @trim_batch_size = options.fetch(:trim_batch_size, 100)
+        @max_age = options.fetch(:max_age, 2.weeks.to_i)
+        @max_entries = options.fetch(:max_entries, nil)
       end
 
       def trim(write_count)
