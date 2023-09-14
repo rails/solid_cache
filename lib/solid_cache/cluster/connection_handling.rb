@@ -92,14 +92,24 @@ module SolidCache
         with_shard(shard_for_normalized_key(normalized_key)) { yield }
       end
 
+      def active_record_instrumentation?
+        @active_record_instrumentation
+      end
+
       private
         attr_reader :consistent_hash
 
         def with_shard(shard)
           if shard
-            Record.connected_to(shard: shard) { yield }
+            Record.connected_to(shard: shard) do
+              disable_active_record_instrumentation_if_required do
+                yield
+              end
+            end
           else
-            yield
+            disable_active_record_instrumentation_if_required do
+              yield
+            end
           end
         end
 
@@ -129,6 +139,16 @@ module SolidCache
             async { yield }
           else
             yield
+          end
+        end
+
+        def disable_active_record_instrumentation_if_required
+          if active_record_instrumentation?
+            yield
+          else
+            Record.disable_instrumentation do
+              yield
+            end
           end
         end
     end
