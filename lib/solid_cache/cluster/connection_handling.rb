@@ -7,8 +7,9 @@ module SolidCache
 
       def initialize(options = {})
         super(options)
-        @async_writes = options.delete(:async_writes)
-        @shard_options = options.delete(:shards)
+        @async_writes = options.fetch(:async_writes, false)
+        @shard_options = options.fetch(:shards, nil)
+        @active_record_instrumentation = options.fetch(:active_record_instrumentation, true)
 
         if [Hash, Array, NilClass].none? { |klass| @shard_options.is_a? klass }
           raise ArgumentError, "`shards` is a `#{shards.class.name}`, it should be one of Array, Hash or nil"
