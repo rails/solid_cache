@@ -1,35 +1,38 @@
 module SolidCache
   class Entry < Record
+    # This is all quite awkward but it achieves a couple of performance aims
+    # 1. We skip the query cache
+    # 2. We avoid the overhead of building queries and active record objects
     class << self
       def set(key, value)
-        upsert_all([{key: key, value: value}], unique_by: upsert_unique_by, update_only: [:value])
+        upsert_all_no_query_cache([{key: key, value: value}])
       end
 
       def set_all(payloads)
-        upsert_all(payloads, unique_by: upsert_unique_by, update_only: [:value])
+        upsert_all_no_query_cache(payloads)
       end
 
       def get(key)
-        uncached do
-          find_by_sql_bind_or_substitute(get_sql, ActiveModel::Type::Binary.new.serialize(key)).pick(:value)
-        end
+        select_all_no_query_cache(get_sql, to_binary(key)).first
       end
 
       def get_all(keys)
-        serialized_keys = keys.map { |key| ActiveModel::Type::Binary.new.serialize(key) }
-        uncached do
-          find_by_sql_bind_or_substitute(get_all_sql(serialized_keys), serialized_keys).pluck(:key, :value).to_h
-        end
+        serialized_keys = keys.map { |key| to_binary(key) }
+        select_all_no_query_cache(get_all_sql(serialized_keys), serialized_keys).to_h
+      end
+
+      def delete_by_ids(ids)
+        delete_no_query_cache(:id, ids)
       end
 
       def delete_by_key(key)
-        where(key: key).delete_all.nonzero?
+        delete_no_query_cache(:key, to_binary(key))
       end
 
       def delete_matched(matcher, batch_size:)
         like_matcher = arel_table[:key].matches(matcher, nil, true)
         where(like_matcher).select(:id).find_in_batches(batch_size: batch_size) do |entries|
-          delete_by(id: entries.map(&:id))
+          delete_by_ids(entries.map(&:id))
         end
       end
 
@@ -41,15 +44,30 @@ module SolidCache
         end
       end
 
-      def touch_by_ids(ids)
-        where(id: ids).touch_all
+      def id_range
+        uncached do
+          pick(Arel.sql("max(id) - min(id) + 1")) || 0
+        end
       end
 
-      def id_range
-        pick(Arel.sql("max(id) - min(id) + 1")) || 0
+      def first_n(n)
+        uncached do
+          order(:id).limit(n)
+        end
       end
 
       private
+        def upsert_all_no_query_cache(attributes)
+          insert_all = ActiveRecord::InsertAll.new(self, attributes, unique_by: upsert_unique_by, on_duplicate: :update, update_only: [:value])
+          sql = connection.build_insert_sql(ActiveRecord::InsertAll::Builder.new(insert_all))
+
+          message = +"#{self} "
+          message << "Bulk " if attributes.many?
+          message << "Upsert"
+          # exec_query does not clear the query cache, exec_insert_all does
+          connection.exec_query sql, message
+        end
+
         def upsert_unique_by
           connection.supports_insert_conflict_target? ? :key : nil
         end
@@ -76,12 +94,34 @@ module SolidCache
           connection.visitor.compile(relation.arel.ast, collector)[0]
         end
 
-        def find_by_sql_bind_or_substitute(query, values)
-          if connection.prepared_statements?
-            find_by_sql(query, Array(values))
-          else
-            find_by_sql([query, values])
+        def select_all_no_query_cache(query, values)
+          uncached do
+            if connection.prepared_statements?
+              result = connection.select_all(sanitize_sql(query), "#{name} Load", Array(values), preparable: true)
+            else
+              result = connection.select_all(sanitize_sql([query, values]), "#{name} Load", nil, preparable: false)
+            end
+
+            result.cast_values(SolidCache::Entry.attribute_types)
           end
+        end
+
+        def delete_no_query_cache(attribute, values)
+          uncached do
+            relation = where(attribute => values)
+            sql = connection.to_sql(relation.arel.compile_delete(relation.table[primary_key]))
+
+            # exec_delete does not clear the query cache
+            if connection.prepared_statements?
+              connection.exec_delete(sql, "#{name} Delete All", Array(values)).nonzero?
+            else
+              connection.exec_delete(sql, "#{name} Delete All").nonzero?
+            end
+          end
+        end
+
+        def to_binary(key)
+          ActiveModel::Type::Binary.new.serialize(key)
         end
     end
   end
