@@ -30,15 +30,13 @@ module SolidCache
         end
       end
 
-
       private
-
         def trim_batch
-          candidates = Entry.order(:id).limit(trim_batch_size * TRIM_SELECT_MULTIPLIER).select(:id, :created_at).to_a
+          candidates = Entry.first_n(trim_batch_size * TRIM_SELECT_MULTIPLIER).select(:id, :created_at).to_a
           candidates.select! { |entry| entry.created_at < max_age.seconds.ago } unless cache_full?
           candidates = candidates.sample(trim_batch_size)
 
-          Entry.delete(candidates.map(&:id)) if candidates.any?
+          Entry.delete_by_ids(candidates.map(&:id)) if candidates.any?
         end
 
         def trim_counters

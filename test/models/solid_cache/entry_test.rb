@@ -18,7 +18,7 @@ module SolidCache
       Entry.set("hello".b, "there")
       Entry.set("hello2".b, "there")
 
-      assert_equal 2, Entry.id_range
+      assert_equal 2, Entry.uncached { Entry.id_range }
     end
   end
 end
