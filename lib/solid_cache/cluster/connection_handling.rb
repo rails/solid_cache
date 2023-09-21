@@ -85,7 +85,7 @@ module SolidCache
       end
 
       def with_shard(shard, async: false)
-        if shard
+        if shard && shard != Entry.current_shard
           Record.connected_to(shard: shard) do
             configure_for_query(async: async) { yield }
           end

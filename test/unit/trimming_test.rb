@@ -43,6 +43,22 @@ class SolidCache::TrimmingTest < ActiveSupport::TestCase
     assert_equal 2, SolidCache::Entry.count
   end
 
+  def test_trims_records_no_shards
+    @cache = ActiveSupport::Cache.lookup_store(:solid_cache_store, trim_batch_size: 2, namespace: @namespace, max_entries: 2, cluster: { shards: [] })
+    @cache.write("foo", 1)
+    @cache.write("bar", 2)
+
+    sleep 0.1
+
+    @cache.write("baz", 3)
+    @cache.write("haz", 4)
+
+    sleep 0.1
+
+    # Two records have been deleted
+    assert_equal 2, SolidCache::Entry.count
+  end
+
   def test_trims_old_records_multiple_shards
     @cache = lookup_store(trim_batch_size: 2)
     default_shard_keys, shard_one_keys = 20.times.map { |i| "key#{i}" }.partition { |key| @cache.primary_cluster.send(:shard_for_normalized_key, @cache.send(:normalize_key, key, {})) == :default }
