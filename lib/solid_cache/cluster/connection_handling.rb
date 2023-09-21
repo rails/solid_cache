@@ -64,23 +64,9 @@ module SolidCache
         end
       end
 
-      def writing_across_shards(list:, trim: false)
-        across_shards(list:, async: async_writes) do |list|
-          result = yield list
-          trim(list.size) if trim
-          result
-        end
-      end
-
-      def reading_across_shards(list:)
-        across_shards(list:) { |list| yield list }
-      end
-
-      def writing_shard(normalized_key:, trim: false)
+      def writing_shard(normalized_key:)
         with_shard(shard_for_normalized_key(normalized_key), async: async_writes) do
-          result = yield
-          trim(1) if trim
-          result
+          yield
         end
       end
 
@@ -92,24 +78,24 @@ module SolidCache
         @active_record_instrumentation
       end
 
-      private
-        attr_reader :consistent_hash
+      def across_shards(list:, async: false)
+        in_shards(list).map do |shard, list|
+          yield shard, list
+        end
+      end
 
-        def with_shard(shard, async: false)
-          if shard
-            Record.connected_to(shard: shard) do
-              configure_for_query(async: async) { yield }
-            end
-          else
+      def with_shard(shard, async: false)
+        if shard
+          Record.connected_to(shard: shard) do
             configure_for_query(async: async) { yield }
           end
+        else
+          configure_for_query(async: async) { yield }
         end
+      end
 
-        def across_shards(list:, async: false)
-          in_shards(list).map do |shard, list|
-            with_shard(shard, async: async) { yield list }
-          end
-        end
+      private
+        attr_reader :consistent_hash
 
         def in_shards(list)
           if shards.count == 1
