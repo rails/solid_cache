@@ -58,20 +58,16 @@ module SolidCache
     def increment(name, amount = 1, options = nil)
       options = merged_options(options)
       key = normalize_key(name, options)
-      writing_key(key) do
-        failsafe :increment do
-          Entry.increment(key, amount)
-        end
+      writing_key(key, failsafe: :increment) do
+        Entry.increment(key, amount)
       end
     end
 
     def decrement(name, amount = 1, options = nil)
       options = merged_options(options)
       key = normalize_key(name, options)
-      writing_key(key) do
-        failsafe :decrement do
-          Entry.increment(key, -amount)
-        end
+      writing_key(key, failsafe: :decrement) do
+        Entry.increment(key, -amount)
       end
     end
 
@@ -93,8 +89,8 @@ module SolidCache
       end
 
       def read_serialized_entry(key, raw: false, **options)
-        primary_cluster.reading_shard(normalized_key: key) do
-          failsafe(:read_entry) do
+        failsafe(:read_entry) do
+          primary_cluster.reading_shard(normalized_key: key) do
             Entry.get(key)
           end
         end
@@ -105,11 +101,10 @@ module SolidCache
         payload = serialize_entry(entry, raw: raw, **options)
         write_serialized_entry(key, payload, raw: raw, **options)
 
-        writing_key(key, trim: true) do
-          failsafe(:write_entry, returning: false) do
-            Entry.set(key, payload)
-            true
-          end
+        writing_key(key, failsafe: :write_entry, failsafe_returning: false) do |cluster|
+          Entry.set(key, payload)
+          cluster.trim(1)
+          true
         end
       end
 
@@ -118,9 +113,11 @@ module SolidCache
       end
 
       def read_serialized_entries(keys)
-        results = primary_cluster.reading_across_shards(list: keys) do |keys|
+        results = primary_cluster.across_shards(list: keys) do |shard, keys|
           failsafe(:read_multi_mget, returning: {}) do
-            Entry.get_all(keys)
+            primary_cluster.with_shard(shard) do
+              Entry.get_all(keys)
+            end
           end
         end
 
@@ -155,20 +152,21 @@ module SolidCache
             write_serialized_entry(entries[:key], entries[:value])
           end
 
-          writing_list(serialized_entries, trim: true) do |serialized_entries|
-            failsafe(:write_multi_entries) do
-              Entry.set_all(serialized_entries)
-              true
+          writing_list(serialized_entries) do |cluster, shard, serialized_entries|
+            failsafe(:write_multi_entries, returning: false) do
+              cluster.with_shard(shard) do
+                Entry.set_all(serialized_entries)
+                cluster.trim(serialized_entries.count)
+                true
+              end
             end
-          end
+          end.all?
         end
       end
 
       def delete_entry(key, **options)
-        writing_key(key) do
-          failsafe(:delete_entry, returning: false) do
-            Entry.delete_by_key(key)
-          end
+        writing_key(key, failsafe: :delete_entry, failsafe_returning: false) do
+          Entry.delete_by_key(key)
         end
       end
 
@@ -220,18 +218,20 @@ module SolidCache
         returning
       end
 
-      def writing_key(key, trim: false)
+      def writing_key(key, failsafe:, failsafe_returning: nil)
         writing_clusters do |cluster|
-          cluster.writing_shard(normalized_key: key, trim: trim) do
-            yield
+          failsafe(failsafe, returning: failsafe_returning) do
+            cluster.writing_shard(normalized_key: key) do
+              yield cluster
+            end
           end
         end
       end
 
-      def writing_list(list, trim: false)
+      def writing_list(list)
         writing_clusters do |cluster|
-          cluster.writing_across_shards(list: list, trim: trim) do |list|
-            yield list
+          cluster.across_shards(list: list) do |shard, list|
+            yield cluster, shard, list
           end
         end
       end

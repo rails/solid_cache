@@ -29,4 +29,32 @@ class SolidCache::TrimmingTest < ActiveSupport::TestCase
       end
     end
   end
+
+  def test_no_connections_uninstrumented
+    ActiveRecord::ConnectionAdapters::ConnectionPool.any_instance.stubs(:connection).raises(ActiveRecord::StatementInvalid)
+
+    cache = lookup_store(expires_in: 60, cluster: { shards: [:primary_shard_one, :primary_shard_two] }, active_record_instrumentation: false)
+
+    assert_equal false, cache.write("1", "fsjhgkjfg")
+    assert_nil cache.read("1")
+    assert_nil cache.increment("1")
+    assert_nil cache.decrement("1")
+    assert_equal false, cache.delete("1")
+    assert_equal({}, cache.read_multi("1", "2", "3"))
+    assert_equal false, cache.write_multi("1" => "a", "2" => "b", "3" => "c")
+  end
+
+  def test_no_connections_instrumented
+    ActiveRecord::ConnectionAdapters::ConnectionPool.any_instance.stubs(:connection).raises(ActiveRecord::StatementInvalid)
+
+    cache = lookup_store(expires_in: 60, cluster: { shards: [:primary_shard_one, :primary_shard_two] })
+
+    assert_equal false, cache.write("1", "fsjhgkjfg")
+    assert_nil cache.read("1")
+    assert_nil cache.increment("1")
+    assert_nil cache.decrement("1")
+    assert_equal false, cache.delete("1")
+    assert_equal({}, cache.read_multi("1", "2", "3"))
+    assert_equal false, cache.write_multi("1" => "a", "2" => "b", "3" => "c")
+  end
 end
