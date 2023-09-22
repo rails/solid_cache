@@ -8,18 +8,33 @@ class SolidCache::StatsTest < ActiveSupport::TestCase
     @namespace = "test-#{SecureRandom.hex}"
   end
 
-  def test_stats
-    @cache = lookup_store(trim_batch_size: 2, max_age: 2.weeks.to_i, max_entries: 1000, shards: [:default, :default2])
+  def test_stats_one_shard
+    @cache = lookup_store(trim_batch_size: 2, max_age: 2.weeks.to_i, max_entries: 1000, cluster: { shards: [ :default ] })
 
     expected = {
-      shards: 2,
+      shards: 1,
       shards_stats: {
-        default: { max_age: 2.weeks.to_i, oldest_age: nil, max_entries: 1000, entries: 0 },
-        default2: { max_age: 2.weeks.to_i, oldest_age: nil, max_entries: 1000, entries: 0 }
+        default: { max_age: 2.weeks.to_i, oldest_age: nil, max_entries: 1000, entries: 0 }
       }
     }
 
     assert_equal expected, @cache.stats
+  end
+
+  unless ENV["NO_CONNECTS_TO"]
+    def test_stats_multiple_shards
+      @cache = lookup_store(trim_batch_size: 2, max_age: 2.weeks.to_i, max_entries: 1000, cluster: { shards: [:default, :default2] })
+
+      expected = {
+        shards: 2,
+        shards_stats: {
+          default: { max_age: 2.weeks.to_i, oldest_age: nil, max_entries: 1000, entries: 0 },
+          default2: { max_age: 2.weeks.to_i, oldest_age: nil, max_entries: 1000, entries: 0 }
+        }
+      }
+
+      assert_equal expected, @cache.stats
+    end
   end
 
   def test_stats_with_entries

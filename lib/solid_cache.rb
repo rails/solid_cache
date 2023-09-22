@@ -10,7 +10,7 @@ module SolidCache
   mattr_accessor :executor, :connects_to
 
   def self.all_shard_keys
-    all_shards_config&.keys
+    all_shards_config&.keys || [ Record.default_shard ]
   end
 
   def self.all_shards_config
@@ -20,7 +20,7 @@ module SolidCache
   def self.each_shard
     return to_enum(:each_shard) unless block_given?
 
-    if (shards = connects_to[:shards]&.keys)
+    if (shards = connects_to && connects_to[:shards]&.keys)
       shards.each do |shard|
         Record.connected_to(shard: shard) { yield }
       end

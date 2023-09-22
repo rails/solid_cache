@@ -5,11 +5,15 @@ module SolidCache
     def initialize(options)
       case options
       when Array, NilClass
-        @names = options || SolidCache.all_shard_keys || [SolidCache::Record.default_shard]
+        @names = options || SolidCache.all_shard_keys
         @nodes = @names.to_h { |name| [ name, name ] }
       when Hash
         @names = options.keys
         @nodes = options.invert
+      end
+
+      if (unknown_shards = names - SolidCache.all_shard_keys).any?
+        raise ArgumentError, "Unknown #{"shard".pluralize(unknown_shards)}: #{unknown_shards.join(", ")}"
       end
 
       @consistent_hash = MaglevHash.new(@nodes.keys) if sharded?

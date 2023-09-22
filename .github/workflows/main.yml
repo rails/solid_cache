@@ -43,3 +43,5 @@ jobs:
           bin/rails db:setup
       - name: Run tests
         run: bin/rails test
+      - name: Run tests (no connects-to)
+        run: NO_CONNECTS_TO=true bin/rails test

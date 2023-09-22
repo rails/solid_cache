@@ -18,7 +18,7 @@ end
 
 def lookup_store(options = {})
   store_options = { namespace: @namespace }.merge(options)
-  store_options.merge!(cluster: { shards: [:default, :default2] }) unless store_options.key?(:cluster) || store_options.key?(:clusters)
+  store_options.merge!(cluster: { shards: [:default] }) unless store_options.key?(:cluster) || store_options.key?(:clusters)
   ActiveSupport::Cache.lookup_store(:solid_cache_store, store_options)
 end
 
