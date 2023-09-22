@@ -1,5 +1,3 @@
-require "solid_cache/maglev_hash"
-
 module SolidCache
   class Shards
     attr_reader :names, :nodes, :consistent_hash

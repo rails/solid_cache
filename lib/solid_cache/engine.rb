@@ -1,5 +1,4 @@
 require "active_support"
-require "solid_cache"
 
 module SolidCache
   class Engine < ::Rails::Engine

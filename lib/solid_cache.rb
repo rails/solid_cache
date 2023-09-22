@@ -1,6 +1,10 @@
-require "solid_cache/version"
-require "solid_cache/engine"
-require "solid_cache/store"
+require "zeitwerk"
+
+loader = Zeitwerk::Loader.for_gem
+loader.ignore("#{__dir__}/active_support")
+loader.ignore("#{__dir__}/generators")
+loader.setup
+loader.eager_load
 
 module SolidCache
   mattr_accessor :executor, :connects_to
