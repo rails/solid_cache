@@ -2,6 +2,10 @@ require "solid_cache/cluster"
 
 module SolidCache
   class Store < ActiveSupport::Cache::Store
+    require "solid_cache/store/operations"
+
+    include Operations
+
     MAX_KEY_BYTESIZE = 1024
     SQL_WILDCARD_CHARS = [ '_', '%' ]
 
@@ -47,28 +51,22 @@ module SolidCache
 
         matcher = namespace_key(matcher, options)
 
-        writing do
-          failsafe :delete_matched do
-            Entry.delete_matched(matcher, batch_size: batch_size)
-          end
-        end
+        delete_matched_entries(matcher, batch_size)
       end
     end
 
     def increment(name, amount = 1, options = nil)
       options = merged_options(options)
       key = normalize_key(name, options)
-      writing_key(key, failsafe: :increment) do
-        Entry.increment(key, amount)
-      end
+
+      increment_entry(key, amount)
     end
 
     def decrement(name, amount = 1, options = nil)
       options = merged_options(options)
       key = normalize_key(name, options)
-      writing_key(key, failsafe: :decrement) do
-        Entry.increment(key, -amount)
-      end
+
+      decrement_entry(key, amount)
     end
 
     def cleanup(options = nil)
@@ -89,23 +87,15 @@ module SolidCache
       end
 
       def read_serialized_entry(key, raw: false, **options)
-        failsafe(:read_entry) do
-          primary_cluster.reading_shard(normalized_key: key) do
-            Entry.get(key)
-          end
-        end
+        get_entry(key)
       end
 
       def write_entry(key, entry, raw: false, **options)
-        # This writes it to the cache
         payload = serialize_entry(entry, raw: raw, **options)
+        # No-op for us, but this writes it to the local cache
         write_serialized_entry(key, payload, raw: raw, **options)
 
-        writing_key(key, failsafe: :write_entry, failsafe_returning: false) do |cluster|
-          Entry.set(key, payload)
-          cluster.trim(1)
-          true
-        end
+        set_entry(key, payload)
       end
 
       def write_serialized_entry(key, payload, raw: false, unless_exist: false, expires_in: nil, race_condition_ttl: nil, **options)
@@ -113,15 +103,7 @@ module SolidCache
       end
 
       def read_serialized_entries(keys)
-        results = primary_cluster.across_shards(list: keys) do |shard, keys|
-          failsafe(:read_multi_mget, returning: {}) do
-            primary_cluster.with_shard(shard) do
-              Entry.get_all(keys)
-            end
-          end
-        end
-
-        results.reduce(&:merge!)
+        get_entries(keys).reduce(&:merge!)
       end
 
       def read_multi_entries(names, **options)
@@ -152,22 +134,12 @@ module SolidCache
             write_serialized_entry(entries[:key], entries[:value])
           end
 
-          writing_list(serialized_entries) do |cluster, shard, serialized_entries|
-            failsafe(:write_multi_entries, returning: false) do
-              cluster.with_shard(shard) do
-                Entry.set_all(serialized_entries)
-                cluster.trim(serialized_entries.count)
-                true
-              end
-            end
-          end.all?
+          set_entries(serialized_entries).all?
         end
       end
 
       def delete_entry(key, **options)
-        writing_key(key, failsafe: :delete_entry, failsafe_returning: false) do
-          Entry.delete_by_key(key)
-        end
+        delete_entry_internal(key)
       end
 
       def delete_multi_entries(entries, **options)
@@ -208,44 +180,6 @@ module SolidCache
         else
           key
         end
-      end
-
-      def failsafe(method, returning: nil)
-        yield
-      rescue ActiveRecord::ActiveRecordError => error
-        ActiveSupport.error_reporter&.report(error, handled: true, severity: :warning)
-        @error_handler&.call(method: method, exception: error, returning: returning)
-        returning
-      end
-
-      def writing_key(key, failsafe:, failsafe_returning: nil)
-        writing_clusters do |cluster|
-          failsafe(failsafe, returning: failsafe_returning) do
-            cluster.writing_shard(normalized_key: key) do
-              yield cluster
-            end
-          end
-        end
-      end
-
-      def writing_list(list)
-        writing_clusters do |cluster|
-          cluster.across_shards(list: list) do |shard, list|
-            yield cluster, shard, list
-          end
-        end
-      end
-
-      def writing
-        writing_clusters do |cluster|
-          cluster.writing_all_shards do
-            yield
-          end
-        end
-      end
-
-      def writing_clusters
-        clusters.map { |cluster| yield cluster }.first
       end
   end
 end
