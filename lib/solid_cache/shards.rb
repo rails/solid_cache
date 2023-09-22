@@ -14,9 +14,7 @@ module SolidCache
         @nodes = options.invert
       end
 
-      if @names.count > 1
-        @consistent_hash = MaglevHash.new(@nodes.keys)
-      end
+      @consistent_hash = MaglevHash.new(@nodes.keys) if sharded?
     end
 
     def with_each
@@ -46,10 +44,10 @@ module SolidCache
     end
 
     def assign(list)
-      if names.count == 1
-        { names.first => list }
-      else
+      if sharded?
         list.group_by { |value| shard_for(value.is_a?(Hash) ? value[:key] : value) }
+      else
+        { names.first => list }
       end
     end
 
@@ -59,10 +57,14 @@ module SolidCache
 
     private
       def shard_for(key)
-        return names.first if names.count == 1
+        return names.first unless sharded?
 
         node = consistent_hash.node(key)
         nodes[node]
+      end
+
+      def sharded?
+        names.count > 1
       end
   end
 end
