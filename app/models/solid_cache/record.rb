@@ -12,6 +12,14 @@ module SolidCache
           yield
         end
       end
+
+      def with_shard(shard, &block)
+        if shard && shard != Record.current_shard
+          Record.connected_to(shard: shard, &block)
+        else
+          block.call
+        end
+      end
     end
   end
 end

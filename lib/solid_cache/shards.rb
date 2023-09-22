@@ -15,37 +15,25 @@ module SolidCache
       @consistent_hash = MaglevHash.new(@nodes.keys) if sharded?
     end
 
-    def with_each
+    def with_each(&block)
       return enum_for(:with_each) unless block_given?
 
-      names.each do |name|
-        with(name) do
-          yield
-        end
-      end
+      names.each { |name| with(name, &block) }
     end
 
-    def with(name)
-      if name && name != Entry.current_shard
-        Record.connected_to(shard: name) do
-          yield
-        end
-      else
-        yield
-      end
+    def with(name, &block)
+      Record.with_shard(name, &block)
     end
 
-    def with_shard_for(key)
-      with(shard_for(key)) do
-        yield
-      end
+    def with_shard_for(key, &block)
+      with(shard_for(key), &block)
     end
 
-    def assign(list)
+    def assign(keys)
       if sharded?
-        list.group_by { |value| shard_for(value.is_a?(Hash) ? value[:key] : value) }
+        keys.group_by { |key| shard_for(key.is_a?(Hash) ? key[:key] : key) }
       else
-        { names.first => list }
+        { names.first => keys }
       end
     end
 
