@@ -1,6 +1,24 @@
 module SolidCache
   class Store
     module Clusters
+      attr_reader :primary_cluster, :clusters
+
+      def initialize(options = {})
+        super(options)
+
+        clusters_options = options.fetch(:clusters) { [options.fetch(:cluster, {})] }
+
+        @clusters = clusters_options.map.with_index do |cluster_options, index|
+          Cluster.new(options.merge(cluster_options).merge(async_writes: index != 0))
+        end
+
+        @primary_cluster = clusters.first
+      end
+
+      def setup!
+        clusters.each(&:setup!)
+      end
+
       private
         def reading_key(key, failsafe:, failsafe_returning: nil)
           failsafe(failsafe, returning: failsafe_returning) do
@@ -24,7 +42,7 @@ module SolidCache
 
 
         def writing_key(key, failsafe:, failsafe_returning: nil)
-          each_cluster do |cluster, async|
+          first_cluster_sync_rest_async do |cluster, async|
             failsafe(failsafe, returning: failsafe_returning) do
               cluster.with_shard_for(key, async: async) do
                 yield cluster
@@ -34,7 +52,7 @@ module SolidCache
         end
 
         def writing_keys(entries, failsafe:, failsafe_returning: nil)
-          each_cluster do |cluster, async|
+          first_cluster_sync_rest_async do |cluster, async|
             sharded_entries = cluster.assign_to_shards(entries)
 
             sharded_entries.map do |shard, entries|
@@ -48,7 +66,7 @@ module SolidCache
         end
 
         def writing_all(failsafe:, failsafe_returning: nil)
-          each_cluster do |cluster, async|
+          first_cluster_sync_rest_async do |cluster, async|
             cluster.shard_names.each do |shard|
               failsafe(failsafe, returning: failsafe_returning) do
                 cluster.with_shard(shard, async: async) do
@@ -59,7 +77,7 @@ module SolidCache
           end
         end
 
-        def each_cluster
+        def first_cluster_sync_rest_async
           clusters.map.with_index { |cluster, index| yield cluster, index != 0 }.first
         end
 
