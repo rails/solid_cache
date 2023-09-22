@@ -10,29 +10,23 @@ module SolidCache
         end
       end
 
-      def with_each_shard(async: false)
+      def with_each_shard(async: false, &block)
         return enum_for(:with_each_shard) unless block_given?
 
         shards.with_each do
-          async_if_required(async) do
-            yield
-          end
+          async_if_required(async, &block)
         end
       end
 
-      def with_shard_for(key, async: false)
+      def with_shard_for(key, async: false, &block)
         shards.with_shard_for(key) do
-          async_if_required(async) do
-            yield
-          end
+          async_if_required(async, &block)
         end
       end
 
-      def with_shard(name, async: false)
+      def with_shard(name, async: false, &block)
         shards.with(name) do
-          async_if_required(async) do
-            yield
-          end
+          async_if_required(async, &block)
         end
       end
 
