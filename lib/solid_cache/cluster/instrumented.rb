@@ -11,13 +11,11 @@ module SolidCache
       end
 
       private
-        def instrument
+        def instrument(&block)
           if active_record_instrumentation?
-            yield
+            block.call
           else
-            Record.disable_instrumentation do
-              yield
-            end
+            Record.disable_instrumentation(&block)
           end
         end
     end

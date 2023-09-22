@@ -8,14 +8,11 @@ module SolidCache
     TABLE_SIZE = 2053
 
     def initialize(nodes)
-      @nodes = nodes.uniq.sort
-      @node_count = nodes.count
-
       raise ArgumentError, "No nodes specified" if nodes.count == 0
       raise ArgumentError, "Maximum node count is #{TABLE_SIZE}" if nodes.count > TABLE_SIZE
 
-      @lookup = Array.new(TABLE_SIZE, nil)
-      popuplate_lookup
+      @nodes = nodes.uniq.sort
+      @lookup = build_lookup
     end
 
     def node(key)
@@ -25,33 +22,27 @@ module SolidCache
     private
       attr_reader :lookup, :node_count
 
-      def popuplate_lookup
+      def build_lookup
+        lookup = Array.new(TABLE_SIZE, nil)
+
         node_preferences = nodes.map { |node| build_preferences(node) }
+        node_count = nodes.count
 
         TABLE_SIZE.times do |i|
           node_index = i % node_count
           preferences = node_preferences[node_index]
-          slot = preferred_free_slot(preferences)
+          slot = preferences.preferred_free_slot(lookup)
           lookup[slot] = node_index
         end
+
+        lookup
       end
 
       def build_preferences(node)
         offset = md5(node, :offset) % TABLE_SIZE
         skip = md5(node, :skip) % (TABLE_SIZE - 1) + 1
 
-        Preferences.new TABLE_SIZE.times.map { |i| (offset + i * skip) % TABLE_SIZE }
-      end
-
-      def preferred_free_slot(preferences)
-        loop do
-          slot = preferences.next
-          return slot if slot_free?(slot)
-        end
-      end
-
-      def slot_free?(slot)
-        lookup[slot].nil?
+        Preferences.new(offset, skip)
       end
 
       def md5(*args)
@@ -63,17 +54,24 @@ module SolidCache
       end
 
       class Preferences
-        def initialize(preferences)
-          @preferences = preferences
+        def initialize(offset, skip)
+          @preferred_slots = TABLE_SIZE.times.map { |i| (offset + i * skip) % TABLE_SIZE }
           @rank = 0
         end
 
-        def next
-          preferences[rank].tap { @rank += 1 }
+        def preferred_free_slot(lookup)
+          loop do
+            slot = next_slot
+            return slot if lookup[slot].nil?
+          end
         end
 
         private
-          attr_reader :rank, :preferences
+          attr_reader :rank, :preferred_slots
+
+          def next_slot
+            preferred_slots[rank].tap { @rank += 1 }
+          end
       end
   end
 end

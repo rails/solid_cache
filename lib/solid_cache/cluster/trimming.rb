@@ -32,11 +32,9 @@ module SolidCache
 
       private
         def trim_batch
-          candidates = Entry.first_n(trim_batch_size * TRIM_SELECT_MULTIPLIER).select(:id, :created_at).to_a
-          candidates.select! { |entry| entry.created_at < max_age.seconds.ago } unless cache_full?
-          candidates = candidates.sample(trim_batch_size)
-
-          Entry.delete_by_ids(candidates.map(&:id)) if candidates.any?
+          if (ids = trim_candidates).any?
+            Entry.delete_by_ids(ids)
+          end
         end
 
         def trim_counters
@@ -51,6 +49,20 @@ module SolidCache
           # Pre-fill the first counter to prevent herding and to account
           # for discarded counters from the last shutdown
           Concurrent::AtomicFixnum.new(rand(trim_batch_size).to_i)
+        end
+
+        def trim_select_size
+          trim_batch_size * TRIM_SELECT_MULTIPLIER
+        end
+
+        def trim_candidates
+          cache_full = cache_full?
+
+          Entry \
+            .first_n(trim_select_size)
+            .pluck(:id, :created_at)
+            .filter_map { |id, created_at| id if cache_full || created_at < max_age.seconds.ago }
+            .sample(trim_batch_size)
         end
     end
   end

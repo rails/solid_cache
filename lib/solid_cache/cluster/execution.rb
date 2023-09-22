@@ -12,26 +12,24 @@ module SolidCache
           current_shard = Entry.current_shard
           @background << ->() do
             wrap_in_rails_executor do
-              shards.with(current_shard) do
-                block.call(current_shard)
-              end
+              shards.with(current_shard, &block)
             end
           end
         end
 
-        def async_if_required(required)
+        def async_if_required(required, &block)
           if required
-            async { instrument { yield } }
+            async { instrument(&block) }
           else
-            instrument { yield }
+            instrument(&block)
           end
         end
 
-        def wrap_in_rails_executor
+        def wrap_in_rails_executor(&block)
           if SolidCache.executor
-            SolidCache.executor.wrap { yield }
+            SolidCache.executor.wrap(&block)
           else
-            yield
+            block.call
           end
         end
     end

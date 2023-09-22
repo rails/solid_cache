@@ -17,10 +17,6 @@ module SolidCache
     connects_to && connects_to[:shards]
   end
 
-  def self.shard_config(shard)
-    all_shards_config && all_shards_config[shard]
-  end
-
   def self.each_shard
     return to_enum(:each_shard) unless block_given?
 

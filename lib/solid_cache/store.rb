@@ -6,7 +6,7 @@ module SolidCache
       end
     end
 
-    include Clusters, Operations, Api
+    include Api, Entries, Failsafe, Clusters
     prepend ActiveSupport::Cache::Strategy::LocalCache
 
     def self.supports_cache_versioning?
