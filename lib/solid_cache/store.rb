@@ -2,9 +2,10 @@ require "solid_cache/cluster"
 
 module SolidCache
   class Store < ActiveSupport::Cache::Store
+    require "solid_cache/store/clusters"
     require "solid_cache/store/operations"
 
-    include Operations
+    include Clusters, Operations
 
     MAX_KEY_BYTESIZE = 1024
     SQL_WILDCARD_CHARS = [ '_', '%' ]

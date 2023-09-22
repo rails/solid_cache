@@ -40,17 +40,17 @@ module SolidCache
         end
 
         def trim_counters
-          # Pre-fill the first counter to prevent herding and to account
-          # for discarded counters from the last shutdown
-          @trim_counters ||= if shards.any?
-            shards.to_h { |shard| [shard, Concurrent::AtomicFixnum.new(rand(trim_batch_size).to_i)] }
-          else
-            { SolidCache::Record.default_shard => Concurrent::AtomicFixnum.new(rand(trim_batch_size).to_i) }
-          end
+          @trim_counters ||= shards.names.to_h { |shard_name| [ shard_name, trim_counter ] }
         end
 
         def cache_full?
           max_entries && max_entries < Entry.id_range
+        end
+
+        def trim_counter
+          # Pre-fill the first counter to prevent herding and to account
+          # for discarded counters from the last shutdown
+          Concurrent::AtomicFixnum.new(rand(trim_batch_size).to_i)
         end
     end
   end
