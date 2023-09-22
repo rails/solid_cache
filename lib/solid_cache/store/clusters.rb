@@ -58,7 +58,7 @@ module SolidCache
             sharded_entries.map do |shard, entries|
               failsafe(failsafe, returning: failsafe_returning) do
                 cluster.with_shard(shard, async: async) do
-                  yield cluster, shard, entries
+                  yield cluster, entries
                 end
               end
             end

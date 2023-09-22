@@ -42,12 +42,11 @@ $ gem install solid_cache
 Adding the cache to your main database:
 
 ```bash
-$ bin/rails solid_cache:install:migrations
+$ bin/rails solid_cache:install
 ```
 
-Install and run migrations:
+Then run migrations:
 ```bash
-$ bin/rails solid_cache:install:migrations
 $ bin/rails db:migrate
 ```
 
@@ -82,7 +81,7 @@ Solid cache supports these options in addition to the universal `ActiveSupport::
 - `max_age` - the maximum age of entries in the cache (default: `2.weeks.to_i`)
 - `max_entries` - the maximum number of entries allowed in the cache (default: `2.weeks.to_i`)
 - `cluster` - a Hash of options for the cache database cluster, e.g { shards: [:database1, :database2, :database3] }
-- `clusters` - and Array of Hashes for separate cache clusters (ignored if `:cluster` is set)
+- `clusters` - and Array of Hashes for multiple cache clusters (ignored if `:cluster` is set)
 - `active_record_instrumentation` - whether to instrument the cache's queries (default: `true`)
 
 For more information on cache clusters see [Sharding the cache](#sharding-the-cache)

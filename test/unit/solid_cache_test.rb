@@ -25,7 +25,11 @@ class SolidCacheTest < ActiveSupport::TestCase
 
   test "each_shard" do
     shards = SolidCache.each_shard.map { SolidCache::Record.current_shard }
-    assert_equal [ :default, :default2, :primary_shard_one, :primary_shard_two, :secondary_shard_one, :secondary_shard_two ], shards
+    if ENV["NO_CONNECTS_TO"]
+      assert_equal [ :default ], shards
+    else
+      assert_equal [ :default, :default2, :primary_shard_one, :primary_shard_two, :secondary_shard_one, :secondary_shard_two ], shards
+    end
   end
 end
 

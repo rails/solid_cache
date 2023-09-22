@@ -41,7 +41,7 @@ module SolidCache
         end
 
         def entry_write_multi(entries)
-          writing_keys(entries, failsafe: :write_multi_entries, failsafe_returning: false) do |cluster, shard, entries|
+          writing_keys(entries, failsafe: :write_multi_entries, failsafe_returning: false) do |cluster, entries|
             Entry.write_multi(entries)
             cluster.trim(entries.count)
             true
