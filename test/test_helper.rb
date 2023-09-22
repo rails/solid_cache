@@ -23,7 +23,7 @@ def lookup_store(options = {})
 end
 
 def send_entries_back_in_time(distance)
-  @cache.primary_cluster.writing_all_shards do
+  @cache.primary_cluster.with_each_shard do
     SolidCache::Entry.all.each do |entry|
       entry.update_columns(created_at: entry.created_at - distance)
     end

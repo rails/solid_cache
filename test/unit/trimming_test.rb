@@ -44,7 +44,7 @@ class SolidCache::TrimmingTest < ActiveSupport::TestCase
   end
 
   def test_trims_records_no_shards
-    @cache = ActiveSupport::Cache.lookup_store(:solid_cache_store, trim_batch_size: 2, namespace: @namespace, max_entries: 2, cluster: { shards: [] })
+    @cache = ActiveSupport::Cache.lookup_store(:solid_cache_store, trim_batch_size: 2, namespace: @namespace, max_entries: 2, cluster: { shards: [:default] })
     @cache.write("foo", 1)
     @cache.write("bar", 2)
 
@@ -61,7 +61,7 @@ class SolidCache::TrimmingTest < ActiveSupport::TestCase
 
   def test_trims_old_records_multiple_shards
     @cache = lookup_store(trim_batch_size: 2)
-    default_shard_keys, shard_one_keys = 20.times.map { |i| "key#{i}" }.partition { |key| @cache.primary_cluster.send(:shard_for_normalized_key, @cache.send(:normalize_key, key, {})) == :default }
+    default_shard_keys, shard_one_keys = 20.times.map { |i| "key#{i}" }.partition { |key| @cache.primary_cluster.send(:shards).send(:shard_for, @cache.send(:normalize_key, key, {})) == :default }
 
     @cache.write(default_shard_keys[0], 1)
     @cache.write(default_shard_keys[1], 2)

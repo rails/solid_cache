@@ -1,8 +1,8 @@
 module SolidCache
   class Cluster
     module Stats
-      def initialize(options)
-        super(options)
+      def initialize(options = {})
+        super()
       end
 
       def stats
@@ -10,12 +10,11 @@ module SolidCache
           shards: shards.count,
           shards_stats: shards_stats
         }
-
       end
 
       private
         def shards_stats
-          writing_all_shards.to_h { |shard| [Entry.current_shard, shard_stats] }
+          with_each_shard.to_h { |shard| [Entry.current_shard, shard_stats] }
         end
 
         def shard_stats
