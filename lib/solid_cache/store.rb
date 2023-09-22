@@ -1,11 +1,5 @@
-require "solid_cache/cluster"
-
 module SolidCache
   class Store < ActiveSupport::Cache::Store
-    require "solid_cache/store/clusters"
-    require "solid_cache/store/operations"
-    require "solid_cache/store/api"
-
     DEFAULT_ERROR_HANDLER = -> (method:, returning:, exception:) do
       if logger
         logger.error { "SolidCacheStore: #{method} failed, returned #{returning.inspect}: #{exception.class}: #{exception.message}" }
