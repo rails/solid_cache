@@ -56,13 +56,13 @@ module SolidCache
         end
 
         def trim_candidates
+          cache_full = cache_full?
+
           Entry \
             .first_n(trim_select_size)
             .pluck(:id, :created_at)
-            .to_a
-            .tap { |candidates| candidates.select! { |id, created_at| created_at < max_age.seconds.ago } unless cache_full? }
+            .filter_map { |id, created_at| id if cache_full || created_at < max_age.seconds.ago }
             .sample(trim_batch_size)
-            .map { |id, created_at| id }
         end
     end
   end
