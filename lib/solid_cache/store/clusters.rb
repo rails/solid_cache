@@ -80,14 +80,6 @@ module SolidCache
         def first_cluster_sync_rest_async
           clusters.map.with_index { |cluster, index| yield cluster, index != 0 }.first
         end
-
-        def failsafe(method, returning: nil)
-          yield
-        rescue ActiveRecord::ActiveRecordError => error
-          ActiveSupport.error_reporter&.report(error, handled: true, severity: :warning)
-          @error_handler&.call(method: method, exception: error, returning: returning)
-          returning
-        end
     end
   end
 end
