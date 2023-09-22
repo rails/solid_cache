@@ -23,7 +23,7 @@ module SolidCache
 
           matcher = namespace_key(matcher, options)
 
-          delete_matched_entries(matcher, batch_size)
+          entry_delete_matched(matcher, batch_size)
         end
       end
 
@@ -31,14 +31,14 @@ module SolidCache
         options = merged_options(options)
         key = normalize_key(name, options)
 
-        increment_entry(key, amount)
+        entry_increment(key, amount)
       end
 
       def decrement(name, amount = 1, options = nil)
         options = merged_options(options)
         key = normalize_key(name, options)
 
-        decrement_entry(key, amount)
+        entry_decrement(key, amount)
       end
 
       def cleanup(options = nil)
@@ -55,7 +55,7 @@ module SolidCache
         end
 
         def read_serialized_entry(key, raw: false, **options)
-          get_entry(key)
+          entry_read(key)
         end
 
         def write_entry(key, entry, raw: false, **options)
@@ -63,7 +63,7 @@ module SolidCache
           # No-op for us, but this writes it to the local cache
           write_serialized_entry(key, payload, raw: raw, **options)
 
-          set_entry(key, payload)
+          entry_write(key, payload)
         end
 
         def write_serialized_entry(key, payload, raw: false, unless_exist: false, expires_in: nil, race_condition_ttl: nil, **options)
@@ -71,7 +71,7 @@ module SolidCache
         end
 
         def read_serialized_entries(keys)
-          get_entries(keys).reduce(&:merge!)
+          entry_read_multi(keys).reduce(&:merge!)
         end
 
         def read_multi_entries(names, **options)
@@ -102,12 +102,12 @@ module SolidCache
               write_serialized_entry(entries[:key], entries[:value])
             end
 
-            set_entries(serialized_entries).all?
+            entry_write_multi(serialized_entries).all?
           end
         end
 
         def delete_entry(key, **options)
-          delete_entry_internal(key)
+          entry_delete(key)
         end
 
         def delete_multi_entries(entries, **options)

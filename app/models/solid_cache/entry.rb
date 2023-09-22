@@ -4,19 +4,19 @@ module SolidCache
     # 1. We skip the query cache
     # 2. We avoid the overhead of building queries and active record objects
     class << self
-      def set(key, value)
+      def write(key, value)
         upsert_all_no_query_cache([{key: key, value: value}])
       end
 
-      def set_all(payloads)
+      def write_multi(payloads)
         upsert_all_no_query_cache(payloads)
       end
 
-      def get(key)
+      def read(key)
         select_all_no_query_cache(get_sql, to_binary(key)).first
       end
 
-      def get_all(keys)
+      def read_multi(keys)
         serialized_keys = keys.map { |key| to_binary(key) }
         select_all_no_query_cache(get_all_sql(serialized_keys), serialized_keys).to_h
       end
@@ -38,10 +38,16 @@ module SolidCache
 
       def increment(key, amount)
         transaction do
-          amount += lock.where(key: key).pick(:value).to_i
-          set(key, amount)
-          amount
+          uncached do
+            amount += lock.where(key: key).pick(:value).to_i
+            write(key, amount)
+            amount
+          end
         end
+      end
+
+      def decrement(key, amount)
+        increment(key, -amount)
       end
 
       def id_range
