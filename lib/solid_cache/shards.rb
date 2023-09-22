@@ -57,10 +57,11 @@ module SolidCache
 
     private
       def shard_for(key)
-        return names.first unless sharded?
-
-        node = consistent_hash.node(key)
-        nodes[node]
+        if sharded?
+          nodes[consistent_hash.node(key)]
+        else
+          names.first
+        end
       end
 
       def sharded?
