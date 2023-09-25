@@ -7,6 +7,7 @@ ActiveRecord::Migrator.migrations_paths << File.expand_path("../db/migrate", __d
 require "rails/test_help"
 require "debug"
 require "mocha/minitest"
+require "database_cleaner/active_record"
 
 # Load fixtures from the engine
 if ActiveSupport::TestCase.respond_to?(:fixture_path=)
@@ -17,6 +18,20 @@ if ActiveSupport::TestCase.respond_to?(:fixture_path=)
 end
 
 ActiveSupport::TestCase.use_transactional_tests = false
+
+DatabaseCleaner.strategy = :truncation
+DatabaseCleaner::ActiveRecord.config_file_location = Rails.root.join("config/database.yml")
+
+DatabaseCleaner[:active_record, db: :primary_shard_one].strategy = :truncation
+DatabaseCleaner[:active_record, db: :primary_shard_two].strategy = :truncation
+DatabaseCleaner[:active_record, db: :secondary_shard_one].strategy = :truncation
+DatabaseCleaner[:active_record, db: :secondary_shard_two].strategy = :truncation
+
+class ActiveSupport::TestCase
+  setup do
+    DatabaseCleaner.clean
+  end
+end
 
 def lookup_store(options = {})
   store_options = { namespace: @namespace }.merge(options)
