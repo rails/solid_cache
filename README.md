@@ -39,10 +39,10 @@ Or install it yourself as:
 $ gem install solid_cache
 ```
 
-Adding the cache to your main database:
+Add the cache to your main database:
 
 ```bash
-$ bin/rails solid_cache:install
+$ bin/rails solid_cache:install:migrations
 ```
 
 Then run migrations:
@@ -66,7 +66,7 @@ Rails.application.configure do
   config.solid_cache.connects_to = {
     shards: {
       shard1: { writing: :cache_primary_shard1 },
-      shard2: { writing: :cache_primary_shard1 }
+      shard2: { writing: :cache_primary_shard2 }
     }
   }
 end
@@ -80,20 +80,20 @@ Solid cache supports these options in addition to the universal `ActiveSupport::
 - `trim_batch_size` - the batch size to use when deleting old records (default: `100`)
 - `max_age` - the maximum age of entries in the cache (default: `2.weeks.to_i`)
 - `max_entries` - the maximum number of entries allowed in the cache (default: `2.weeks.to_i`)
-- `cluster` - a Hash of options for the cache database cluster, e.g { shards: [:database1, :database2, :database3] }
+- `cluster` - a Hash of options for the cache database cluster, e.g `{ shards: [:database1, :database2, :database3] }``
 - `clusters` - and Array of Hashes for multiple cache clusters (ignored if `:cluster` is set)
 - `active_record_instrumentation` - whether to instrument the cache's queries (default: `true`)
 
 For more information on cache clusters see [Sharding the cache](#sharding-the-cache)
 ### Cache trimming
 
-SolidCache tracks when we write to the cache. For every write it increments a counter by 1.25. Once the counter reaches the `trim_batch_size` it add a task to run on a cache trimming thread. That task will:
+SolidCache tracks writes to the cache. For every write it increments a counter by 1. Once the counter reaches 80% of the `trim_batch_size` it add a task to run on a background thread. That task will:
 
 1. Check if we have exceeded the `max_entries` value (if set) by subtracting the max and min IDs from the `SolidCache::Entry` table (this is an estimate that ignores any gaps).
 2. If we have it will delete 100 entries
 3. If not it will delete up to 100 entries, provided they are all older than `max_age`.
 
-Incrementing the counter by 1.25 per write allows us to trim the cache faster than we write to it if we need to.
+Triggering when we reach 80% of the batch size allows us to trim the cache faster than we write to it when we need to reduce the cache size.
 
 Only triggering trimming when we write means that the if the cache is idle, the background thread is also idle.
 
@@ -145,7 +145,7 @@ To shard:
 
 1. Add the configuration for the database shards to database.yml
 2. Configure the shards via `config.solid_cache.connects_to`
-3. Pass the shards for the cache to use via the shards option
+3. Pass the shards for the cache to use via the cluster option
 
 For example:
 ```ruby
@@ -236,7 +236,4 @@ end
 ```
 
 ## Contributing
-Contribution directions go here.
-
-## License
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+SolidCache is MIT-licensed open-source software from 37signals, the creators of Ruby on Rails.
