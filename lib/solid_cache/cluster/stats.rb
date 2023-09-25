@@ -7,17 +7,17 @@ module SolidCache
 
       def stats
         stats = {
-          shards: shards.count,
-          shards_stats: shards_stats
+          connections: connections.count,
+          connection_stats: connections_stats
         }
       end
 
       private
-        def shards_stats
-          with_each_shard.to_h { |shard| [Entry.current_shard, shard_stats] }
+        def connections_stats
+          with_each_connection.to_h { |connection| [Entry.current_shard, connection_stats] }
         end
 
-        def shard_stats
+        def connection_stats
           oldest_created_at = Entry.order(:id).pick(:created_at)
 
           {

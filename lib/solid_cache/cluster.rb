@@ -1,14 +1,14 @@
 
 module SolidCache
   class Cluster
-    include Instrumented, Sharded, Execution, Trimming, Stats
+    include Instrumented, Connections, Execution, Trimming, Stats
 
     def initialize(options = {})
       super(options)
     end
 
     def setup!
-      setup_shards!
+      super
     end
   end
 end

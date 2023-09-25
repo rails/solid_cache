@@ -12,7 +12,7 @@ module SolidCache
           current_shard = Entry.current_shard
           @background << ->() do
             wrap_in_rails_executor do
-              shards.with(current_shard, &block)
+              connections.with(current_shard, &block)
             end
           end
         end
