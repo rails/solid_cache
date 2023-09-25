@@ -1,4 +1,5 @@
 require "zeitwerk"
+require "solid_cache/engine"
 
 loader = Zeitwerk::Loader.for_gem
 loader.ignore("#{__dir__}/active_support")
