@@ -18,6 +18,14 @@ end
 
 ActiveSupport::TestCase.use_transactional_tests = false
 
+class ActiveSupport::TestCase
+  setup do
+    SolidCache.each_shard do
+      SolidCache::Entry.destroy_all
+    end
+  end
+end
+
 def lookup_store(options = {})
   store_options = { namespace: @namespace }.merge(options)
   store_options.merge!(cluster: { shards: [:default] }) unless store_options.key?(:cluster) || store_options.key?(:clusters)
@@ -26,8 +34,10 @@ end
 
 def send_entries_back_in_time(distance)
   @cache.primary_cluster.with_each_shard do
-    SolidCache::Entry.all.each do |entry|
-      entry.update_columns(created_at: entry.created_at - distance)
+    SolidCache::Entry.uncached do
+      SolidCache::Entry.all.each do |entry|
+        entry.update_columns(created_at: entry.created_at - distance)
+      end
     end
   end
 end
