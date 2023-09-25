@@ -8,6 +8,12 @@ module SolidCache
           end
         end
 
+        def entry_clear
+          writing_all(failsafe: :clear) do
+            Entry.clear
+          end
+        end
+
         def entry_increment(key, amount)
           writing_key(key, failsafe: :increment) do
             Entry.increment(key, amount)

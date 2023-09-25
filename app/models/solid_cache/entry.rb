@@ -36,6 +36,10 @@ module SolidCache
         end
       end
 
+      def clear
+        connection.truncate(table_name)
+      end
+
       def increment(key, amount)
         transaction do
           uncached do

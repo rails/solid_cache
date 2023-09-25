@@ -46,7 +46,7 @@ module SolidCache
       end
 
       def clear(options = nil)
-        raise NotImplementedError.new("#{self.class.name} does not support clear")
+        entry_clear
       end
 
       private
