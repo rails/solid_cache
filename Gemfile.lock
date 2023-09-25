@@ -75,10 +75,6 @@ GEM
     builder (3.2.4)
     concurrent-ruby (1.2.2)
     crass (1.0.6)
-    database_cleaner-active_record (2.1.0)
-      activerecord (>= 5.a)
-      database_cleaner-core (~> 2.0.0)
-    database_cleaner-core (2.0.1)
     date (3.3.3)
     debug (1.7.0)
       irb (>= 1.5.0)
@@ -187,7 +183,6 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  database_cleaner-active_record
   debug
   mocha
   mysql2
