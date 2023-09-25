@@ -6,7 +6,7 @@ module SolidCache
 
       attr_reader :max_key_bytesize
 
-      def initialize(options)
+      def initialize(options = {})
         super(options)
 
         @max_key_bytesize = MAX_KEY_BYTESIZE

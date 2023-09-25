@@ -1,7 +1,7 @@
 module SolidCache
   class Store
     module Failsafe
-      def initialize(options)
+      def initialize(options = {})
         super(options)
 
         @error_handler = options.fetch(:error_handler, DEFAULT_ERROR_HANDLER)
