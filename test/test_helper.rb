@@ -16,6 +16,8 @@ if ActiveSupport::TestCase.respond_to?(:fixture_path=)
   ActiveSupport::TestCase.fixtures :all
 end
 
+ActiveSupport::TestCase.use_transactional_tests = false
+
 def lookup_store(options = {})
   store_options = { namespace: @namespace }.merge(options)
   store_options.merge!(cluster: { shards: [:default] }) unless store_options.key?(:cluster) || store_options.key?(:clusters)
