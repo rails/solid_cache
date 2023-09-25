@@ -12,20 +12,21 @@ module SolidCache
       # might be deleted already. The delete multiplier should compensate for that.
       TRIM_SELECT_MULTIPLIER = 3
 
-      attr_reader :trim_batch_size, :max_age, :max_entries
+      attr_reader :trim_batch_size, :trim_every, :max_age, :max_entries
 
       def initialize(options = {})
         super(options)
         @trim_batch_size = options.fetch(:trim_batch_size, 100)
+        @trim_every = [(trim_batch_size * 0.8).floor, 1].max
         @max_age = options.fetch(:max_age, 2.weeks.to_i)
         @max_entries = options.fetch(:max_entries, nil)
       end
 
       def trim(write_count)
         counter = trim_counters[Entry.current_shard]
-        counter.increment(write_count * TRIM_DELETE_MULTIPLIER)
+        counter.increment(write_count)
         value = counter.value
-        if value > trim_batch_size && counter.compare_and_set(value, value - trim_batch_size)
+        if value > trim_every && counter.compare_and_set(value, value - trim_every)
           async { trim_batch }
         end
       end
@@ -38,7 +39,7 @@ module SolidCache
         end
 
         def trim_counters
-          @trim_counters ||= shards.names.to_h { |shard_name| [ shard_name, trim_counter ] }
+          @trim_counters ||= connection_names.to_h { |connection_name| [ connection_name, trim_counter ] }
         end
 
         def cache_full?
@@ -48,7 +49,7 @@ module SolidCache
         def trim_counter
           # Pre-fill the first counter to prevent herding and to account
           # for discarded counters from the last shutdown
-          Concurrent::AtomicFixnum.new(rand(trim_batch_size).to_i)
+          Concurrent::AtomicFixnum.new(rand(trim_every).to_i)
         end
 
         def trim_select_size

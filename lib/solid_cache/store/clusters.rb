@@ -22,18 +22,18 @@ module SolidCache
       private
         def reading_key(key, failsafe:, failsafe_returning: nil)
           failsafe(failsafe, returning: failsafe_returning) do
-            primary_cluster.with_shard_for(key) do
+            primary_cluster.with_connection_for(key) do
               yield
             end
           end
         end
 
         def reading_keys(keys, failsafe:, failsafe_returning: nil)
-          sharded_keys = primary_cluster.assign_to_shards(keys)
+          connection_keys = primary_cluster.group_by_connection(keys)
 
-          sharded_keys.map do |shard, keys|
+          connection_keys.map do |connection, keys|
             failsafe(failsafe, returning: failsafe_returning) do
-              primary_cluster.with_shard(shard) do
+              primary_cluster.with_connection(connection) do
                 yield keys
               end
             end
@@ -44,7 +44,7 @@ module SolidCache
         def writing_key(key, failsafe:, failsafe_returning: nil)
           first_cluster_sync_rest_async do |cluster, async|
             failsafe(failsafe, returning: failsafe_returning) do
-              cluster.with_shard_for(key, async: async) do
+              cluster.with_connection_for(key, async: async) do
                 yield cluster
               end
             end
@@ -53,11 +53,11 @@ module SolidCache
 
         def writing_keys(entries, failsafe:, failsafe_returning: nil)
           first_cluster_sync_rest_async do |cluster, async|
-            sharded_entries = cluster.assign_to_shards(entries)
+            connection_entries = cluster.group_by_connection(entries)
 
-            sharded_entries.map do |shard, entries|
+            connection_entries.map do |connection, entries|
               failsafe(failsafe, returning: failsafe_returning) do
-                cluster.with_shard(shard, async: async) do
+                cluster.with_connection(connection, async: async) do
                   yield cluster, entries
                 end
               end
@@ -67,9 +67,9 @@ module SolidCache
 
         def writing_all(failsafe:, failsafe_returning: nil)
           first_cluster_sync_rest_async do |cluster, async|
-            cluster.shard_names.each do |shard|
+            cluster.connection_names.each do |connection|
               failsafe(failsafe, returning: failsafe_returning) do
-                cluster.with_shard(shard, async: async) do
+                cluster.with_connection(connection, async: async) do
                   yield
                 end
               end

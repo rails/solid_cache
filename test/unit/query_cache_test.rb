@@ -5,8 +5,14 @@ class QueryCacheTest < ActiveSupport::TestCase
     @cache = nil
     @namespace = "test-#{SecureRandom.hex}"
 
-    @cache = lookup_store(expires_in: 60, cluster: { shards: [:default] })
-    @peek = lookup_store(expires_in: 60, cluster: { shards: [:default] })
+    # Ensure just one shard
+    if ENV["NO_CONNECTS_TO"]
+      @cache = lookup_store(expires_in: 60)
+      @peek = lookup_store(expires_in: 60)
+    else
+      @cache = lookup_store(expires_in: 60, cluster: { shards: [ :default ] })
+      @peek = lookup_store(expires_in: 60, cluster: { shards: [ :default ] })
+    end
   end
 
   test "writes don't clear the AR cache" do

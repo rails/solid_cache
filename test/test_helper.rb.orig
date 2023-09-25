@@ -21,7 +21,7 @@ ActiveSupport::TestCase.use_transactional_tests = false
 class ActiveSupport::TestCase
   setup do
     SolidCache.each_shard do
-      SolidCache::Entry.delete_all
+      SolidCache::Entry.destroy_all
     end
   end
 end
@@ -32,11 +32,17 @@ def lookup_store(options = {})
 end
 
 def send_entries_back_in_time(distance)
-  @cache.primary_cluster.with_each_connection do
+<<<<<<< Updated upstream
+  @cache.primary_cluster.with_each_shard do
     SolidCache::Entry.uncached do
       SolidCache::Entry.all.each do |entry|
         entry.update_columns(created_at: entry.created_at - distance)
       end
+=======
+  @cache.primary_cluster.with_each_connection do
+    SolidCache::Entry.all.each do |entry|
+      entry.update_columns(created_at: entry.created_at - distance)
+>>>>>>> Stashed changes
     end
   end
 end
