@@ -4,7 +4,6 @@ loader = Zeitwerk::Loader.for_gem
 loader.ignore("#{__dir__}/active_support")
 loader.ignore("#{__dir__}/generators")
 loader.setup
-loader.eager_load
 
 module SolidCache
   mattr_accessor :executor, :connects_to
@@ -29,3 +28,5 @@ module SolidCache
     end
   end
 end
+
+loader.eager_load
