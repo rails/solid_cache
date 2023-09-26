@@ -77,7 +77,7 @@ end
 Solid cache supports these options in addition to the universal `ActiveSupport::Cache::Store` options.
 
 - `error_handler` - a Proc to call to handle any `ActiveRecord::ActiveRecordError`s that are raises (default: log errors as warnings)
-- `trim_batch_size` - the batch size to use when deleting old records (default: `100`)
+- `expiry_batch_size` - the batch size to use when deleting old records (default: `100`)
 - `max_age` - the maximum age of entries in the cache (default: `2.weeks.to_i`)
 - `max_entries` - the maximum number of entries allowed in the cache (default: `2.weeks.to_i`)
 - `cluster` - a Hash of options for the cache database cluster, e.g `{ shards: [:database1, :database2, :database3] }`
@@ -87,17 +87,17 @@ Solid cache supports these options in addition to the universal `ActiveSupport::
 - `max_key_bytesize` - the maximum size of a normalized key in bytes (default `1024`)
 
 For more information on cache clusters see [Sharding the cache](#sharding-the-cache)
-### Cache trimming
+### Cache expiry
 
-SolidCache tracks writes to the cache. For every write it increments a counter by 1. Once the counter reaches 80% of the `trim_batch_size` it add a task to run on a background thread. That task will:
+SolidCache tracks writes to the cache. For every write it increments a counter by 1. Once the counter reaches 80% of the `expiry_batch_size` it add a task to run on a background thread. That task will:
 
 1. Check if we have exceeded the `max_entries` value (if set) by subtracting the max and min IDs from the `SolidCache::Entry` table (this is an estimate that ignores any gaps).
-2. If we have it will delete 100 entries
-3. If not it will delete up to 100 entries, provided they are all older than `max_age`.
+2. If we have it will delete `expiry_batch_size` entries
+3. If not it will delete up to `expiry_batch_size` entries, provided they are all older than `max_age`.
 
-Triggering when we reach 80% of the batch size allows us to trim the cache faster than we write to it when we need to reduce the cache size.
+Expiring when we reach 80% of the batch size allows us to expire records from the cache faster than we write to it when we need to reduce the cache size.
 
-Only triggering trimming when we write means that the if the cache is idle, the background thread is also idle.
+Only triggering expiry when we write means that the if the cache is idle, the background thread is also idle.
 
 ### Using a dedicated cache database
 

@@ -10,7 +10,6 @@ module SolidCache
         super(options)
 
         @max_key_bytesize = options.fetch(:max_key_bytesize, DEFAULT_MAX_KEY_BYTESIZE)
-        @error_handler = options.fetch(:error_handler, DEFAULT_ERROR_HANDLER)
       end
 
       def delete_matched(matcher, options = {})

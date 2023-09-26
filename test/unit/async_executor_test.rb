@@ -8,7 +8,7 @@ class SolidCache::AsyncExecutorTest < ActiveSupport::TestCase
     @cache = nil
     @namespace = "test-#{SecureRandom.hex}"
 
-    @cache = lookup_store(trim_batch_size: 2, shards: nil)
+    @cache = lookup_store(expiry_batch_size: 2, shards: nil)
   end
 
   def test_async_errors_are_reported
