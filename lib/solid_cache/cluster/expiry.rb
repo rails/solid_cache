@@ -22,41 +22,33 @@ module SolidCache
         @max_entries = options.fetch(:max_entries, nil)
       end
 
-      def expire_later(write_count)
-        counter = expiry_counters[Entry.current_shard]
-        counter.increment(write_count)
-        value = counter.value
-        if value > expire_every && counter.compare_and_set(value, value - expire_every)
-          async { expire_batch }
-        end
+      def track_writes(count)
+        expire_later if expiry_counter.count(count)
       end
 
       private
-        def expire_batch
-          if (ids = expiry_candidates).any?
-            Entry.delete_by_ids(ids)
-          end
-        end
-
-        def expiry_counters
-          @expiry_counters ||= connection_names.to_h { |connection_name| [ connection_name, expiry_counter ] }
-        end
-
         def cache_full?
           max_entries && max_entries < Entry.id_range
         end
 
+        def expire_later
+          async { expire_batch }
+        end
+
+        def expire_batch
+          Entry.expire(expiry_candidate_ids)
+        end
+
         def expiry_counter
-          # Pre-fill the first counter to prevent herding and to account
-          # for discarded counters from the last shutdown
-          Concurrent::AtomicFixnum.new(rand(expire_every).to_i)
+          @expiry_counters ||= connection_names.to_h { |connection_name| [ connection_name, Counter.new(expire_every) ] }
+          @expiry_counters[Entry.current_shard]
         end
 
         def expiry_select_size
           expiry_batch_size * EXPIRY_SELECT_MULTIPLIER
         end
 
-        def expiry_candidates
+        def expiry_candidate_ids
           cache_full = cache_full?
 
           Entry \
@@ -64,6 +56,25 @@ module SolidCache
             .pluck(:id, :created_at)
             .filter_map { |id, created_at| id if cache_full || created_at < max_age.seconds.ago }
             .sample(expiry_batch_size)
+        end
+
+        class Counter
+          attr_reader :expire_every, :counter
+
+          def initialize(expire_every)
+            @expire_every = expire_every
+            @counter = Concurrent::AtomicFixnum.new(rand(expire_every).to_i)
+          end
+
+          def count(count)
+            value = counter.increment(count)
+            new_multiple_of_expire_every?(value - count, value)
+          end
+
+          private
+            def new_multiple_of_expire_every?(first_value, second_value)
+              first_value / expire_every != second_value / expire_every
+            end
         end
     end
   end

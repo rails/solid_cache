@@ -21,8 +21,8 @@ module SolidCache
         select_all_no_query_cache(get_all_sql(serialized_keys), serialized_keys).to_h
       end
 
-      def delete_by_ids(ids)
-        delete_no_query_cache(:id, ids)
+      def expire(ids)
+        delete_no_query_cache(:id, ids) if ids.any?
       end
 
       def delete_by_key(key)
@@ -32,7 +32,7 @@ module SolidCache
       def delete_matched(matcher, batch_size:)
         like_matcher = arel_table[:key].matches(matcher, nil, true)
         where(like_matcher).select(:id).find_in_batches(batch_size: batch_size) do |entries|
-          delete_by_ids(entries.map(&:id))
+          delete_no_query_cache(:id, entries.map(&:id))
         end
       end
 
