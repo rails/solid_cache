@@ -7,7 +7,7 @@ module SolidCache
           names = SolidCache.all_shard_keys
           nodes = names.to_h { |name| [ name, name ] }
         when Array
-          names = options || SolidCache.all_shard_keys
+          names = options
           nodes = names.to_h { |name| [ name, name ] }
         when Hash
           names = options.keys
