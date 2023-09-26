@@ -12,11 +12,12 @@ module SolidCache
       # might be deleted already. The expiry multiplier should compensate for that.
       EXPIRY_SELECT_MULTIPLIER = 3
 
-      attr_reader :expiry_batch_size, :expire_every, :max_age, :max_entries
+      attr_reader :expiry_batch_size, :expiry_select_size, :expire_every, :max_age, :max_entries
 
       def initialize(options = {})
         super(options)
         @expiry_batch_size = options.fetch(:expiry_batch_size, 100)
+        @expiry_select_size = expiry_batch_size * EXPIRY_SELECT_MULTIPLIER
         @expire_every = [(expiry_batch_size / EXPIRY_MULTIPLIER).floor, 1].max
         @max_age = options.fetch(:max_age, 2.weeks.to_i)
         @max_entries = options.fetch(:max_entries, nil)
@@ -32,30 +33,24 @@ module SolidCache
         end
 
         def expire_later
-          async { expire_batch }
+          async { expire }
         end
 
-        def expire_batch
+        def expire
           Entry.expire(expiry_candidate_ids)
+        end
+
+        def expiry_candidate_ids
+          Entry \
+            .first_n_id_and_created_at(expiry_select_size)
+            .tap { |candidates| candidates.select! { |id, created_at| created_at < max_age.seconds.ago } unless cache_full? }
+            .sample(expiry_batch_size)
+            .map { |id, created_at| id }
         end
 
         def expiry_counter
           @expiry_counters ||= connection_names.to_h { |connection_name| [ connection_name, Counter.new(expire_every) ] }
           @expiry_counters[Entry.current_shard]
-        end
-
-        def expiry_select_size
-          expiry_batch_size * EXPIRY_SELECT_MULTIPLIER
-        end
-
-        def expiry_candidate_ids
-          cache_full = cache_full?
-
-          Entry \
-            .first_n(expiry_select_size)
-            .pluck(:id, :created_at)
-            .filter_map { |id, created_at| id if cache_full || created_at < max_age.seconds.ago }
-            .sample(expiry_batch_size)
         end
 
         class Counter

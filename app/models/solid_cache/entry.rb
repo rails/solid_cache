@@ -64,9 +64,9 @@ module SolidCache
         end
       end
 
-      def first_n(n)
+      def first_n_id_and_created_at(n)
         uncached do
-          order(:id).limit(n)
+          order(:id).limit(n).pluck(:id, :created_at)
         end
       end
 
