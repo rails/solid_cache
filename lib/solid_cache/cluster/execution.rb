@@ -20,8 +20,8 @@ module SolidCache
           end
         end
 
-        def async_if_required(required, &block)
-          if required
+        def execute(async, &block)
+          if async
             async(&block)
           else
             instrument(&block)
