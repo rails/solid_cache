@@ -66,7 +66,7 @@ class SolidCache::TrimmingTest < ActiveSupport::TestCase
 
   unless ENV["NO_CONNECTS_TO"]
     def test_expires_old_records_multiple_shards
-      @cache = lookup_store(expiry_batch_size: 2, cluster: { shards: [:default, :primary_shard_one] })
+      @cache = lookup_store(expiry_batch_size: 2, cluster: { shards: [ :default, :primary_shard_one ] })
       default_shard_keys = shard_keys(@cache, :default)
       shard_one_keys = shard_keys(@cache, :primary_shard_one)
 
@@ -99,7 +99,7 @@ class SolidCache::TrimmingTest < ActiveSupport::TestCase
       assert_equal 7, @cache.read(shard_one_keys[2])
       assert_equal 8, @cache.read(shard_one_keys[3])
 
-      [:default, :primary_shard_one].each do |shard|
+      [ :default, :primary_shard_one ].each do |shard|
         SolidCache::Record.connected_to(shard: shard) do
           assert_equal 2, SolidCache::Entry.count
         end

@@ -3,8 +3,8 @@ require_relative "lib/solid_cache/version"
 Gem::Specification.new do |spec|
   spec.name        = "solid_cache"
   spec.version     = SolidCache::VERSION
-  spec.authors     = ["Donal McBreen"]
-  spec.email       = ["donal@basecamp.com"]
+  spec.authors     = [ "Donal McBreen" ]
+  spec.email       = [ "donal@37signals.com" ]
   spec.homepage    = "http://github.com/basecamp/solid_cache"
   spec.summary     = "Database backed ActiveSupport cache store"
   spec.description = "Database backed ActiveSupport cache store"

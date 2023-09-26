@@ -18,7 +18,7 @@ module SolidCache
         super(options)
         @expiry_batch_size = options.fetch(:expiry_batch_size, 100)
         @expiry_select_size = expiry_batch_size * EXPIRY_SELECT_MULTIPLIER
-        @expire_every = [(expiry_batch_size / EXPIRY_MULTIPLIER).floor, 1].max
+        @expire_every = [ (expiry_batch_size / EXPIRY_MULTIPLIER).floor, 1 ].max
         @max_age = options.fetch(:max_age, 2.weeks.to_i)
         @max_entries = options.fetch(:max_entries, nil)
       end

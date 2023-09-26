@@ -4,7 +4,7 @@ module SolidCache
   class MaglevHash
     attr_reader :nodes
 
-    # Must be prime
+    #  Must be prime
     TABLE_SIZE = 2053
 
     def initialize(nodes)

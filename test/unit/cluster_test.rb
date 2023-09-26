@@ -5,8 +5,8 @@ class ClusterTest < ActiveSupport::TestCase
     setup do
       @cache = nil
       @namespace = "test-#{SecureRandom.hex}"
-      primary_cluster = { shards: [:primary_shard_one, :primary_shard_two] }
-      secondary_cluster = { shards: [:secondary_shard_one, :secondary_shard_two] }
+      primary_cluster = { shards: [ :primary_shard_one, :primary_shard_two ] }
+      secondary_cluster = { shards: [ :secondary_shard_one, :secondary_shard_two ] }
 
       @cache = lookup_store(expires_in: 60, clusters: [ primary_cluster, secondary_cluster ])
       @primary_cache = lookup_store(expires_in: 60, cluster: primary_cluster)

@@ -14,7 +14,7 @@ module SolidCache
 
       private
         def connections_stats
-          with_each_connection.to_h { |connection| [Entry.current_shard, connection_stats] }
+          with_each_connection.to_h { |connection| [ Entry.current_shard, connection_stats ] }
         end
 
         def connection_stats

@@ -6,7 +6,7 @@ module SolidCache
       def initialize(options = {})
         super(options)
 
-        clusters_options = options.fetch(:clusters) { [options.fetch(:cluster, {})] }
+        clusters_options = options.fetch(:clusters) { [ options.fetch(:cluster, {}) ] }
 
         @clusters = clusters_options.map.with_index do |cluster_options, index|
           Cluster.new(options.merge(cluster_options).merge(async_writes: index != 0))

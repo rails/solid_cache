@@ -16,7 +16,7 @@ module SolidCache
       end
 
       def assign(keys)
-        { :default => keys }
+        { default: keys }
       end
 
       def count

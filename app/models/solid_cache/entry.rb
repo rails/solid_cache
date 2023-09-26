@@ -5,7 +5,7 @@ module SolidCache
     # 2. We avoid the overhead of building queries and active record objects
     class << self
       def write(key, value)
-        upsert_all_no_query_cache([{key: key, value: value}])
+        upsert_all_no_query_cache([ { key: key, value: value } ])
       end
 
       def write_multi(payloads)
@@ -72,7 +72,7 @@ module SolidCache
 
       private
         def upsert_all_no_query_cache(attributes)
-          insert_all = ActiveRecord::InsertAll.new(self, attributes, unique_by: upsert_unique_by, on_duplicate: :update, update_only: [:value])
+          insert_all = ActiveRecord::InsertAll.new(self, attributes, unique_by: upsert_unique_by, on_duplicate: :update, update_only: [ :value ])
           sql = connection.build_insert_sql(ActiveRecord::InsertAll::Builder.new(insert_all))
 
           message = +"#{self} "
@@ -95,7 +95,7 @@ module SolidCache
             @get_all_sql_binds ||= {}
             @get_all_sql_binds[keys.count] ||= build_sql(where(key: keys).select(:key, :value))
           else
-            @get_all_sql_no_binds ||= build_sql(where(key: ["placeholder1", "placeholder2"]).select(:key, :value)).gsub("?, ?", "?")
+            @get_all_sql_no_binds ||= build_sql(where(key: [ "placeholder1", "placeholder2" ]).select(:key, :value)).gsub("?, ?", "?")
           end
         end
 
@@ -113,7 +113,7 @@ module SolidCache
             if connection.prepared_statements?
               result = connection.select_all(sanitize_sql(query), "#{name} Load", Array(values), preparable: true)
             else
-              result = connection.select_all(sanitize_sql([query, values]), "#{name} Load", nil, preparable: false)
+              result = connection.select_all(sanitize_sql([ query, values ]), "#{name} Load", nil, preparable: false)
             end
 
             result.cast_values(SolidCache::Entry.attribute_types)
@@ -142,4 +142,3 @@ module SolidCache
 end
 
 ActiveSupport.run_load_hooks :solid_cache_entry, SolidCache::Entry
-
