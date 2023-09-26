@@ -1,7 +1,7 @@
 
 module SolidCache
   class Cluster
-    include Connections, Execution, Expiry, Instrumented, Stats
+    include Connections, Execution, Expiry, Stats
 
     def initialize(options = {})
       super(options)
