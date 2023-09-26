@@ -82,7 +82,7 @@ class SolidCacheRaisingTest < ActiveSupport::TestCase
     stub_matcher.stubs(:exec_query).raises(ActiveRecord::StatementInvalid)
     stub_matcher.stubs(:exec_delete).raises(ActiveRecord::StatementInvalid)
     yield ActiveSupport::Cache::SolidCacheStore.new(namespace: @namespace,
-      error_handler: -> (method:, returning:, exception:) { raise exception })
+      error_handler: ->(method:, returning:, exception:) { raise exception })
   ensure
     stub_matcher.unstub(:exec_query)
     stub_matcher.unstub(:exec_delete)

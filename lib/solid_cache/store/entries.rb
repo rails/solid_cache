@@ -9,7 +9,7 @@ module SolidCache
         # Truncating in test mode breaks transactional tests in MySQL (not in Postgres though)
         @clear_with = options.fetch(:clear_with) { Rails.env.test? ? :delete : :truncate }&.to_sym
 
-        unless [:truncate, :delete].include?(clear_with)
+        unless [ :truncate, :delete ].include?(clear_with)
           raise ArgumentError, "`clear_with` must be either ``:truncate`` or ``:delete`"
         end
       end

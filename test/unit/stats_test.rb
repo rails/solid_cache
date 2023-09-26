@@ -56,7 +56,7 @@ class SolidCache::StatsTest < ActiveSupport::TestCase
     end
 
     def test_stats_one_shard
-      @cache = lookup_store(expiry_batch_size: 2, max_age: 2.weeks.to_i, max_entries: 1000, cluster: { shards: [:default] })
+      @cache = lookup_store(expiry_batch_size: 2, max_age: 2.weeks.to_i, max_entries: 1000, cluster: { shards: [ :default ] })
 
       expected = {
         connections: 1,
@@ -69,7 +69,7 @@ class SolidCache::StatsTest < ActiveSupport::TestCase
     end
 
     def test_stats_multiple_shards
-      @cache = lookup_store(expiry_batch_size: 2, max_age: 2.weeks.to_i, max_entries: 1000, cluster: { shards: [:default, :primary_shard_one] })
+      @cache = lookup_store(expiry_batch_size: 2, max_age: 2.weeks.to_i, max_entries: 1000, cluster: { shards: [ :default, :primary_shard_one ] })
 
       expected = {
         connections: 2,

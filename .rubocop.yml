@@ -1,0 +1,9 @@
+# 37signals house style
+inherit_gem: { rubocop-37signals: rubocop.yml }
+
+AllCops:
+  Exclude:
+    # These have been copied from the Rails repo
+    - test/unit/behaviors/*
+    # Don't second guess the generated schemas
+    - test/dummy/db/*schema.rb

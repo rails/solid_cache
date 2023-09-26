@@ -23,7 +23,7 @@ class SolidCache::AsyncExecutorTest < ActiveSupport::TestCase
 
     assert_equal 1, error_subscriber.errors.count
     assert_equal "Boom!", error_subscriber.errors.first[0].message
-    assert_equal({context: {}, handled: false, level: :error, source: nil}, error_subscriber.errors.first[1])
+    assert_equal({ context: {}, handled: false, level: :error, source: nil }, error_subscriber.errors.first[1])
   ensure
     Rails.error.unsubscribe(error_subscriber) if Rails.error.respond_to?(:unsubscribe)
   end
@@ -36,7 +36,7 @@ class SolidCache::AsyncExecutorTest < ActiveSupport::TestCase
     end
 
     def report(error, handled:, severity:, context:, source: nil)
-      errors << [error, { context: context, handled: handled, level: severity, source: source }]
+      errors << [ error, { context: context, handled: handled, level: severity, source: source } ]
     end
   end
 end

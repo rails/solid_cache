@@ -9,7 +9,7 @@ module SolidCache
 
     test "write multi and read multi cache entries" do
       Entry.write_multi([ { key: "hello".b, value: "there" }, { key: "foo".b, value: "bar" } ])
-      assert_equal({ "foo" => "bar", "hello" => "there" } , Entry.read_multi(["hello".b, "foo".b, "bar".b]))
+      assert_equal({ "foo" => "bar", "hello" => "there" }, Entry.read_multi([ "hello".b, "foo".b, "bar".b ]))
     end
 
     test "id range" do

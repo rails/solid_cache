@@ -1,7 +1,7 @@
 module SolidCache
   class Store
     module Failsafe
-      DEFAULT_ERROR_HANDLER = -> (method:, returning:, exception:) do
+      DEFAULT_ERROR_HANDLER = ->(method:, returning:, exception:) do
         if Store.logger
           Store.logger.error { "SolidCacheStore: #{method} failed, returned #{returning.inspect}: #{exception.class}: #{exception.message}" }
         end

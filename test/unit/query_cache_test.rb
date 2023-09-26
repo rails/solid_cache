@@ -31,7 +31,7 @@ class QueryCacheTest < ActiveSupport::TestCase
     SolidCache::Entry.cache do
       @cache.write(1, "foo")
       assert_equal 1, SolidCache::Entry.count
-      @cache.write_multi({ "1" => "bar", "2" => "baz"})
+      @cache.write_multi({ "1" => "bar", "2" => "baz" })
       assert_equal 1, SolidCache::Entry.count
     end
     SolidCache::Entry.uncached do
