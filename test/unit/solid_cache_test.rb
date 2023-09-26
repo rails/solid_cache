@@ -31,6 +31,11 @@ class SolidCacheTest < ActiveSupport::TestCase
       assert_equal [ :default, :primary_shard_one, :primary_shard_two, :secondary_shard_one, :secondary_shard_two ], shards
     end
   end
+
+  test "max key bytesize" do
+    cache = lookup_store(max_key_bytesize: 100)
+    assert_equal 100, cache.send(:normalize_key, SecureRandom.hex(200), {}).bytesize
+  end
 end
 
 class SolidCacheFailsafeTest < ActiveSupport::TestCase
