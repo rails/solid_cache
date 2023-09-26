@@ -1,12 +1,6 @@
 module SolidCache
   class Store < ActiveSupport::Cache::Store
-    DEFAULT_ERROR_HANDLER = -> (method:, returning:, exception:) do
-      if logger
-        logger.error { "SolidCacheStore: #{method} failed, returned #{returning.inspect}: #{exception.class}: #{exception.message}" }
-      end
-    end
-
-    include Api, Entries, Failsafe, Clusters
+    include Api, Clusters, Entries, Failsafe
     prepend ActiveSupport::Cache::Strategy::LocalCache
 
     def self.supports_cache_versioning?
