@@ -4,6 +4,7 @@ module SolidCache
       def initialize(options = {})
         super(options)
         @background = Concurrent::SingleThreadExecutor.new(max_queue: 100, fallback_policy: :discard)
+        @active_record_instrumentation = options.fetch(:active_record_instrumentation, true)
       end
 
       private
@@ -12,14 +13,16 @@ module SolidCache
           current_shard = Entry.current_shard
           @background << ->() do
             wrap_in_rails_executor do
-              connections.with(current_shard, &block)
+              connections.with(current_shard) do
+                instrument(&block)
+              end
             end
           end
         end
 
-        def async_if_required(required, &block)
-          if required
-            async { instrument(&block) }
+        def execute(async, &block)
+          if async
+            async(&block)
           else
             instrument(&block)
           end
@@ -30,6 +33,18 @@ module SolidCache
             SolidCache.executor.wrap(&block)
           else
             block.call
+          end
+        end
+
+        def active_record_instrumentation?
+          @active_record_instrumentation
+        end
+
+        def instrument(&block)
+          if active_record_instrumentation?
+            block.call
+          else
+            Record.disable_instrumentation(&block)
           end
         end
     end

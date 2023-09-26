@@ -14,19 +14,19 @@ module SolidCache
         return enum_for(:with_each_connection) unless block_given?
 
         connections.with_each do
-          async_if_required(async, &block)
+          execute(async, &block)
         end
       end
 
       def with_connection_for(key, async: false, &block)
         connections.with_connection_for(key) do
-          async_if_required(async, &block)
+          execute(async, &block)
         end
       end
 
       def with_connection(name, async: false, &block)
         connections.with(name) do
-          async_if_required(async, &block)
+          execute(async, &block)
         end
       end
 
