@@ -1,7 +1,7 @@
 module SolidCache
   class Store
     module Api
-      MAX_KEY_BYTESIZE = 1024
+      DEFAULT_MAX_KEY_BYTESIZE = 1024
       SQL_WILDCARD_CHARS = [ '_', '%' ]
 
       attr_reader :max_key_bytesize
@@ -9,7 +9,7 @@ module SolidCache
       def initialize(options = {})
         super(options)
 
-        @max_key_bytesize = MAX_KEY_BYTESIZE
+        @max_key_bytesize = options.fetch(:max_key_bytesize, DEFAULT_MAX_KEY_BYTESIZE)
         @error_handler = options.fetch(:error_handler, DEFAULT_ERROR_HANDLER)
       end
 
