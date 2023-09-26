@@ -40,17 +40,11 @@ module SolidCache
 
       private
         def setup!
-          return if defined?(@connections)
-          @connections = sharded? ? Managed.new(@shard_options) : Unmanaged.new
-        end
-
-        def sharded?
-          @shard_options.present? || SolidCache.all_shards_config.present?
+          connections
         end
 
         def connections
-          setup! unless defined?(@connections)
-          @connections
+          @connections ||= SolidCache::Connections.from_config(@shard_options)
         end
     end
   end
