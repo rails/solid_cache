@@ -1,7 +1,7 @@
 require "test_helper"
 require "active_support/testing/method_call_assertions"
 
-class SolidCache::TrimmingTest < ActiveSupport::TestCase
+class SolidCache::ExpiryTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::TimeHelpers
 
   setup do

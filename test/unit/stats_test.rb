@@ -10,7 +10,7 @@ class SolidCache::StatsTest < ActiveSupport::TestCase
 
   if ENV["NO_CONNECTS_TO"]
     def test_stats_with_entries_no_shards
-      @cache = lookup_store(trim_batch_size: 2, max_age: 2.weeks.to_i, max_entries: 1000)
+      @cache = lookup_store(expiry_batch_size: 2, max_age: 2.weeks.to_i, max_entries: 1000)
 
       expected_empty = { connections: 1, connection_stats: { default: { max_age: 2.weeks.to_i, oldest_age: nil, max_entries: 1000, entries: 0 } } }
 
@@ -29,7 +29,7 @@ class SolidCache::StatsTest < ActiveSupport::TestCase
     end
   else
     def test_stats_with_entries_no_shards
-      @cache = lookup_store(trim_batch_size: 2, max_age: 2.weeks.to_i, max_entries: 1000)
+      @cache = lookup_store(expiry_batch_size: 2, max_age: 2.weeks.to_i, max_entries: 1000)
 
       expected_empty = { connections: 5, connection_stats: {
         default: { max_age: 2.weeks.to_i, oldest_age: nil, max_entries: 1000, entries: 0 },
@@ -56,7 +56,7 @@ class SolidCache::StatsTest < ActiveSupport::TestCase
     end
 
     def test_stats_one_shard
-      @cache = lookup_store(trim_batch_size: 2, max_age: 2.weeks.to_i, max_entries: 1000, cluster: { shards: [:default] })
+      @cache = lookup_store(expiry_batch_size: 2, max_age: 2.weeks.to_i, max_entries: 1000, cluster: { shards: [:default] })
 
       expected = {
         connections: 1,
@@ -69,7 +69,7 @@ class SolidCache::StatsTest < ActiveSupport::TestCase
     end
 
     def test_stats_multiple_shards
-      @cache = lookup_store(trim_batch_size: 2, max_age: 2.weeks.to_i, max_entries: 1000, cluster: { shards: [:default, :primary_shard_one] })
+      @cache = lookup_store(expiry_batch_size: 2, max_age: 2.weeks.to_i, max_entries: 1000, cluster: { shards: [:default, :primary_shard_one] })
 
       expected = {
         connections: 2,

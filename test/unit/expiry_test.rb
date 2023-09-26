@@ -9,8 +9,8 @@ class SolidCache::TrimmingTest < ActiveSupport::TestCase
     SolidCache::Cluster.any_instance.stubs(:rand).returns(0)
   end
 
-  def test_trims_old_records
-    @cache = lookup_store(trim_batch_size: 3, max_age: 2.weeks)
+  def test_expires_old_records
+    @cache = lookup_store(expiry_batch_size: 3, max_age: 2.weeks)
     default_shard_keys = shard_keys(@cache, :default)
     @cache.write(default_shard_keys[0], 1)
     @cache.write(default_shard_keys[1], 2)
@@ -29,8 +29,8 @@ class SolidCache::TrimmingTest < ActiveSupport::TestCase
     assert_equal 4, @cache.read(default_shard_keys[3])
   end
 
-  def test_trims_records_when_the_cache_is_full
-    @cache = lookup_store(trim_batch_size: 3, max_age: 2.weeks, max_entries: 2)
+  def test_expires_records_when_the_cache_is_full
+    @cache = lookup_store(expiry_batch_size: 3, max_age: 2.weeks, max_entries: 2)
     default_shard_keys = shard_keys(@cache, :default)
     @cache.write(default_shard_keys[0], 1)
     @cache.write(default_shard_keys[1], 2)
@@ -46,8 +46,8 @@ class SolidCache::TrimmingTest < ActiveSupport::TestCase
     assert_equal 1, SolidCache.each_shard.sum { SolidCache::Entry.count }
   end
 
-  def test_trims_records_no_shards
-    @cache = ActiveSupport::Cache.lookup_store(:solid_cache_store, trim_batch_size: 3, namespace: @namespace, max_entries: 2)
+  def test_expires_records_no_shards
+    @cache = ActiveSupport::Cache.lookup_store(:solid_cache_store, expiry_batch_size: 3, namespace: @namespace, max_entries: 2)
     default_shard_keys = shard_keys(@cache, :default)
 
     @cache.write(default_shard_keys[0], 1)
@@ -65,8 +65,8 @@ class SolidCache::TrimmingTest < ActiveSupport::TestCase
   end
 
   unless ENV["NO_CONNECTS_TO"]
-    def test_trims_old_records_multiple_shards
-      @cache = lookup_store(trim_batch_size: 2, cluster: { shards: [:default, :primary_shard_one] })
+    def test_expires_old_records_multiple_shards
+      @cache = lookup_store(expiry_batch_size: 2, cluster: { shards: [:default, :primary_shard_one] })
       default_shard_keys = shard_keys(@cache, :default)
       shard_one_keys = shard_keys(@cache, :primary_shard_one)
 
