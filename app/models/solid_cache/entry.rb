@@ -36,8 +36,12 @@ module SolidCache
         end
       end
 
-      def clear
+      def clear_truncate
         connection.truncate(table_name)
+      end
+
+      def clear_delete
+        in_batches.delete_all
       end
 
       def increment(key, amount)

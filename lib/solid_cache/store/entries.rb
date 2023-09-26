@@ -1,6 +1,19 @@
 module SolidCache
   class Store
     module Entries
+      attr_reader :clear_with
+
+      def initialize(options = {})
+        super(options)
+
+        # Truncating in test mode breaks transactional tests in MySQL (not in Postgres though)
+        @clear_with = options.fetch(:clear_with) { Rails.env.test? ? :delete : :truncate }&.to_sym
+
+        unless [:truncate, :delete].include?(clear_with)
+          raise ArgumentError, "`clear_with` must be either ``:truncate`` or ``:delete`"
+        end
+      end
+
       private
         def entry_delete_matched(matcher, batch_size)
           writing_all(failsafe: :delete_matched) do
@@ -10,7 +23,11 @@ module SolidCache
 
         def entry_clear
           writing_all(failsafe: :clear) do
-            Entry.clear
+            if clear_with == :truncate
+              Entry.clear_truncate
+            else
+              Entry.clear_delete
+            end
           end
         end
 
