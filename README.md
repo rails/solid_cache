@@ -238,7 +238,7 @@ end
 ```
 
 ### Index size limits
-The SolidCache migrations try to create an index with 1024 byte entries. If that is to big for your database, you should:
+The SolidCache migrations try to create an index with 1024 byte entries. If that is too big for your database, you should:
 
 1. Manually change in the index size in the migration
 2. Set `max_key_bytesize` on your cache to the new value
