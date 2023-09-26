@@ -1,7 +1,7 @@
 module SolidCache
   module Connections
     class Unmanaged
-      def with_each(&block)
+      def with_each
         return enum_for(:with_each) unless block_given?
 
         yield
@@ -11,7 +11,7 @@ module SolidCache
         yield
       end
 
-      def with_connection_for(key, &block)
+      def with_connection_for(key)
         yield
       end
 
