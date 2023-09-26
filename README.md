@@ -84,6 +84,7 @@ Solid cache supports these options in addition to the universal `ActiveSupport::
 - `clusters` - and Array of Hashes for multiple cache clusters (ignored if `:cluster` is set)
 - `active_record_instrumentation` - whether to instrument the cache's queries (default: `true`)
 - `clear_with` - clear the cache with `:truncate` or `:delete` (default `truncate`, except for when Rails.env.test? then `delete`)
+- `max_key_bytesize` - the maximum size of a normalized key in bytes (default `1024`)
 
 For more information on cache clusters see [Sharding the cache](#sharding-the-cache)
 ### Cache trimming
@@ -236,5 +237,10 @@ ActiveSupport.on_load(:solid_cache_entry) do
 end
 ```
 
+### Index size limits
+The SolidCache migrations try to create an index with 1024 byte entries. If that is to big for your database, you should:
+
+1. Manually change in the index size in the migration
+2. Set `max_key_bytesize` on your cache to the new value
 ## Contributing
 SolidCache is MIT-licensed open-source software from 37signals, the creators of Ruby on Rails.
