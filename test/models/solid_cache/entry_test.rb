@@ -20,5 +20,24 @@ module SolidCache
 
       assert_equal 2, Entry.uncached { Entry.id_range }
     end
+
+    test "clear with truncate" do
+      write_entries
+      assert_equal 20, uncached_entry_count
+      Entry.clear_truncate
+      assert_equal 0, uncached_entry_count
+    end
+
+    test "clear with delete" do
+      write_entries
+      assert_equal 20, uncached_entry_count
+      Entry.clear_delete
+      assert_equal 0, uncached_entry_count
+    end
+
+    private
+      def write_entries(count = 20)
+        Entry.write_multi(count.times.map { |i| { key: "key#{i}", value: "value#{i}" } })
+      end
   end
 end

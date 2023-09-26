@@ -80,9 +80,10 @@ Solid cache supports these options in addition to the universal `ActiveSupport::
 - `trim_batch_size` - the batch size to use when deleting old records (default: `100`)
 - `max_age` - the maximum age of entries in the cache (default: `2.weeks.to_i`)
 - `max_entries` - the maximum number of entries allowed in the cache (default: `2.weeks.to_i`)
-- `cluster` - a Hash of options for the cache database cluster, e.g `{ shards: [:database1, :database2, :database3] }``
+- `cluster` - a Hash of options for the cache database cluster, e.g `{ shards: [:database1, :database2, :database3] }`
 - `clusters` - and Array of Hashes for multiple cache clusters (ignored if `:cluster` is set)
 - `active_record_instrumentation` - whether to instrument the cache's queries (default: `true`)
+- `clear_with` - clear the cache with `:truncate` or `:delete` (default `truncate`, except for when Rails.env.test? then `delete`)
 
 For more information on cache clusters see [Sharding the cache](#sharding-the-cache)
 ### Cache trimming

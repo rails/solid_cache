@@ -40,3 +40,7 @@ def send_entries_back_in_time(distance)
     end
   end
 end
+
+def uncached_entry_count
+  SolidCache.each_shard.sum { SolidCache::Entry.uncached { SolidCache::Entry.count } }
+end
