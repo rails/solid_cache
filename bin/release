@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+VERSION=$1
+
+if [ -z "$VERSION" ]
+then
+  echo "Usage: bin/release <version>"
+  exit 1
+fi
+
+printf "module SolidCache\n  VERSION = \"$VERSION\"\nend\n" > ./lib/solid_cache/version.rb
+bundle
+git add Gemfile.lock lib/solid_cache/version.rb
+git commit -m "Bump version for $VERSION"
+git push
+git tag v$VERSION
+git push --tags
+gem build solid_cache.gemspec
+gem push "solid_cache-$VERSION.gem" --host https://rubygems.org
+rm "solid_cache-$VERSION.gem"
