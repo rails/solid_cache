@@ -7,20 +7,17 @@ module SolidCache
       # This ensures there is downward pressure on the cache size while there is valid data to delete
       EXPIRY_MULTIPLIER = 1.25
 
-      # If deleting X records, we'll select X * EXPIRY_SELECT_MULTIPLIER and randomly delete X of those
-      # The selection doesn't lock so it allows more deletion concurrency, but some of the selected records
-      # might be deleted already. The expiry multiplier should compensate for that.
-      EXPIRY_SELECT_MULTIPLIER = 3
-
-      attr_reader :expiry_batch_size, :expiry_select_size, :expire_every, :max_age, :max_entries
+      attr_reader :expiry_batch_size, :expiry_method, :expire_every, :max_age, :max_entries
 
       def initialize(options = {})
         super(options)
         @expiry_batch_size = options.fetch(:expiry_batch_size, 100)
-        @expiry_select_size = expiry_batch_size * EXPIRY_SELECT_MULTIPLIER
+        @expiry_method = options.fetch(:expiry_method, :thread)
         @expire_every = [ (expiry_batch_size / EXPIRY_MULTIPLIER).floor, 1 ].max
         @max_age = options.fetch(:max_age, 2.weeks.to_i)
         @max_entries = options.fetch(:max_entries, nil)
+
+        raise ArgumentError, "Expiry method must be one of `:thread` or `:job`" unless [ :thread, :job ].include?(expiry_method)
       end
 
       def track_writes(count)
@@ -28,24 +25,12 @@ module SolidCache
       end
 
       private
-        def cache_full?
-          max_entries && max_entries < Entry.id_range
-        end
-
         def expire_later
-          async { expire }
-        end
-
-        def expire
-          Entry.expire(expiry_candidate_ids)
-        end
-
-        def expiry_candidate_ids
-          Entry \
-            .first_n_id_and_created_at(expiry_select_size)
-            .tap { |candidates| candidates.select! { |id, created_at| created_at < max_age.seconds.ago } unless cache_full? }
-            .sample(expiry_batch_size)
-            .map { |id, created_at| id }
+          if expiry_method == :job
+            ExpiryJob.perform_later(expiry_batch_size, shard: Entry.current_shard, max_age: max_age, max_entries: max_entries)
+          else
+            async { Entry.expire(expiry_batch_size, max_age: max_age, max_entries: max_entries) }
+          end
         end
 
         def expiry_counter

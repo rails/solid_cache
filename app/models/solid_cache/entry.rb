@@ -64,9 +64,9 @@ module SolidCache
         end
       end
 
-      def first_n_id_and_created_at(n)
-        uncached do
-          order(:id).limit(n).pluck(:id, :created_at)
+      def expire(count, max_age:, max_entries:)
+        if (ids = expiry_candidate_ids(count, max_age: max_age, max_entries: max_entries)).any?
+          delete(ids)
         end
       end
 
@@ -136,6 +136,19 @@ module SolidCache
 
         def to_binary(key)
           ActiveModel::Type::Binary.new.serialize(key)
+        end
+
+        def expiry_candidate_ids(count, max_age:, max_entries:)
+          cache_full = max_entries && max_entries < id_range
+          min_created_at = max_age.seconds.ago
+
+          uncached do
+            order(:id)
+              .limit(count * 3)
+              .pluck(:id, :created_at)
+              .filter_map { |id, created_at| id if cache_full || created_at < min_created_at }
+              .sample(count)
+          end
         end
     end
   end
