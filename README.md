@@ -78,6 +78,7 @@ Solid cache supports these options in addition to the universal `ActiveSupport::
 
 - `error_handler` - a Proc to call to handle any `ActiveRecord::ActiveRecordError`s that are raises (default: log errors as warnings)
 - `expiry_batch_size` - the batch size to use when deleting old records (default: `100`)
+- `expiry_method` - what expiry method to use `thread` or `job` (default: `thread`)
 - `max_age` - the maximum age of entries in the cache (default: `2.weeks.to_i`)
 - `max_entries` - the maximum number of entries allowed in the cache (default: `2.weeks.to_i`)
 - `cluster` - a Hash of options for the cache database cluster, e.g `{ shards: [:database1, :database2, :database3] }`
@@ -98,6 +99,8 @@ SolidCache tracks writes to the cache. For every write it increments a counter b
 Expiring when we reach 80% of the batch size allows us to expire records from the cache faster than we write to it when we need to reduce the cache size.
 
 Only triggering expiry when we write means that the if the cache is idle, the background thread is also idle.
+
+If you want the cache expiry to be run in a background job instead of a thread, you can set `expiry_method` to `:job`. This will enqueue a `SolidCache::ExpiryJob`.
 
 ### Using a dedicated cache database
 
