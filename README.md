@@ -250,16 +250,25 @@ The Solid Cache migrations try to create an index with 1024 byte entries. If tha
 
 ## Development
 
-Run the tests with `bin/rails test`. These will run against SQLite.
+Run the tests with `bin/rails test`. By default, these will run against SQLite.
 
-You can also run the tests against MySQL and Postgres. First start up the databases:
+You can also run the tests against MySQL and PostgreSQL. First start up the databases:
 
 ```shell
 $ docker compose up -d
 ```
 
-Then run the tests for the target database
+Next, setup the database schema:
+
+```shell
+$ TARGET_DB=mysql bin/rails db:setup
+$ TARGET_DB=postgres bin/rails db:setup
 ```
+
+
+Then run the tests for the target database:
+
+```shell
 $ TARGET_DB=mysql bin/rails test
 $ TARGET_DB=postgres bin/rails test
 ```
