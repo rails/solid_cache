@@ -1,5 +1,5 @@
-# SolidCache
-SolidCache is a database-backed ActiveSupport cache store implementation.
+# Solid Cache
+Solid Cache is a database-backed ActiveSupport cache store implementation.
 
 Using SQL databases backed by SSDs we can have caches that are much larger and cheaper than traditional memory only Redis or Memcached backed caches.
 
@@ -9,13 +9,13 @@ If cache misses are expensive (up to 50x the cost of a hit on HEY), then there a
 
 ## Usage
 
-To set SolidCache as your Rails cache, you should add this to your environment config:
+To set Solid Cache as your Rails cache, you should add this to your environment config:
 
 ```ruby
 config.cache_store = :solid_cache_store
 ```
 
-SolidCache is a FIFO (first in, first out) cache. While this is not as efficient as an LRU cache, this is mitigated by the longer cache lifespans.
+Solid Cache is a FIFO (first in, first out) cache. While this is not as efficient as an LRU cache, this is mitigated by the longer cache lifespans.
 
 A FIFO cache is much easier to manage:
 1. We don't need to track when items are read
@@ -88,9 +88,10 @@ Solid cache supports these options in addition to the standard `ActiveSupport::C
 - `max_key_bytesize` - the maximum size of a normalized key in bytes (default `1024`)
 
 For more information on cache clusters see [Sharding the cache](#sharding-the-cache)
+
 ### Cache expiry
 
-SolidCache tracks writes to the cache. For every write it increments a counter by 1. Once the counter reaches 80% of the `expiry_batch_size` it add a task to run on a background thread. That task will:
+Solid Cache tracks writes to the cache. For every write it increments a counter by 1. Once the counter reaches 80% of the `expiry_batch_size` it add a task to run on a background thread. That task will:
 
 1. Check if we have exceeded the `max_entries` value (if set) by subtracting the max and min IDs from the `SolidCache::Entry` table (this is an estimate that ignores any gaps).
 2. If we have it will delete `expiry_batch_size` entries
@@ -144,7 +145,7 @@ $ bin/rails db:migrate
 
 ### Sharding the cache
 
-SolidCache uses the [Maglev](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/44824.pdf) consistent hashing scheme to shard the cache across multiple databases.
+Solid Cache uses the [Maglev](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/44824.pdf) consistent hashing scheme to shard the cache across multiple databases.
 
 To shard:
 
@@ -241,7 +242,7 @@ end
 ```
 
 ### Index size limits
-The SolidCache migrations try to create an index with 1024 byte entries. If that is too big for your database, you should:
+The Solid Cache migrations try to create an index with 1024 byte entries. If that is too big for your database, you should:
 
 1. Edit the index size in the migration
 2. Set `max_key_bytesize` on your cache to the new value
@@ -262,5 +263,5 @@ $ TARGET_DB=mysql bin/rails test
 $ TARGET_DB=postgres bin/rails test
 ```
 
-## Acknowledgments
-SolidCache is MIT-licensed open-source software from 37signals, the creators of Ruby on Rails.
+## License
+Solid Cache is licensed under MIT.
