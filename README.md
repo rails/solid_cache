@@ -92,7 +92,7 @@ For more information on cache clusters see [Sharding the cache](#sharding-the-ca
 
 ### Cache expiry
 
-Solid Cache tracks writes to the cache. For every write it increments a counter by 1. Once the counter reaches 80% of the `expiry_batch_size` it add a task to run on a background thread. That task will:
+Solid Cache tracks writes to the cache. For every write it increments a counter by 1. Once the counter reaches 80% of the `expiry_batch_size` it adds a task to run on a background thread. That task will:
 
 1. Check if we have exceeded the `max_entries` value (if set) by subtracting the max and min IDs from the `SolidCache::Entry` table (this is an estimate that ignores any gaps).
 2. If we have it will delete `expiry_batch_size` entries
