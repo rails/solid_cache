@@ -1,6 +1,6 @@
 # Solid Cache
 
-Solid Cache is a database-backed Active Support cache store implementation. 
+Solid Cache is a database-backed Active Support cache store implementation.
 
 Using SQL databases backed by SSDs we can have caches that are much larger and cheaper than traditional memory only Redis or Memcached backed caches.
 
@@ -81,7 +81,7 @@ Solid Cache supports these options in addition to the standard `ActiveSupport::C
 - `expiry_batch_size` - the batch size to use when deleting old records (default: `100`)
 - `expiry_method` - what expiry method to use `thread` or `job` (default: `thread`)
 - `max_age` - the maximum age of entries in the cache (default: `2.weeks.to_i`)
-- `max_entries` - the maximum number of entries allowed in the cache (default: `2.weeks.to_i`)
+- `max_entries` - the maximum number of entries allowed in the cache (default: `nil`, meaning no limit)
 - `cluster` - a Hash of options for the cache database cluster, e.g `{ shards: [:database1, :database2, :database3] }`
 - `clusters` - and Array of Hashes for multiple cache clusters (ignored if `:cluster` is set)
 - `active_record_instrumentation` - whether to instrument the cache's queries (default: `true`)
