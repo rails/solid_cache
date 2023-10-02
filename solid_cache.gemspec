@@ -5,13 +5,13 @@ Gem::Specification.new do |spec|
   spec.version     = SolidCache::VERSION
   spec.authors     = [ "Donal McBreen" ]
   spec.email       = [ "donal@37signals.com" ]
-  spec.homepage    = "http://github.com/basecamp/solid_cache"
+  spec.homepage    = "http://github.com/rails/solid_cache"
   spec.summary     = "A database backed ActiveSupport::Cache::Store"
   spec.description = "A database backed ActiveSupport::Cache::Store"
   spec.license     = "MIT"
 
   spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = "http://github.com/basecamp/solid_cache"
+  spec.metadata["source_code_uri"] = "http://github.com/rails/solid_cache"
 
   spec.files = Dir.chdir(File.expand_path(__dir__)) do
     Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
