@@ -3,9 +3,9 @@ SolidCache is a database-backed ActiveSupport cache store implementation.
 
 Using SQL databases backed by SSDs we can have caches that are much larger and cheaper than traditional memory only Redis or Memcached backed caches.
 
-Testing on HEY shows that reads and writes are 25%-50% slower than with a Redis cache. However this is not a significant percentage of the overall request time.
+Testing on HEY shows that reads and writes are 25%-50% slower than with a Redis cache, but this is not a significant percentage of the overall request time.
 
-If cache misses are expensive (up to 50x the cost of a hit on HEY), then there are big advantages to caches that can hold months rather than days worth of data.
+If cache misses are expensive (up to 50x the cost of a hit on HEY), then there are big advantages to caches that can hold months rather than days of data.
 
 ## Usage
 
@@ -39,13 +39,13 @@ Or install it yourself as:
 $ gem install solid_cache
 ```
 
-Add the cache to your main database:
+Add the migration to your app:
 
 ```bash
 $ bin/rails solid_cache:install:migrations
 ```
 
-Then run migrations:
+Then run it:
 ```bash
 $ bin/rails db:migrate
 ```
@@ -74,7 +74,7 @@ end
 
 #### Cache configuration
 
-Solid cache supports these options in addition to the universal `ActiveSupport::Cache::Store` options.
+Solid cache supports these options in addition to the standard `ActiveSupport::Cache::Store` options.
 
 - `error_handler` - a Proc to call to handle any `ActiveRecord::ActiveRecordError`s that are raises (default: log errors as warnings)
 - `expiry_batch_size` - the batch size to use when deleting old records (default: `100`)
@@ -243,7 +243,24 @@ end
 ### Index size limits
 The SolidCache migrations try to create an index with 1024 byte entries. If that is too big for your database, you should:
 
-1. Manually change in the index size in the migration
+1. Edit the index size in the migration
 2. Set `max_key_bytesize` on your cache to the new value
-## Contributing
+
+## Development
+
+Run the tests with `bin/rails test`. These will run against SQLite.
+
+You can also run the tests against MySQL and Postgres. First start up the databases:
+
+```shell
+$ docker compose up -d
+```
+
+Then run the tests for the target database
+```
+$ TARGET_DB=mysql bin/rails test
+$ TARGET_DB=postgres bin/rails test
+```
+
+## Acknowledgments
 SolidCache is MIT-licensed open-source software from 37signals, the creators of Ruby on Rails.
