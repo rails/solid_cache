@@ -109,7 +109,7 @@ If you want the cache expiry to be run in a background job instead of a thread, 
 Add database configuration to database.yml, e.g.:
 
 ```
-development
+development:
   cache:
     database: cache_development
     host: 127.0.0.1
