@@ -58,7 +58,7 @@ $ bin/rails db:migrate
 There are two options that can be set on the engine:
 
 - `executor` - the [Rails executor](https://guides.rubyonrails.org/threading_and_code_execution.html#executor) used to wrap asynchronous operations, defaults to the app executor
-- `connects_to` - a custom connects to value for the abstract `SolidCache::Record` active record model. Requires for sharding and/or using a separate cache database to the main app.
+- `connects_to` - a custom connects to value for the abstract `SolidCache::Record` active record model. Required for sharding and/or using a separate cache database to the main app.
 
 These can be set in your Rails configuration:
 
