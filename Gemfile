@@ -6,7 +6,7 @@ gemspec
 
 gem "sqlite3"
 gem "mysql2"
-gem "postgresql"
+gem "pg"
 
 gem "sprockets-rails"
 
