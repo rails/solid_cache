@@ -51,7 +51,7 @@ module SolidCache
 
       private
         def primary_key_using_hash_index?
-          ActiveRecord::Base.connection.indexes(:activesupport_cache_entries).first {|i| i.columns.first == 'key'}.using == :hash
+          ActiveRecord::Base.connection.indexes(:activesupport_cache_entries).first { |i| i.columns.first == "key" }.using == :hash
         end
 
         def read_entry(key, **options)

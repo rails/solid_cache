@@ -4,9 +4,8 @@ class CreateSolidCacheEntries < ActiveRecord::Migration[7.0]
         t.binary   :key,        null: false,   limit: 1024
         t.binary   :value,      null: false,   limit: 512.megabytes
         t.datetime :created_at, null: false
-  
+
         t.index    :key,        unique: true,  using: :hash
       end
     end
-  end
-  
+end
