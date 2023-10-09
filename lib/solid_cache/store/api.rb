@@ -16,6 +16,7 @@ module SolidCache
         instrument :delete_matched, matcher do
           raise ArgumentError, "Only strings are supported: #{matcher.inspect}" unless String === matcher
           raise ArgumentError, "Strings cannot start with wildcards" if SQL_WILDCARD_CHARS.include?(matcher[0])
+          raise NotImplementedError, "Primary Key uses a Hash Index, delete_matched method is not supported in this case" if primary_key_using_hash_index?
 
           options ||= {}
           batch_size = options.fetch(:batch_size, 1000)
@@ -49,6 +50,10 @@ module SolidCache
       end
 
       private
+        def primary_key_using_hash_index?
+          ActiveRecord::Base.connection.indexes(:activesupport_cache_entries).first {|i| i.columns.first == 'key'}.using == :hash
+        end
+
         def read_entry(key, **options)
           deserialize_entry(read_serialized_entry(key, **options), **options)
         end

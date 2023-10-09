@@ -51,6 +51,13 @@ class DeleteMatchedTest < ActiveSupport::TestCase
     assert @cache.exist?(other_key)
   end
 
+  test "will raise error if hash index is used" do
+    # TODO: change migration to have hash index.
+    assert_raise NotImplementedError do
+      @cache.delete_matched("foo")
+    end
+  end
+
   test "fails when starts with %" do
     assert_raise ArgumentError do
       @cache.delete_matched("%foo")
