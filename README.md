@@ -43,7 +43,15 @@ $ gem install solid_cache
 Add the migration to your app:
 
 ```bash
-$ bin/rails solid_cache:install:migrations
+$ rake solid_cache:install
+```
+
+By default, this migration uses a btree index which descent through index to find a right entry. Hash index offers a faster record lookup, it’s O(1) operation that should improve lookup performance by 40-60%. But main drawback is that #delete_matched method will not be operational with hash index.
+
+In case, you want to go with hash index run the following instead:
+
+```bash
+$ rake solid_cache:install[hash]
 ```
 
 Then run it:

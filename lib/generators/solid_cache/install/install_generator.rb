@@ -1,6 +1,11 @@
+require 'rails/generators/active_record'
+
 class SolidCache::InstallGenerator < Rails::Generators::Base
-  class_option :skip_migrations,    type: :boolean, default: nil,
-                                    desc: "Skip migrations"
+  include ActiveRecord::Generators::Migration
+  
+  source_root File.expand_path("templates", __dir__)
+  class_option :skip_migrations,    type: :boolean, default: nil, desc: "Skip migrations"
+  class_option :index,             type: :string, default: 'btree', desc: "Index type for key column"
 
   def add_rails_cache
     %w[development test production].each do |env_name|
@@ -11,8 +16,13 @@ class SolidCache::InstallGenerator < Rails::Generators::Base
   end
 
   def create_migrations
-    unless options[:skip_migrations]
-      rails_command "railties:install:migrations FROM=solid_cache", inline: true
+    return if options[:skip_migrations]
+    
+    case options[:index]
+    when 'btree'
+      migration_template 'create_solid_cache_entries_btree.rb', 'db/migrate/create_solid_cache_entries.rb'
+    when 'hash'
+      migration_template 'create_solid_cache_entries_hash.rb', 'db/migrate/create_solid_cache_entries.rb'
     end
   end
 end
