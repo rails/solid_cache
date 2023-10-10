@@ -135,7 +135,7 @@ $ mv db/migrate/*.solid_cache.rb db/cache/migrate
 Set the engine configuration to point to the new database:
 ```
 Rails.application.configure do
-  config.solid_cache.connects_to = { default: { writing: :cache } }
+  config.solid_cache.connects_to = { database: { writing: :cache } }
 end
 ```
 
