@@ -19,6 +19,7 @@ jobs:
     name: Tests
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         ruby-version: [3.2.2]
         database: [sqlite, postgres, mysql]
