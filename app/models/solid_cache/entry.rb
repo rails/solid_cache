@@ -21,10 +21,6 @@ module SolidCache
         select_all_no_query_cache(get_all_sql(serialized_keys), serialized_keys).to_h
       end
 
-      def expire(ids)
-        delete_no_query_cache(:id, ids) if ids.any?
-      end
-
       def delete_by_key(key)
         delete_no_query_cache(:key, to_binary(key))
       end
