@@ -10,6 +10,10 @@ fi
 
 printf "module SolidCache\n  VERSION = \"$VERSION\"\nend\n" > ./lib/solid_cache/version.rb
 bundle
+for gemfile in gemfiles/rails_*.gemfile
+do
+  echo BUNDLE_GEMFILE=$gemfile bundle
+done
 git add Gemfile.lock lib/solid_cache/version.rb
 git commit -m "Bump version for $VERSION"
 git push
