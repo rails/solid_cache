@@ -22,6 +22,7 @@ jobs:
       fail-fast: false
       matrix:
         ruby-version: [3.2.2]
+        gemfile: [ rails_7, rails_7_1, rails_main ]
         database: [sqlite, postgres, mysql]
     services:
       redis:
@@ -43,6 +44,7 @@ jobs:
         options: --health-cmd "mysql -h localhost -e \"select now()\"" --health-interval 1s --health-timeout 5s --health-retries 30
     env:
       TARGET_DB: ${{ matrix.database }}
+      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

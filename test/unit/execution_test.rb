@@ -23,7 +23,11 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
 
     assert_equal 1, error_subscriber.errors.count
     assert_equal "Boom!", error_subscriber.errors.first[0].message
-    assert_equal({ context: {}, handled: false, level: :error, source: "application.active_support" }, error_subscriber.errors.first[1])
+    if Rails.version >= "7.1"
+      assert_equal({ context: {}, handled: false, level: :error, source: "application.active_support" }, error_subscriber.errors.first[1])
+    else
+      assert_equal({ context: {}, handled: false, level: :error, source: nil }, error_subscriber.errors.first[1])
+    end
   ensure
     Rails.error.unsubscribe(error_subscriber) if Rails.error.respond_to?(:unsubscribe)
   end

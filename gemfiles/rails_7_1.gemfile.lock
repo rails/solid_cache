@@ -8,14 +8,10 @@ GIT
       rubocop-performance
       rubocop-rails
 
-PATH
-  remote: .
-  specs:
-    solid_cache (0.1.0)
-      rails (>= 7)
-
-GEM
-  remote: https://rubygems.org/
+GIT
+  remote: https://github.com/rails/rails.git
+  revision: 71e0c050b81498adb1fec2a18056038ca14990ca
+  branch: 7-1-stable
   specs:
     actioncable (7.1.2)
       actionpack (= 7.1.2)
@@ -91,6 +87,38 @@ GEM
       minitest (>= 5.1)
       mutex_m
       tzinfo (~> 2.0)
+    rails (7.1.2)
+      actioncable (= 7.1.2)
+      actionmailbox (= 7.1.2)
+      actionmailer (= 7.1.2)
+      actionpack (= 7.1.2)
+      actiontext (= 7.1.2)
+      actionview (= 7.1.2)
+      activejob (= 7.1.2)
+      activemodel (= 7.1.2)
+      activerecord (= 7.1.2)
+      activestorage (= 7.1.2)
+      activesupport (= 7.1.2)
+      bundler (>= 1.15.0)
+      railties (= 7.1.2)
+    railties (7.1.2)
+      actionpack (= 7.1.2)
+      activesupport (= 7.1.2)
+      irb
+      rackup (>= 1.0.0)
+      rake (>= 12.2)
+      thor (~> 1.0, >= 1.2.2)
+      zeitwerk (~> 2.6)
+
+PATH
+  remote: ..
+  specs:
+    solid_cache (0.1.0)
+      rails (>= 7)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
     appraisal (2.5.0)
       bundler
       rake
@@ -164,20 +192,6 @@ GEM
     rackup (2.1.0)
       rack (>= 3)
       webrick (~> 1.8)
-    rails (7.1.2)
-      actioncable (= 7.1.2)
-      actionmailbox (= 7.1.2)
-      actionmailer (= 7.1.2)
-      actionpack (= 7.1.2)
-      actiontext (= 7.1.2)
-      actionview (= 7.1.2)
-      activejob (= 7.1.2)
-      activemodel (= 7.1.2)
-      activerecord (= 7.1.2)
-      activestorage (= 7.1.2)
-      activesupport (= 7.1.2)
-      bundler (>= 1.15.0)
-      railties (= 7.1.2)
     rails-dom-testing (2.2.0)
       activesupport (>= 5.0.0)
       minitest
@@ -185,14 +199,6 @@ GEM
     rails-html-sanitizer (1.6.0)
       loofah (~> 2.21)
       nokogiri (~> 1.14)
-    railties (7.1.2)
-      actionpack (= 7.1.2)
-      activesupport (= 7.1.2)
-      irb
-      rackup (>= 1.0.0)
-      rake (>= 12.2)
-      thor (~> 1.0, >= 1.2.2)
-      zeitwerk (~> 2.6)
     rainbow (3.1.1)
     rake (13.1.0)
     rdoc (6.6.0)
@@ -259,6 +265,7 @@ DEPENDENCIES
   mocha
   mysql2
   pg
+  rails!
   rubocop-37signals!
   solid_cache!
   sprockets-rails

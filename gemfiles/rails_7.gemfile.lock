@@ -8,8 +8,104 @@ GIT
       rubocop-performance
       rubocop-rails
 
+GIT
+  remote: https://github.com/rails/rails.git
+  revision: a1759f292c48d5ebe49edf6c7a937bfab2901023
+  branch: 7-0-stable
+  specs:
+    actioncable (7.0.8)
+      actionpack (= 7.0.8)
+      activesupport (= 7.0.8)
+      nio4r (~> 2.0)
+      websocket-driver (>= 0.6.1)
+    actionmailbox (7.0.8)
+      actionpack (= 7.0.8)
+      activejob (= 7.0.8)
+      activerecord (= 7.0.8)
+      activestorage (= 7.0.8)
+      activesupport (= 7.0.8)
+      mail (>= 2.7.1)
+      net-imap
+      net-pop
+      net-smtp
+    actionmailer (7.0.8)
+      actionpack (= 7.0.8)
+      actionview (= 7.0.8)
+      activejob (= 7.0.8)
+      activesupport (= 7.0.8)
+      mail (~> 2.5, >= 2.5.4)
+      net-imap
+      net-pop
+      net-smtp
+      rails-dom-testing (~> 2.0)
+    actionpack (7.0.8)
+      actionview (= 7.0.8)
+      activesupport (= 7.0.8)
+      racc
+      rack (~> 2.0, >= 2.2.4)
+      rack-test (>= 0.6.3)
+      rails-dom-testing (~> 2.0)
+      rails-html-sanitizer (~> 1.0, >= 1.2.0)
+    actiontext (7.0.8)
+      actionpack (= 7.0.8)
+      activerecord (= 7.0.8)
+      activestorage (= 7.0.8)
+      activesupport (= 7.0.8)
+      globalid (>= 0.6.0)
+      nokogiri (>= 1.8.5)
+    actionview (7.0.8)
+      activesupport (= 7.0.8)
+      builder (~> 3.1)
+      erubi (~> 1.4)
+      rails-dom-testing (~> 2.0)
+      rails-html-sanitizer (~> 1.1, >= 1.2.0)
+    activejob (7.0.8)
+      activesupport (= 7.0.8)
+      globalid (>= 0.3.6)
+    activemodel (7.0.8)
+      activesupport (= 7.0.8)
+    activerecord (7.0.8)
+      activemodel (= 7.0.8)
+      activesupport (= 7.0.8)
+    activestorage (7.0.8)
+      actionpack (= 7.0.8)
+      activejob (= 7.0.8)
+      activerecord (= 7.0.8)
+      activesupport (= 7.0.8)
+      marcel (~> 1.0)
+      mini_mime (>= 1.1.0)
+    activesupport (7.0.8)
+      base64
+      concurrent-ruby (~> 1.0, >= 1.0.2)
+      drb
+      i18n (>= 1.6, < 2)
+      minitest (>= 5.1)
+      mutex_m
+      tzinfo (~> 2.0)
+    rails (7.0.8)
+      actioncable (= 7.0.8)
+      actionmailbox (= 7.0.8)
+      actionmailer (= 7.0.8)
+      actionpack (= 7.0.8)
+      actiontext (= 7.0.8)
+      actionview (= 7.0.8)
+      activejob (= 7.0.8)
+      activemodel (= 7.0.8)
+      activerecord (= 7.0.8)
+      activestorage (= 7.0.8)
+      activesupport (= 7.0.8)
+      bundler (>= 1.15.0)
+      railties (= 7.0.8)
+    railties (7.0.8)
+      actionpack (= 7.0.8)
+      activesupport (= 7.0.8)
+      method_source
+      rake (>= 12.2)
+      thor (~> 1.0)
+      zeitwerk (~> 2.5)
+
 PATH
-  remote: .
+  remote: ..
   specs:
     solid_cache (0.1.0)
       rails (>= 7)
@@ -17,90 +113,14 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    actioncable (7.1.2)
-      actionpack (= 7.1.2)
-      activesupport (= 7.1.2)
-      nio4r (~> 2.0)
-      websocket-driver (>= 0.6.1)
-      zeitwerk (~> 2.6)
-    actionmailbox (7.1.2)
-      actionpack (= 7.1.2)
-      activejob (= 7.1.2)
-      activerecord (= 7.1.2)
-      activestorage (= 7.1.2)
-      activesupport (= 7.1.2)
-      mail (>= 2.7.1)
-      net-imap
-      net-pop
-      net-smtp
-    actionmailer (7.1.2)
-      actionpack (= 7.1.2)
-      actionview (= 7.1.2)
-      activejob (= 7.1.2)
-      activesupport (= 7.1.2)
-      mail (~> 2.5, >= 2.5.4)
-      net-imap
-      net-pop
-      net-smtp
-      rails-dom-testing (~> 2.2)
-    actionpack (7.1.2)
-      actionview (= 7.1.2)
-      activesupport (= 7.1.2)
-      nokogiri (>= 1.8.5)
-      racc
-      rack (>= 2.2.4)
-      rack-session (>= 1.0.1)
-      rack-test (>= 0.6.3)
-      rails-dom-testing (~> 2.2)
-      rails-html-sanitizer (~> 1.6)
-    actiontext (7.1.2)
-      actionpack (= 7.1.2)
-      activerecord (= 7.1.2)
-      activestorage (= 7.1.2)
-      activesupport (= 7.1.2)
-      globalid (>= 0.6.0)
-      nokogiri (>= 1.8.5)
-    actionview (7.1.2)
-      activesupport (= 7.1.2)
-      builder (~> 3.1)
-      erubi (~> 1.11)
-      rails-dom-testing (~> 2.2)
-      rails-html-sanitizer (~> 1.6)
-    activejob (7.1.2)
-      activesupport (= 7.1.2)
-      globalid (>= 0.3.6)
-    activemodel (7.1.2)
-      activesupport (= 7.1.2)
-    activerecord (7.1.2)
-      activemodel (= 7.1.2)
-      activesupport (= 7.1.2)
-      timeout (>= 0.4.0)
-    activestorage (7.1.2)
-      actionpack (= 7.1.2)
-      activejob (= 7.1.2)
-      activerecord (= 7.1.2)
-      activesupport (= 7.1.2)
-      marcel (~> 1.0)
-    activesupport (7.1.2)
-      base64
-      bigdecimal
-      concurrent-ruby (~> 1.0, >= 1.0.2)
-      connection_pool (>= 2.2.5)
-      drb
-      i18n (>= 1.6, < 2)
-      minitest (>= 5.1)
-      mutex_m
-      tzinfo (~> 2.0)
     appraisal (2.5.0)
       bundler
       rake
       thor (>= 0.14.0)
     ast (2.4.2)
     base64 (0.2.0)
-    bigdecimal (3.1.4)
     builder (3.2.4)
     concurrent-ruby (1.2.2)
-    connection_pool (2.4.1)
     crass (1.0.6)
     date (3.3.4)
     debug (1.8.0)
@@ -128,6 +148,7 @@ GEM
       net-pop
       net-smtp
     marcel (1.0.2)
+    method_source (1.0.0)
     mini_mime (1.1.5)
     mini_portile2 (2.8.5)
     minitest (5.20.0)
@@ -156,28 +177,9 @@ GEM
     psych (5.1.1.1)
       stringio
     racc (1.7.3)
-    rack (3.0.8)
-    rack-session (2.0.0)
-      rack (>= 3.0.0)
+    rack (2.2.8)
     rack-test (2.1.0)
       rack (>= 1.3)
-    rackup (2.1.0)
-      rack (>= 3)
-      webrick (~> 1.8)
-    rails (7.1.2)
-      actioncable (= 7.1.2)
-      actionmailbox (= 7.1.2)
-      actionmailer (= 7.1.2)
-      actionpack (= 7.1.2)
-      actiontext (= 7.1.2)
-      actionview (= 7.1.2)
-      activejob (= 7.1.2)
-      activemodel (= 7.1.2)
-      activerecord (= 7.1.2)
-      activestorage (= 7.1.2)
-      activesupport (= 7.1.2)
-      bundler (>= 1.15.0)
-      railties (= 7.1.2)
     rails-dom-testing (2.2.0)
       activesupport (>= 5.0.0)
       minitest
@@ -185,14 +187,6 @@ GEM
     rails-html-sanitizer (1.6.0)
       loofah (~> 2.21)
       nokogiri (~> 1.14)
-    railties (7.1.2)
-      actionpack (= 7.1.2)
-      activesupport (= 7.1.2)
-      irb
-      rackup (>= 1.0.0)
-      rake (>= 12.2)
-      thor (~> 1.0, >= 1.2.2)
-      zeitwerk (~> 2.6)
     rainbow (3.1.1)
     rake (13.1.0)
     rdoc (6.6.0)
@@ -240,7 +234,6 @@ GEM
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
     unicode-display_width (2.5.0)
-    webrick (1.8.1)
     websocket-driver (0.7.6)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
@@ -259,6 +252,7 @@ DEPENDENCIES
   mocha
   mysql2
   pg
+  rails!
   rubocop-37signals!
   solid_cache!
   sprockets-rails
