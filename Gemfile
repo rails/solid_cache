@@ -11,6 +11,7 @@ gem "pg"
 gem "sprockets-rails"
 
 gem "rubocop-37signals", github: "basecamp/house-style", require: false
+gem "appraisal"
 
 # Start debugger with binding.b [https://github.com/ruby/debug]
 # gem "debug", ">= 1.0.0"

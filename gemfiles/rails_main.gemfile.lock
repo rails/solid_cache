@@ -8,44 +8,40 @@ GIT
       rubocop-performance
       rubocop-rails
 
-PATH
-  remote: .
+GIT
+  remote: https://github.com/rails/rails.git
+  revision: f98bb7ed41d513539cd6a1af1f21d96ae4f3cd17
+  branch: main
   specs:
-    solid_cache (0.1.0)
-      rails (>= 7)
-
-GEM
-  remote: https://rubygems.org/
-  specs:
-    actioncable (7.1.2)
-      actionpack (= 7.1.2)
-      activesupport (= 7.1.2)
+    actioncable (7.2.0.alpha)
+      actionpack (= 7.2.0.alpha)
+      activesupport (= 7.2.0.alpha)
       nio4r (~> 2.0)
       websocket-driver (>= 0.6.1)
       zeitwerk (~> 2.6)
-    actionmailbox (7.1.2)
-      actionpack (= 7.1.2)
-      activejob (= 7.1.2)
-      activerecord (= 7.1.2)
-      activestorage (= 7.1.2)
-      activesupport (= 7.1.2)
+    actionmailbox (7.2.0.alpha)
+      actionpack (= 7.2.0.alpha)
+      activejob (= 7.2.0.alpha)
+      activerecord (= 7.2.0.alpha)
+      activestorage (= 7.2.0.alpha)
+      activesupport (= 7.2.0.alpha)
       mail (>= 2.7.1)
       net-imap
       net-pop
       net-smtp
-    actionmailer (7.1.2)
-      actionpack (= 7.1.2)
-      actionview (= 7.1.2)
-      activejob (= 7.1.2)
-      activesupport (= 7.1.2)
+    actionmailer (7.2.0.alpha)
+      actionpack (= 7.2.0.alpha)
+      actionview (= 7.2.0.alpha)
+      activejob (= 7.2.0.alpha)
+      activesupport (= 7.2.0.alpha)
       mail (~> 2.5, >= 2.5.4)
       net-imap
       net-pop
       net-smtp
       rails-dom-testing (~> 2.2)
-    actionpack (7.1.2)
-      actionview (= 7.1.2)
-      activesupport (= 7.1.2)
+    actionpack (7.2.0.alpha)
+      actionview (= 7.2.0.alpha)
+      activesupport (= 7.2.0.alpha)
       nokogiri (>= 1.8.5)
       racc
       rack (>= 2.2.4)
@@ -53,35 +49,35 @@ GEM
       rack-test (>= 0.6.3)
       rails-dom-testing (~> 2.2)
       rails-html-sanitizer (~> 1.6)
-    actiontext (7.1.2)
-      actionpack (= 7.1.2)
-      activerecord (= 7.1.2)
-      activestorage (= 7.1.2)
-      activesupport (= 7.1.2)
+    actiontext (7.2.0.alpha)
+      actionpack (= 7.2.0.alpha)
+      activerecord (= 7.2.0.alpha)
+      activestorage (= 7.2.0.alpha)
+      activesupport (= 7.2.0.alpha)
       globalid (>= 0.6.0)
       nokogiri (>= 1.8.5)
-    actionview (7.1.2)
-      activesupport (= 7.1.2)
+    actionview (7.2.0.alpha)
+      activesupport (= 7.2.0.alpha)
       builder (~> 3.1)
       erubi (~> 1.11)
       rails-dom-testing (~> 2.2)
       rails-html-sanitizer (~> 1.6)
-    activejob (7.1.2)
-      activesupport (= 7.1.2)
+    activejob (7.2.0.alpha)
+      activesupport (= 7.2.0.alpha)
       globalid (>= 0.3.6)
-    activemodel (7.1.2)
-      activesupport (= 7.1.2)
-    activerecord (7.1.2)
-      activemodel (= 7.1.2)
-      activesupport (= 7.1.2)
+    activemodel (7.2.0.alpha)
+      activesupport (= 7.2.0.alpha)
+    activerecord (7.2.0.alpha)
+      activemodel (= 7.2.0.alpha)
+      activesupport (= 7.2.0.alpha)
       timeout (>= 0.4.0)
-    activestorage (7.1.2)
-      actionpack (= 7.1.2)
-      activejob (= 7.1.2)
-      activerecord (= 7.1.2)
-      activesupport (= 7.1.2)
+    activestorage (7.2.0.alpha)
+      actionpack (= 7.2.0.alpha)
+      activejob (= 7.2.0.alpha)
+      activerecord (= 7.2.0.alpha)
+      activesupport (= 7.2.0.alpha)
       marcel (~> 1.0)
-    activesupport (7.1.2)
+    activesupport (7.2.0.alpha)
       base64
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)
@@ -89,8 +85,39 @@ GEM
       drb
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
-      mutex_m
-      tzinfo (~> 2.0)
+      tzinfo (~> 2.0, >= 2.0.5)
+    rails (7.2.0.alpha)
+      actioncable (= 7.2.0.alpha)
+      actionmailbox (= 7.2.0.alpha)
+      actionmailer (= 7.2.0.alpha)
+      actionpack (= 7.2.0.alpha)
+      actiontext (= 7.2.0.alpha)
+      actionview (= 7.2.0.alpha)
+      activejob (= 7.2.0.alpha)
+      activemodel (= 7.2.0.alpha)
+      activerecord (= 7.2.0.alpha)
+      activestorage (= 7.2.0.alpha)
+      activesupport (= 7.2.0.alpha)
+      bundler (>= 1.15.0)
+      railties (= 7.2.0.alpha)
+    railties (7.2.0.alpha)
+      actionpack (= 7.2.0.alpha)
+      activesupport (= 7.2.0.alpha)
+      irb
+      rackup (>= 1.0.0)
+      rake (>= 12.2)
+      thor (~> 1.0, >= 1.2.2)
+      zeitwerk (~> 2.6)
+
+PATH
+  remote: ..
+  specs:
+    solid_cache (0.1.0)
+      rails (>= 7)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
     appraisal (2.5.0)
       bundler
       rake
@@ -133,7 +160,6 @@ GEM
     minitest (5.20.0)
     mocha (2.1.0)
       ruby2_keywords (>= 0.0.5)
-    mutex_m (0.2.0)
     mysql2 (0.5.5)
     net-imap (0.4.5)
       date
@@ -164,20 +190,6 @@ GEM
     rackup (2.1.0)
       rack (>= 3)
       webrick (~> 1.8)
-    rails (7.1.2)
-      actioncable (= 7.1.2)
-      actionmailbox (= 7.1.2)
-      actionmailer (= 7.1.2)
-      actionpack (= 7.1.2)
-      actiontext (= 7.1.2)
-      actionview (= 7.1.2)
-      activejob (= 7.1.2)
-      activemodel (= 7.1.2)
-      activerecord (= 7.1.2)
-      activestorage (= 7.1.2)
-      activesupport (= 7.1.2)
-      bundler (>= 1.15.0)
-      railties (= 7.1.2)
     rails-dom-testing (2.2.0)
       activesupport (>= 5.0.0)
       minitest
@@ -185,14 +197,6 @@ GEM
     rails-html-sanitizer (1.6.0)
       loofah (~> 2.21)
       nokogiri (~> 1.14)
-    railties (7.1.2)
-      actionpack (= 7.1.2)
-      activesupport (= 7.1.2)
-      irb
-      rackup (>= 1.0.0)
-      rake (>= 12.2)
-      thor (~> 1.0, >= 1.2.2)
-      zeitwerk (~> 2.6)
     rainbow (3.1.1)
     rake (13.1.0)
     rdoc (6.6.0)
@@ -259,6 +263,7 @@ DEPENDENCIES
   mocha
   mysql2
   pg
+  rails!
   rubocop-37signals!
   solid_cache!
   sprockets-rails

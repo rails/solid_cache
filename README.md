@@ -273,5 +273,25 @@ $ TARGET_DB=mysql bin/rails test
 $ TARGET_DB=postgres bin/rails test
 ```
 
+### Testing with multiple Rails version
+
+Solid Cache relies on [appraisal](https://github.com/thoughtbot/appraisal/tree/main) to test
+multiple Rails version.
+
+To run a test for a specific version run:
+
+```shell
+bundle exec appraisal rails-7-1 bin/rails test
+```
+
+After updating the dependencies in then `Gemfile` please run:
+
+```shell
+$ bundle
+$ appraisal update
+```
+
+This ensures that all the Rails versions dependencies are updated.
+
 ## License
 Solid Cache is licensed under MIT.

@@ -88,7 +88,14 @@ module SolidCache
             if entry.expired?
               delete_entry(key, **options)
             elsif !entry.mismatched?(version)
-              results[name] = entry.value
+              if defined? ActiveSupport::Cache::DeserializationError
+                begin
+                  results[name] = entry.value
+                rescue ActiveSupport::Cache::DeserializationError
+                end
+              else
+                results[name] = entry.value
+              end
             end
           end
         end

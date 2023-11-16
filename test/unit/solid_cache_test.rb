@@ -6,6 +6,7 @@ class SolidCacheTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
   include CacheStoreBehavior
   include CacheStoreVersionBehavior
+  include CacheStoreFormatVersionBehavior
   include CacheStoreCoderBehavior
   include LocalCacheBehavior
   include CacheIncrementDecrementBehavior
@@ -55,10 +56,12 @@ class SolidCacheFailsafeTest < ActiveSupport::TestCase
   def emulating_unavailability
     stub_matcher = ActiveRecord::Base.connection.class.any_instance
     stub_matcher.stubs(:exec_query).raises(ActiveRecord::StatementInvalid)
+    stub_matcher.stubs(:internal_exec_query).raises(ActiveRecord::StatementInvalid)
     stub_matcher.stubs(:exec_delete).raises(ActiveRecord::StatementInvalid)
     yield ActiveSupport::Cache::SolidCacheStore.new(namespace: @namespace)
   ensure
     stub_matcher.unstub(:exec_query)
+    stub_matcher.unstub(:internal_exec_query)
     stub_matcher.unstub(:exec_delete)
   end
 end
@@ -80,11 +83,13 @@ class SolidCacheRaisingTest < ActiveSupport::TestCase
   def emulating_unavailability
     stub_matcher = ActiveRecord::Base.connection.class.any_instance
     stub_matcher.stubs(:exec_query).raises(ActiveRecord::StatementInvalid)
+    stub_matcher.stubs(:internal_exec_query).raises(ActiveRecord::StatementInvalid)
     stub_matcher.stubs(:exec_delete).raises(ActiveRecord::StatementInvalid)
     yield ActiveSupport::Cache::SolidCacheStore.new(namespace: @namespace,
       error_handler: ->(method:, returning:, exception:) { raise exception })
   ensure
     stub_matcher.unstub(:exec_query)
+    stub_matcher.unstub(:internal_exec_query)
     stub_matcher.unstub(:exec_delete)
   end
 end
