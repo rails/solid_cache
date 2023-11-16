@@ -74,8 +74,12 @@ module SolidCache
           message = +"#{self} "
           message << "Bulk " if attributes.many?
           message << "Upsert"
-          # exec_query does not clear the query cache, exec_insert_all does
-          connection.exec_query sql, message
+          # exec_query_method does not clear the query cache, exec_insert_all does
+          connection.send exec_query_method, sql, message
+        end
+
+        def exec_query_method
+          connection.respond_to?(:internal_exec_query) ? :internal_exec_query : :exec_query
         end
 
         def upsert_unique_by
