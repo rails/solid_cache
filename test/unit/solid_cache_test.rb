@@ -6,6 +6,7 @@ class SolidCacheTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
   include CacheStoreBehavior
   include CacheStoreVersionBehavior
+  include CacheStoreFormatVersionBehavior
   include CacheStoreCoderBehavior
   include LocalCacheBehavior
   include CacheIncrementDecrementBehavior
