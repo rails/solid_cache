@@ -17,7 +17,7 @@ module SolidCache
         Record.with_shard(name, &block)
       end
 
-      def with_connection_for(key, &block)
+      def with_connection_for(_key, &block)
         with(name, &block)
       end
 
