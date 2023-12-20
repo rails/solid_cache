@@ -203,7 +203,7 @@ Rails.application.configure do
   }
 
   primary_cluster = { shards: [ :cache_primary_shard1, :cache_primary_shard2 ] }
-  secondary_cluster = { shards: [ :cache_primary_shard1, :cache_primary_shard2 ] }
+  secondary_cluster = { shards: [ :cache_secondary_shard1, :cache_secondary_shard2 ] }
   config.cache_store = [ :solid_cache_store, clusters: [ primary_cluster, secondary_cluster ] ]
 end
 ```
