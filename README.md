@@ -286,7 +286,7 @@ To run a test for a specific version run:
 bundle exec appraisal rails-7-1 bin/rails test
 ```
 
-After updating the dependencies in then `Gemfile` please run:
+After updating the dependencies in the `Gemfile` please run:
 
 ```shell
 $ bundle

@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/rails/rails.git
-  revision: f6f6b0542fd9ae6aebe3529baba358d521d64638
+  revision: cb035bde4e4a09789792ba69117f602231c36584
   branch: main
   specs:
     actionpack (7.2.0.alpha)
@@ -66,7 +66,7 @@ GEM
     base64 (0.2.0)
     bigdecimal (3.1.5)
     builder (3.2.4)
-    concurrent-ruby (1.2.2)
+    concurrent-ruby (1.2.3)
     connection_pool (2.4.1)
     crass (1.0.6)
     debug (1.9.1)
@@ -80,15 +80,15 @@ GEM
     i18n (1.14.1)
       concurrent-ruby (~> 1.0)
     io-console (0.7.1)
-    irb (1.11.0)
+    irb (1.11.1)
       rdoc
-      reline (>= 0.3.8)
+      reline (>= 0.4.2)
     json (2.7.1)
     language_server-protocol (3.17.0.3)
     loofah (2.22.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.12.0)
-    minitest (5.20.0)
+    minitest (5.21.1)
     mocha (2.1.0)
       ruby2_keywords (>= 0.0.5)
     mysql2 (0.5.5)
@@ -99,7 +99,7 @@ GEM
     nokogiri (1.16.0-x86_64-linux)
       racc (~> 1.4)
     parallel (1.24.0)
-    parser (3.2.2.4)
+    parser (3.3.0.4)
       ast (~> 2.4.1)
       racc
     pg (1.5.4)
@@ -125,15 +125,15 @@ GEM
     rake (13.1.0)
     rdoc (6.6.2)
       psych (>= 4.0.0)
-    regexp_parser (2.8.3)
-    reline (0.4.1)
+    regexp_parser (2.9.0)
+    reline (0.4.2)
       io-console (~> 0.5)
     rexml (3.2.6)
-    rubocop (1.59.0)
+    rubocop (1.60.0)
       json (~> 2.3)
       language_server-protocol (>= 3.17.0)
       parallel (~> 1.10)
-      parser (>= 3.2.2.4)
+      parser (>= 3.3.0.2)
       rainbow (>= 2.2.2, < 4.0)
       regexp_parser (>= 1.8, < 3.0)
       rexml (>= 3.2.5, < 4.0)
@@ -144,12 +144,12 @@ GEM
       parser (>= 3.2.1.0)
     rubocop-md (1.2.2)
       rubocop (>= 1.0)
-    rubocop-minitest (0.34.3)
+    rubocop-minitest (0.34.4)
       rubocop (>= 1.39, < 2.0)
       rubocop-ast (>= 1.30.0, < 2.0)
     rubocop-packaging (0.5.2)
       rubocop (>= 1.33, < 2.0)
-    rubocop-performance (1.20.1)
+    rubocop-performance (1.20.2)
       rubocop (>= 1.48.1, < 2.0)
       rubocop-ast (>= 1.30.0, < 2.0)
     rubocop-rails (2.23.1)
@@ -184,6 +184,7 @@ PLATFORMS
   arm64-darwin-22
   arm64-darwin-23
   x86_64-darwin-20
+  x86_64-darwin-22
   x86_64-linux
 
 DEPENDENCIES
