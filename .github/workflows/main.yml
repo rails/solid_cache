@@ -3,10 +3,8 @@ on: [push, pull_request]
 
 jobs:
   rubocop:
-    name: Rubocop
+    name: RuboCop
     runs-on: ubuntu-latest
-    env:
-      BUNDLE_ONLY: rubocop
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
