@@ -5,14 +5,16 @@ jobs:
   rubocop:
     name: Rubocop
     runs-on: ubuntu-latest
+    env:
+      BUNDLE_ONLY: rubocop
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Setup Ruby and install gems
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.2
-          bundler-cache: false
+          ruby-version: 3.2.2
+          bundler-cache: true
       - name: Run Rubocop
         run: bin/rubocop
   tests:
