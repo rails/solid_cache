@@ -142,14 +142,26 @@ module SolidCache
 
         def expiry_candidate_ids(count, max_age:, max_entries:)
           cache_full = max_entries && max_entries < id_range
-          min_created_at = max_age.seconds.ago
+          return [] unless cache_full || max_age
+
+          # In the case of multiple concurrent expiry operations, it is desirable to
+          # reduce the overlap of entries being addressed by each. For that reason,
+          # retrieve more ids than are being expired, and use random
+          # sampling to reduce that number to the actual intended count.
+          retrieve_count = count * 3
 
           uncached do
-            order(:id)
-              .limit(count * 3)
-              .pluck(:id, :created_at)
-              .filter_map { |id, created_at| id if cache_full || created_at < min_created_at }
-              .sample(count)
+            candidates = order(:id).limit(retrieve_count)
+
+            candidate_ids = if cache_full
+              candidates.pluck(:id)
+            else
+              min_created_at = max_age.seconds.ago
+              candidates.pluck(:id, :created_at)
+                        .filter_map { |id, created_at| id if created_at < min_created_at }
+            end
+
+            candidate_ids.sample(count)
           end
         end
     end
