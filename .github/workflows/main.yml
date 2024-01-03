@@ -5,6 +5,8 @@ jobs:
   rubocop:
     name: RuboCop
     runs-on: ubuntu-latest
+    env:
+      BUNDLE_ONLY: rubocop
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

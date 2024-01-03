@@ -17,6 +17,9 @@ AllCops:
     # Don't second guess the generated schemas
     - test/dummy/*
     - bin/*
+    - '**/tmp/**/*'
+    - '**/vendor/**/*'
+    - '**/node_modules/**/*'
 
 Performance:
   Exclude:
