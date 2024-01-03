@@ -1,4 +1,3 @@
-
 module SolidCache
   class Cluster
     include Connections, Execution, Expiry, Stats
