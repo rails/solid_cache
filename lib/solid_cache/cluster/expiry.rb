@@ -34,7 +34,7 @@ module SolidCache
         end
 
         def expiry_counter
-          @expiry_counters ||= connection_names.to_h { |connection_name| [ connection_name, Counter.new(expire_every) ] }
+          @expiry_counters ||= connection_names.index_with { |connection_name| Counter.new(expire_every) }
           @expiry_counters[Entry.current_shard]
         end
 

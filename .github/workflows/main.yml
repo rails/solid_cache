@@ -14,7 +14,7 @@ jobs:
           ruby-version: 3.2.2
           bundler-cache: true
       - name: Run Rubocop
-        run: bin/rubocop
+        run: bundle exec rubocop --parallel
   tests:
     name: Tests
     runs-on: ubuntu-latest

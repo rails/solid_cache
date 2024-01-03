@@ -20,11 +20,9 @@ module SolidCache
       end
 
       private
-        def reading_key(key, failsafe:, failsafe_returning: nil)
+        def reading_key(key, failsafe:, failsafe_returning: nil, &block)
           failsafe(failsafe, returning: failsafe_returning) do
-            primary_cluster.with_connection_for(key) do
-              yield
-            end
+            primary_cluster.with_connection_for(key, &block)
           end
         end
 
@@ -65,13 +63,11 @@ module SolidCache
           end
         end
 
-        def writing_all(failsafe:, failsafe_returning: nil)
+        def writing_all(failsafe:, failsafe_returning: nil, &block)
           first_cluster_sync_rest_async do |cluster, async|
             cluster.connection_names.each do |connection|
               failsafe(failsafe, returning: failsafe_returning) do
-                cluster.with_connection(connection, async: async) do
-                  yield
-                end
+                cluster.with_connection(connection, async: async, &block)
               end
             end
           end

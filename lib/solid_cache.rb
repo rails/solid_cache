@@ -17,12 +17,12 @@ module SolidCache
     connects_to && connects_to[:shards]
   end
 
-  def self.each_shard
+  def self.each_shard(&block)
     return to_enum(:each_shard) unless block_given?
 
     if (shards = all_shards_config&.keys)
       shards.each do |shard|
-        Record.connected_to(shard: shard) { yield }
+        Record.connected_to(shard: shard, &block)
       end
     else
       yield

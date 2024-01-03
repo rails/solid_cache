@@ -13,7 +13,7 @@ class DeleteMatchedTest < ActiveSupport::TestCase
 
     cache.clear
 
-    assert_equal cache.clear_with, :truncate
+    assert_equal :truncate, cache.clear_with
     assert_equal 0, uncached_entry_count
   end
 
@@ -23,7 +23,7 @@ class DeleteMatchedTest < ActiveSupport::TestCase
 
     cache.clear
 
-    assert_equal cache.clear_with, :delete
+    assert_equal :delete, cache.clear_with
     assert_equal 0, uncached_entry_count
   end
 
