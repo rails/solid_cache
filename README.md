@@ -155,7 +155,7 @@ To shard:
 3. Pass the shards for the cache to use via the cluster option
 
 For example:
-```ruby
+```yml
 # config/database.yml
 production:
   cache_shard1:
@@ -167,8 +167,9 @@ production:
   cache_shard3:
     database: cache3_production
     host: cache3-db
+```
 
-
+```ruby
 # config/environment/production.rb
 Rails.application.configure do
   config.solid_cache.connects_to = {
