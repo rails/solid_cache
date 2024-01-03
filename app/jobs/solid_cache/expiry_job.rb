@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SolidCache
   class ExpiryJob < ActiveJob::Base
     def perform(count, shard: nil, max_age:, max_entries:)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SolidCache
   class Entry < Record
     # This is all quite awkward but it achieves a couple of performance aims

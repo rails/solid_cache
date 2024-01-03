@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SolidCache
   class Record < ActiveRecord::Base
     NULL_INSTRUMENTER = ActiveSupport::Notifications::Instrumenter.new(ActiveSupport::Notifications::Fanout.new)

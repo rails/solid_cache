@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 appraise "rails-7" do
   gem "rails", github: "rails/rails", branch: "7-0-stable"
 end

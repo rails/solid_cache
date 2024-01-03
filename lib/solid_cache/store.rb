@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SolidCache
   class Store < ActiveSupport::Cache::Store
     include Api, Clusters, Entries, Failsafe

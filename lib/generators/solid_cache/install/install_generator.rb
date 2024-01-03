@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class SolidCache::InstallGenerator < Rails::Generators::Base
   class_option :skip_migrations,    type: :boolean, default: nil,
                                     desc: "Skip migrations"
