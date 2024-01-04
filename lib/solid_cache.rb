@@ -22,7 +22,7 @@ module SolidCache
 
     if (shards = all_shards_config&.keys)
       shards.each do |shard|
-        Record.connected_to(shard: shard) { yield }
+        Record.with_shard(shard) { yield }
       end
     else
       yield
