@@ -14,8 +14,8 @@ module SolidCache
       end
 
       def with_shard(shard, &block)
-        if shard && shard != Record.current_shard
-          Record.connected_to(shard: shard, &block)
+        if shard && SolidCache.connects_to
+          connected_to(shard: shard, role: default_role, prevent_writes: false, &block)
         else
           block.call
         end

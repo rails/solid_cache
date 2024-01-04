@@ -35,6 +35,15 @@ class SolidCacheTest < ActiveSupport::TestCase
     end
   end
 
+  test "each_shard uses the default role" do
+    role = ActiveRecord::Base.connected_to(role: :reading) { SolidCache.each_shard.map { SolidCache::Record.current_role } }
+    if ENV["NO_CONNECTS_TO"]
+      assert_equal [ :reading ], role
+    else
+      assert_equal [ :writing, :writing, :writing, :writing, :writing ], role
+    end
+  end
+
   test "max key bytesize" do
     cache = lookup_store(max_key_bytesize: 100)
     assert_equal 100, cache.send(:normalize_key, SecureRandom.hex(200), {}).bytesize
