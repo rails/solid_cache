@@ -9,7 +9,7 @@ gem "mysql2"
 gem "pg"
 gem "sprockets-rails"
 gem "appraisal"
-gem "rails", branch: "main", git: "https://github.com/rails/rails.git"
+gem "railties", branch: "main", git: "https://github.com/rails/rails.git"
 
 group :rubocop do
   gem "rubocop", ">= 1.25.1", require: false
