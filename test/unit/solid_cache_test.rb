@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 require_relative "behaviors"
 require "active_support/testing/method_call_assertions"

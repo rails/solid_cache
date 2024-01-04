@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SolidCache
   class Cluster
     module Stats
@@ -6,7 +8,7 @@ module SolidCache
       end
 
       def stats
-        stats = {
+        {
           connections: connections.count,
           connection_stats: connections_stats
         }

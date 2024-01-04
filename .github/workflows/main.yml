@@ -3,8 +3,10 @@ on: [push, pull_request]
 
 jobs:
   rubocop:
-    name: Rubocop
+    name: RuboCop
     runs-on: ubuntu-latest
+    env:
+      BUNDLE_ONLY: rubocop
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -14,7 +16,7 @@ jobs:
           ruby-version: 3.2.2
           bundler-cache: true
       - name: Run Rubocop
-        run: bin/rubocop
+        run: bundle exec rubocop --parallel
   tests:
     name: Tests
     runs-on: ubuntu-latest

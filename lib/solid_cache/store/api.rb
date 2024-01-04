@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SolidCache
   class Store
     module Api
@@ -74,7 +76,7 @@ module SolidCache
         end
 
         def read_multi_entries(names, **options)
-          keys_and_names = names.to_h { |name| [ normalize_key(name, options), name ] }
+          keys_and_names = names.index_by { |name| normalize_key(name, options) }
           serialized_entries = read_serialized_entries(keys_and_names.keys)
 
           keys_and_names.each_with_object({}) do |(key, name), results|

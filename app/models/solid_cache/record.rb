@@ -1,16 +1,16 @@
+# frozen_string_literal: true
+
 module SolidCache
   class Record < ActiveRecord::Base
     NULL_INSTRUMENTER = ActiveSupport::Notifications::Instrumenter.new(ActiveSupport::Notifications::Fanout.new)
 
     self.abstract_class = true
 
-    connects_to **SolidCache.connects_to if SolidCache.connects_to
+    connects_to(**SolidCache.connects_to) if SolidCache.connects_to
 
     class << self
-      def disable_instrumentation
-        connection.with_instrumenter(NULL_INSTRUMENTER) do
-          yield
-        end
+      def disable_instrumentation(&block)
+        connection.with_instrumenter(NULL_INSTRUMENTER, &block)
       end
 
       def with_shard(shard, &block)

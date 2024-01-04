@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "zeitwerk"
 require "solid_cache/engine"
 
@@ -17,12 +19,12 @@ module SolidCache
     connects_to && connects_to[:shards]
   end
 
-  def self.each_shard
+  def self.each_shard(&block)
     return to_enum(:each_shard) unless block_given?
 
     if (shards = all_shards_config&.keys)
       shards.each do |shard|
-        Record.with_shard(shard) { yield }
+        Record.with_shard(shard, &block)
       end
     else
       yield
