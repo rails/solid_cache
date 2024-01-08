@@ -8,7 +8,7 @@ then
   exit 1
 fi
 
-printf "module SolidCache\n  VERSION = \"$VERSION\"\nend\n" > ./lib/solid_cache/version.rb
+printf "# frozen_string_literal: true\n\nmodule SolidCache\n  VERSION = \"$VERSION\"\nend\n" > ./lib/solid_cache/version.rb
 bundle
 appraisal
 git add Gemfile.lock lib/solid_cache/version.rb gemfiles/rails*

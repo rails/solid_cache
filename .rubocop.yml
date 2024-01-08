@@ -17,6 +17,7 @@ AllCops:
     # Don't rubocop generated files
     - test/dummy/**/*
     - bin/*
+    - gemfiles/*
     - '**/tmp/**/*'
     - '**/vendor/**/*'
     - '**/node_modules/**/*'
