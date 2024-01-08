@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 require "active_support/core_ext/integer/time"
 
 # The test environment is used exclusively to run your application's
@@ -34,7 +32,6 @@ Rails.application.configure do
 
   # Disable request forgery protection in test environment.
   config.action_controller.allow_forgery_protection = false
-
 
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr
