@@ -80,7 +80,7 @@ Solid Cache supports these options in addition to the standard `ActiveSupport::C
 - `error_handler` - a Proc to call to handle any `ActiveRecord::ActiveRecordError`s that are raises (default: log errors as warnings)
 - `expiry_batch_size` - the batch size to use when deleting old records (default: `100`)
 - `expiry_method` - what expiry method to use `thread` or `job` (default: `thread`)
-- `max_age` - the maximum age of entries in the cache (default: `2.weeks.to_i`)
+- `max_age` - the maximum age of entries in the cache (default: `2.weeks.to_i`). Can be set to `nil`, but this is not recommended unless using `max_entries` to limit the size of the cache.
 - `max_entries` - the maximum number of entries allowed in the cache (default: `nil`, meaning no limit)
 - `cluster` - a Hash of options for the cache database cluster, e.g `{ shards: [:database1, :database2, :database3] }`
 - `clusters` - and Array of Hashes for multiple cache clusters (ignored if `:cluster` is set)

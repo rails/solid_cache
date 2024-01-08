@@ -36,7 +36,7 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
     end
 
     test "expires records when the cache is full (#{expiry_method})" do
-      @cache = lookup_store(expiry_batch_size: 3, max_age: 2.weeks, max_entries: 2, expiry_method: expiry_method)
+      @cache = lookup_store(expiry_batch_size: 3, max_age: nil, max_entries: 2, expiry_method: expiry_method)
       default_shard_keys = shard_keys(@cache, :default)
       @cache.write(default_shard_keys[0], 1)
       @cache.write(default_shard_keys[1], 2)
