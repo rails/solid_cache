@@ -34,6 +34,11 @@ module SolidCache
         end
       end
 
+      def delete_multi(keys)
+        serialized_keys = keys.map { |key| to_binary(key) }
+        delete_no_query_cache(:key, serialized_keys)
+      end
+
       def clear_truncate
         connection.truncate(table_name)
       end
