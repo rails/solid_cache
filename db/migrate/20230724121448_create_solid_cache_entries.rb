@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 class CreateSolidCacheEntries < ActiveRecord::Migration[7.0]
   def change
     create_table :solid_cache_entries do |t|
