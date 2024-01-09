@@ -119,7 +119,7 @@ module SolidCache
         end
 
         def delete_multi_entries(entries, **options)
-          entries.count { |key| delete_entry(key, **options) }
+          entry_delete_multi(entries).compact.sum
         end
 
         def serialize_entry(entry, raw: false, **options)
