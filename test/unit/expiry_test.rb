@@ -117,10 +117,26 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
     end
   end
 
-    private
-      def shard_keys(cache, shard)
-        namespaced_keys = 100.times.map { |i| @cache.send(:normalize_key, "key#{i}", {}) }
-        shard_keys = cache.primary_cluster.send(:connections).assign(namespaced_keys)[shard]
-        shard_keys.map { |key| key.delete_prefix("#{@namespace}:") }
-      end
+  test "expires old records with a custom queue" do
+    @cache = lookup_store(expiry_batch_size: 3, max_entries: 2, expiry_method: :job, expiry_queue: :cache_expiry)
+
+    default_shard_keys = shard_keys(@cache, :default)
+
+    assert_enqueued_jobs(2, only: SolidCache::ExpiryJob, queue: :cache_expiry) do
+      @cache.write(default_shard_keys[0], 1)
+      @cache.write(default_shard_keys[1], 2)
+      @cache.write(default_shard_keys[2], 3)
+      @cache.write(default_shard_keys[2], 4)
+    end
+
+    perform_enqueued_jobs
+    assert_equal 0, SolidCache.each_shard.sum { SolidCache::Entry.count }
+  end
+
+  private
+    def shard_keys(cache, shard)
+      namespaced_keys = 100.times.map { |i| @cache.send(:normalize_key, "key#{i}", {}) }
+      shard_keys = cache.primary_cluster.send(:connections).assign(namespaced_keys)[shard]
+      shard_keys.map { |key| key.delete_prefix("#{@namespace}:") }
+    end
 end

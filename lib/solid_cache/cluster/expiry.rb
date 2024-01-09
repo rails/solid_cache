@@ -9,12 +9,13 @@ module SolidCache
       # This ensures there is downward pressure on the cache size while there is valid data to delete
       EXPIRY_MULTIPLIER = 1.25
 
-      attr_reader :expiry_batch_size, :expiry_method, :expire_every, :max_age, :max_entries
+      attr_reader :expiry_batch_size, :expiry_method, :expiry_queue, :expire_every, :max_age, :max_entries
 
       def initialize(options = {})
         super(options)
         @expiry_batch_size = options.fetch(:expiry_batch_size, 100)
         @expiry_method = options.fetch(:expiry_method, :thread)
+        @expiry_queue = options.fetch(:expiry_queue, :default)
         @expire_every = [ (expiry_batch_size / EXPIRY_MULTIPLIER).floor, 1 ].max
         @max_age = options.fetch(:max_age, 2.weeks.to_i)
         @max_entries = options.fetch(:max_entries, nil)
@@ -29,7 +30,9 @@ module SolidCache
       private
         def expire_later
           if expiry_method == :job
-            ExpiryJob.perform_later(expiry_batch_size, shard: Entry.current_shard, max_age: max_age, max_entries: max_entries)
+            ExpiryJob
+              .set(queue: expiry_queue)
+              .perform_later(expiry_batch_size, shard: Entry.current_shard, max_age: max_age, max_entries: max_entries)
           else
             async { Entry.expire(expiry_batch_size, max_age: max_age, max_entries: max_entries) }
           end
