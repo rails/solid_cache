@@ -66,24 +66,24 @@ development:
 test:
   primary:
     <<: *default
-    database: <%= database("database_cache_development") %>
+    database: <%= database("database_cache_test") %>
   primary_replica:
     <<: *default
-    database: <%= database("database_cache_development") %>
+    database: <%= database("database_cache_test") %>
     replica: true
   primary_shard_one:
     <<: *default
-    database: <%= database("database_cache1_development") %>
+    database: <%= database("database_cache1_test") %>
   primary_shard_one_replica:
     <<: *default
-    database: <%= database("database_cache1_development") %>
+    database: <%= database("database_cache1_test") %>
     replica: true
   primary_shard_two:
     <<: *default
-    database: <%= database("database_cache2_development") %>
+    database: <%= database("database_cache2_test") %>
   secondary_shard_one:
     <<: *default
-    database: <%= database("database_cache1s_development") %>
+    database: <%= database("database_cache1s_test") %>
   secondary_shard_two:
     <<: *default
-    database: <%= database("database_cache2s_development") %>
+    database: <%= database("database_cache2s_test") %>
