@@ -27,13 +27,6 @@ module SolidCache
         delete_no_query_cache(:key, to_binary(key))
       end
 
-      def delete_matched(matcher, batch_size:)
-        like_matcher = arel_table[:key].matches(matcher, nil, true)
-        where(like_matcher).select(:id).find_in_batches(batch_size: batch_size) do |entries|
-          delete_no_query_cache(:id, entries.map(&:id))
-        end
-      end
-
       def delete_multi(keys)
         serialized_keys = keys.map { |key| to_binary(key) }
         delete_no_query_cache(:key, serialized_keys)

@@ -86,19 +86,6 @@ class ClusterTest < ActiveSupport::TestCase
       assert_equal values, @secondary_cache.read_multi("foo", "egg")
     end
 
-    test "delete_matched deletes from both caches" do
-      values = { "foo" => "bar", "baz" => "zab", "bab" => "dab" }
-      @cache.write_multi(values)
-      sleep 0.1
-
-      @cache.delete_matched("ba%")
-      sleep 0.1
-
-      assert_equal({ "foo" => "bar" }, @cache.read_multi(*values.keys))
-      assert_equal({ "foo" => "bar" }, @primary_cache.read_multi(*values.keys))
-      assert_equal({ "foo" => "bar" }, @secondary_cache.read_multi(*values.keys))
-    end
-
     test "increment and decrement hit both clusters" do
       @cache.write("foo", 1, raw: true)
       sleep 0.1

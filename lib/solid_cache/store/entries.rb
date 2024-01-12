@@ -17,12 +17,6 @@ module SolidCache
       end
 
       private
-        def entry_delete_matched(matcher, batch_size)
-          writing_all(failsafe: :delete_matched) do
-            Entry.delete_matched(matcher, batch_size: batch_size)
-          end
-        end
-
         def entry_clear
           writing_all(failsafe: :clear) do
             if clear_with == :truncate
