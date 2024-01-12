@@ -14,20 +14,6 @@ module SolidCache
         @max_key_bytesize = options.fetch(:max_key_bytesize, DEFAULT_MAX_KEY_BYTESIZE)
       end
 
-      def delete_matched(matcher, options = {})
-        instrument :delete_matched, matcher do
-          raise ArgumentError, "Only strings are supported: #{matcher.inspect}" unless String === matcher
-          raise ArgumentError, "Strings cannot start with wildcards" if SQL_WILDCARD_CHARS.include?(matcher[0])
-
-          options ||= {}
-          batch_size = options.fetch(:batch_size, 1000)
-
-          matcher = namespace_key(matcher, options)
-
-          entry_delete_matched(matcher, batch_size)
-        end
-      end
-
       def increment(name, amount = 1, options = nil)
         options = merged_options(options)
         key = normalize_key(name, options)
