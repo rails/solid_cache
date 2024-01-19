@@ -34,9 +34,8 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
     Rails.error.unsubscribe(error_subscriber) if Rails.error.respond_to?(:unsubscribe)
   end
 
-  def test_active_record_instrumention
+  def test_active_record_instrumention_instrumented
     instrumented_cache = lookup_store
-    uninstrumented_cache = lookup_store(active_record_instrumentation: false)
 
     calls = 0
     callback = ->(*args) { calls += 1 }
@@ -47,6 +46,15 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
       assert_changes -> { calls } do
         instrumented_cache.write("foo", "bar")
       end
+    end
+  end
+
+  def test_active_record_instrumention_uninstrumented
+    uninstrumented_cache = lookup_store(active_record_instrumentation: false)
+
+    calls = 0
+    callback = ->(*args) { calls += 1 }
+    ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
       assert_no_changes -> { calls } do
         uninstrumented_cache.read("foo")
       end
