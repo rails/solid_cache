@@ -9,14 +9,14 @@ module SolidCache
       # This ensures there is downward pressure on the cache size while there is valid data to delete
       EXPIRY_MULTIPLIER = 1.25
 
-      attr_reader :expiry_batch_size, :expiry_method, :expiry_queue, :expire_every, :max_age, :max_entries
+      attr_reader :expiry_batch_size, :expiry_method, :expiry_queue, :expiry_chance, :max_age, :max_entries
 
       def initialize(options = {})
         super(options)
         @expiry_batch_size = options.fetch(:expiry_batch_size, 100)
         @expiry_method = options.fetch(:expiry_method, :thread)
         @expiry_queue = options.fetch(:expiry_queue, :default)
-        @expire_every = [ (expiry_batch_size / EXPIRY_MULTIPLIER).floor, 1 ].max
+        @expiry_chance = (1 / expiry_batch_size.to_f) * EXPIRY_MULTIPLIER
         @max_age = options.fetch(:max_age, 2.weeks.to_i)
         @max_entries = options.fetch(:max_entries, nil)
 
@@ -24,10 +24,14 @@ module SolidCache
       end
 
       def track_writes(count)
-        expire_later if expiry_counter.count(count)
+        expire_later if expire?
       end
 
       private
+        def expire?
+          rand < expiry_chance
+        end
+
         def expire_later
           if expiry_method == :job
             ExpiryJob
@@ -36,30 +40,6 @@ module SolidCache
           else
             async { Entry.expire(expiry_batch_size, max_age: max_age, max_entries: max_entries) }
           end
-        end
-
-        def expiry_counter
-          @expiry_counters ||= connection_names.index_with { |connection_name| Counter.new(expire_every) }
-          @expiry_counters[Entry.current_shard]
-        end
-
-        class Counter
-          attr_reader :expire_every, :counter
-
-          def initialize(expire_every)
-            @expire_every = expire_every
-            @counter = Concurrent::AtomicFixnum.new(rand(expire_every).to_i)
-          end
-
-          def count(count)
-            value = counter.increment(count)
-            new_multiple_of_expire_every?(value - count, value)
-          end
-
-          private
-            def new_multiple_of_expire_every?(first_value, second_value)
-              first_value / expire_every != second_value / expire_every
-            end
         end
     end
   end
