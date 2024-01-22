@@ -11,12 +11,15 @@ module SolidCache
     initializer "solid_cache.config" do |app|
       app.paths.add "config/solid_cache", with: ENV["SOLID_CACHE_CONFIG"] || "config/solid_cache.yml"
 
+      options = {}
       if (config_path = Pathname.new(app.config.paths["config/solid_cache"].first)).exist?
         options = app.config_for(config_path).to_h.deep_symbolize_keys
-        options[:connects_to] = config.solid_cache.connects_to if config.solid_cache.connects_to
-
-        SolidCache.configuration = SolidCache::Configuration.new(**options)
       end
+
+      options[:connects_to] = config.solid_cache.connects_to if config.solid_cache.connects_to
+      options[:size_estimate_samples] = config.solid_cache.size_estimate_samples if config.solid_cache.size_estimate_samples
+
+      SolidCache.configuration = SolidCache::Configuration.new(**options)
 
       if config.solid_cache.key_hash_stage
         ActiveStorage.deprecator.warn("config.solid_cache.key_hash_stage is deprecated and has no effect.")

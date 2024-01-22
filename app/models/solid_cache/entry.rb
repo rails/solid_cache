@@ -2,13 +2,15 @@
 
 module SolidCache
   class Entry < Record
-    include Expiration
+    include Expiration, Size
 
     ID_BYTE_SIZE = 8
     CREATED_AT_BYTE_SIZE = 8
     KEY_HASH_BYTE_SIZE = 8
     VALUE_BYTE_SIZE = 4
     FIXED_SIZE_COLUMNS_BYTE_SIZE = ID_BYTE_SIZE + CREATED_AT_BYTE_SIZE + KEY_HASH_BYTE_SIZE + VALUE_BYTE_SIZE
+
+    KEY_HASH_ID_RANGE = -(2**63)..(2**63 - 1)
 
     class << self
       def write(key, value)
@@ -60,6 +62,12 @@ module SolidCache
 
       def decrement(key, amount)
         increment(key, -amount)
+      end
+
+      def id_range
+        uncached do
+          pick(Arel.sql("max(id) - min(id) + 1")) || 0
+        end
       end
 
       private

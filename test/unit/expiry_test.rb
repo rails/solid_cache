@@ -62,6 +62,26 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
       assert_equal 1, SolidCache::Record.each_shard.sum { SolidCache::Entry.count }
     end
 
+    test "expires records when the cache is full via max_size (#{expiry_method})" do
+      SolidCache::Cluster.any_instance.stubs(:rand).returns(0)
+
+      @cache = lookup_store(expiry_batch_size: 3, max_age: nil, max_size: 1000, expiry_method: expiry_method)
+      default_shard_keys = shard_keys(@cache, first_shard_key)
+      @cache.write(default_shard_keys[0], "a" * 350)
+      @cache.write(default_shard_keys[1], "a" * 350)
+
+      sleep 0.1
+
+      @cache.write(default_shard_keys[2], "a" * 350)
+      @cache.write(default_shard_keys[3], "a" * 350)
+
+      sleep 0.1
+      perform_enqueued_jobs
+
+      # Two records have been deleted
+      assert_equal 1, SolidCache::Record.each_shard.sum { SolidCache::Entry.count }
+    end
+
     test "expires records no shards (#{expiry_method})" do
       SolidCache::Cluster.any_instance.stubs(:rand).returns(0)
 

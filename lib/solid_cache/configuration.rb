@@ -2,11 +2,11 @@
 
 module SolidCache
   class Configuration
-    attr_reader :store_options, :connects_to, :key_hash_stage, :executor
+    attr_reader :store_options, :connects_to, :executor, :size_estimate_samples
 
-    def initialize(store_options: {}, database: nil, databases: nil, connects_to: nil, key_hash_stage: :indexed, executor: nil)
+    def initialize(store_options: {}, database: nil, databases: nil, connects_to: nil, executor: nil, size_estimate_samples: 10_000)
       @store_options = store_options
-      @key_hash_stage = key_hash_stage
+      @size_estimate_samples = size_estimate_samples
       @executor = executor
       set_connects_to(database: database, databases: databases, connects_to: connects_to)
     end
