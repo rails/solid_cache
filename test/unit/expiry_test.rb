@@ -9,11 +9,12 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
 
   setup do
     @namespace = "test-#{SecureRandom.hex}"
-    SolidCache::Cluster.any_instance.stubs(:rand).returns(0)
   end
 
   [ :thread, :job ].each do |expiry_method|
     test "expires old records (#{expiry_method})" do
+      SolidCache::Cluster.any_instance.stubs(:rand).returns(0)
+
       @cache = lookup_store(expiry_batch_size: 3, max_age: 2.weeks, expiry_method: expiry_method)
       default_shard_keys = shard_keys(@cache, :default)
       @cache.write(default_shard_keys[0], 1)
@@ -36,6 +37,8 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
     end
 
     test "expires records when the cache is full (#{expiry_method})" do
+      SolidCache::Cluster.any_instance.stubs(:rand).returns(0)
+
       @cache = lookup_store(expiry_batch_size: 3, max_age: nil, max_entries: 2, expiry_method: expiry_method)
       default_shard_keys = shard_keys(@cache, :default)
       @cache.write(default_shard_keys[0], 1)
@@ -54,6 +57,8 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
     end
 
     test "expires records no shards (#{expiry_method})" do
+      SolidCache::Cluster.any_instance.stubs(:rand).returns(0)
+
       @cache = ActiveSupport::Cache.lookup_store(:solid_cache_store, expiry_batch_size: 3, namespace: @namespace, max_entries: 2, expiry_method: expiry_method)
       default_shard_keys = shard_keys(@cache, :default)
 
@@ -72,8 +77,39 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
       assert_equal 1, SolidCache.each_shard.sum { SolidCache::Entry.count }
     end
 
+    test "expires when random number is below threshold (#{expiry_method})" do
+      SolidCache::Cluster.any_instance.stubs(:rand).returns(0.416)
+
+      @cache = ActiveSupport::Cache.lookup_store(:solid_cache_store, expiry_batch_size: 3, namespace: @namespace, max_entries: 1, expiry_method: expiry_method)
+      default_shard_keys = shard_keys(@cache, :default)
+
+      @cache.write(default_shard_keys[0], 1)
+      @cache.write(default_shard_keys[1], 2)
+
+      sleep 0.1
+      perform_enqueued_jobs
+
+      assert_equal 0, SolidCache.each_shard.sum { SolidCache::Entry.count }
+    end
+
+    test "doesn't expire when random number is above threshold (#{expiry_method})" do
+      SolidCache::Cluster.any_instance.stubs(:rand).returns(0.417)
+
+      @cache = ActiveSupport::Cache.lookup_store(:solid_cache_store, expiry_batch_size: 3, namespace: @namespace, max_entries: 1, expiry_method: expiry_method)
+      default_shard_keys = shard_keys(@cache, :default)
+
+      @cache.write(default_shard_keys[0], 1)
+      @cache.write(default_shard_keys[1], 2)
+
+      sleep 0.1
+      perform_enqueued_jobs
+
+      assert_equal 2, SolidCache.each_shard.sum { SolidCache::Entry.count }
+    end
+
     unless ENV["NO_CONNECTS_TO"]
       test "expires old records multiple shards (#{expiry_method})" do
+        SolidCache::Cluster.any_instance.stubs(:rand).returns(0, 1, 0, 1, 0, 1, 0, 1)
         @cache = lookup_store(expiry_batch_size: 2, cluster: { shards: [ :default, :primary_shard_one ] }, expiry_method: expiry_method)
         default_shard_keys = shard_keys(@cache, :default)
         shard_one_keys = shard_keys(@cache, :primary_shard_one)
@@ -118,6 +154,8 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
   end
 
   test "expires old records with a custom queue" do
+    SolidCache::Cluster.any_instance.stubs(:rand).returns(0, 1, 0, 1)
+
     @cache = lookup_store(expiry_batch_size: 3, max_entries: 2, expiry_method: :job, expiry_queue: :cache_expiry)
 
     default_shard_keys = shard_keys(@cache, :default)
