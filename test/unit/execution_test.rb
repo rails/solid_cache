@@ -53,7 +53,7 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
     uninstrumented_cache = lookup_store(active_record_instrumentation: false)
 
     calls = 0
-    callback = ->(*args) { calls += 1 }
+    callback = ->(*args) { calls += 1 if args[-1][:sql] =~ /solid_cache_entries/ }
     ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
       assert_no_changes -> { calls } do
         uninstrumented_cache.read("foo")
@@ -71,7 +71,7 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
     sql = []
     callback = ->(*args) {
       sql << args[-1][:sql]
-      calls += 1
+      calls += 1 if args[-1][:sql] =~ /solid_cache_entries/
     }
 
     ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
