@@ -5,7 +5,7 @@ module SolidCache
     module Execution
       def initialize(options = {})
         super(options)
-        @background = Concurrent::SingleThreadExecutor.new(max_queue: 100, fallback_policy: :discard)
+        @background = Concurrent::FixedThreadPool.new(1, max_queue: 100, fallback_policy: :discard)
         @active_record_instrumentation = options.fetch(:active_record_instrumentation, true)
       end
 

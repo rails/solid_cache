@@ -27,7 +27,7 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
       @cache.write(default_shard_keys[2], 3)
       @cache.write(default_shard_keys[3], 4)
 
-      sleep 0.1
+      wait_for_background_tasks(@cache)
       perform_enqueued_jobs
 
       assert_nil @cache.read(default_shard_keys[0])
@@ -44,12 +44,12 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
       @cache.write(default_shard_keys[0], 1)
       @cache.write(default_shard_keys[1], 2)
 
-      sleep 0.1
+      wait_for_background_tasks(@cache)
 
       @cache.write(default_shard_keys[2], 3)
       @cache.write(default_shard_keys[3], 4)
 
-      sleep 0.1
+      wait_for_background_tasks(@cache)
       perform_enqueued_jobs
 
       # Two records have been deleted
@@ -65,12 +65,12 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
       @cache.write(default_shard_keys[0], 1)
       @cache.write(default_shard_keys[1], 2)
 
-      sleep 0.1
+      wait_for_background_tasks(@cache)
 
       @cache.write(default_shard_keys[2], 3)
       @cache.write(default_shard_keys[3], 4)
 
-      sleep 0.1
+      wait_for_background_tasks(@cache)
       perform_enqueued_jobs
 
       # Three records have been deleted
@@ -86,7 +86,7 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
       @cache.write(default_shard_keys[0], 1)
       @cache.write(default_shard_keys[1], 2)
 
-      sleep 0.1
+      wait_for_background_tasks(@cache)
       perform_enqueued_jobs
 
       assert_equal 0, SolidCache.each_shard.sum { SolidCache::Entry.count }
@@ -101,7 +101,7 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
       @cache.write(default_shard_keys[0], 1)
       @cache.write(default_shard_keys[1], 2)
 
-      sleep 0.1
+      wait_for_background_tasks(@cache)
       perform_enqueued_jobs
 
       assert_equal 2, SolidCache.each_shard.sum { SolidCache::Entry.count }
@@ -124,7 +124,7 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
         assert_equal 3, @cache.read(shard_one_keys[0])
         assert_equal 4, @cache.read(shard_one_keys[1])
 
-        sleep 0.1 # ensure they are marked as read
+        wait_for_background_tasks(@cache)
         send_entries_back_in_time(3.weeks)
 
         @cache.write(default_shard_keys[2], 5)
@@ -132,7 +132,7 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
         @cache.write(shard_one_keys[2], 7)
         @cache.write(shard_one_keys[3], 8)
 
-        sleep 0.1
+        wait_for_background_tasks(@cache)
         perform_enqueued_jobs
 
         assert_nil @cache.read(default_shard_keys[0])

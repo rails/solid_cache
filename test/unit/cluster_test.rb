@@ -17,7 +17,7 @@ class ClusterTest < ActiveSupport::TestCase
 
     test "writes to both clusters" do
       @cache.write("foo", 1)
-      sleep 0.1
+      wait_for_background_tasks(@cache)
       assert_equal 1, @cache.read("foo")
       assert_equal 1, @primary_cache.read("foo")
       assert_equal 1, @secondary_cache.read("foo")
@@ -25,7 +25,7 @@ class ClusterTest < ActiveSupport::TestCase
 
     test "reads from primary cluster" do
       @cache.write("foo", 1)
-      sleep 0.1
+      wait_for_background_tasks(@cache)
       assert_equal 1, @cache.read("foo")
 
       @secondary_cache.delete("foo")
@@ -37,7 +37,7 @@ class ClusterTest < ActiveSupport::TestCase
 
     test "fetch writes to both clusters" do
       @cache.fetch("foo") { 1 }
-      sleep 0.1
+      wait_for_background_tasks(@cache)
 
       assert_equal 1, @cache.read("foo")
       assert_equal 1, @primary_cache.read("foo")
@@ -46,12 +46,12 @@ class ClusterTest < ActiveSupport::TestCase
 
     test "fetch reads from primary clusters" do
       @cache.fetch("foo") { 1 }
-      sleep 0.1
+      wait_for_background_tasks(@cache)
       assert_equal 1, @cache.read("foo")
 
       @primary_cache.delete("foo")
       @cache.fetch("foo") { 2 }
-      sleep 0.1
+      wait_for_background_tasks(@cache)
 
       assert_equal 2, @cache.read("foo")
       assert_equal 2, @primary_cache.read("foo")
@@ -66,11 +66,11 @@ class ClusterTest < ActiveSupport::TestCase
 
     test "deletes from both cluster" do
       @cache.write("foo", 1)
-      sleep 0.1
+      wait_for_background_tasks(@cache)
       assert_equal 1, @cache.read("foo")
 
       @cache.delete("foo")
-      sleep 0.1
+      wait_for_background_tasks(@cache)
 
       assert_nil @cache.read("foo")
       assert_nil @primary_cache.read("foo")
@@ -80,7 +80,7 @@ class ClusterTest < ActiveSupport::TestCase
     test "multi_writes to both clusters" do
       values = { "foo" => "bar", "egg" => "spam" }
       @cache.write_multi(values)
-      sleep 0.1
+      wait_for_background_tasks(@cache)
       assert_equal values, @cache.read_multi("foo", "egg")
       assert_equal values, @primary_cache.read_multi("foo", "egg")
       assert_equal values, @secondary_cache.read_multi("foo", "egg")
@@ -88,14 +88,14 @@ class ClusterTest < ActiveSupport::TestCase
 
     test "increment and decrement hit both clusters" do
       @cache.write("foo", 1, raw: true)
-      sleep 0.1
+      wait_for_background_tasks(@cache)
 
       assert_equal 1, @cache.read("foo", raw: true).to_i
       assert_equal 1, @primary_cache.read("foo", raw: true).to_i
       assert_equal 1, @secondary_cache.read("foo", raw: true).to_i
 
       @cache.increment("foo")
-      sleep 0.1
+      wait_for_background_tasks(@cache)
 
       assert_equal 2, @cache.read("foo", raw: true).to_i
       assert_equal 2, @primary_cache.read("foo", raw: true).to_i
@@ -104,7 +104,7 @@ class ClusterTest < ActiveSupport::TestCase
       @secondary_cache.write("foo", 4, raw: true)
 
       @cache.decrement("foo")
-      sleep 0.1
+      wait_for_background_tasks(@cache)
 
       assert_equal 1, @cache.read("foo", raw: true).to_i
       assert_equal 1, @primary_cache.read("foo", raw: true).to_i
@@ -121,7 +121,7 @@ class ClusterTest < ActiveSupport::TestCase
       @secondary_cache = lookup_store(expires_in: 60, cluster: secondary_cluster)
 
       @cache.write("foo", 1)
-      sleep 0.1
+      wait_for_background_tasks(@cache)
       assert_equal 1, @cache.read("foo")
       assert_equal 1, @primary_cache.read("foo")
       assert_equal 1, @secondary_cache.read("foo")
