@@ -68,7 +68,9 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
     instrumented_cache = lookup_store(expiry_batch_size: 2)
     uninstrumented_cache = lookup_store(active_record_instrumentation: false, expiry_batch_size: 2)
     calls = 0
+    sql = []
     callback = ->(*args) {
+      sql << args[-1][:sql]
       calls += 1
     }
 
@@ -101,6 +103,9 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
         wait_for_background_tasks(instrumented_cache)
       end
     end
+  rescue Exception
+    puts sql.join("\n")
+    raise
   end
 
   unless ENV["NO_CONNECTS_TO"]
