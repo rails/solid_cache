@@ -15,6 +15,10 @@ class ClusterTest < ActiveSupport::TestCase
       @secondary_cache = lookup_store(expires_in: 60, cluster: secondary_cluster)
     end
 
+    teardown do
+      wait_for_background_tasks(@cache) if @cache
+    end
+
     test "writes to both clusters" do
       @cache.write("foo", 1)
       wait_for_background_tasks(@cache)

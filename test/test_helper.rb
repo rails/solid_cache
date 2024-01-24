@@ -26,10 +26,6 @@ class ActiveSupport::TestCase
       SolidCache::Entry.delete_all
     end
   end
-
-  teardown do
-    wait_for_background_tasks(@cache) if @cache
-  end
 end
 
 def lookup_store(options = {})

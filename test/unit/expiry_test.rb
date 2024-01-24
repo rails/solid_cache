@@ -11,6 +11,10 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
     @namespace = "test-#{SecureRandom.hex}"
   end
 
+  teardown do
+    wait_for_background_tasks(@cache) if @cache
+  end
+
   [ :thread, :job ].each do |expiry_method|
     test "expires old records (#{expiry_method})" do
       SolidCache::Cluster.any_instance.stubs(:rand).returns(0)

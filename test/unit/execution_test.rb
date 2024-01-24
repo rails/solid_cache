@@ -13,6 +13,10 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
     @cache = lookup_store(expiry_batch_size: 2, shards: nil)
   end
 
+  teardown do
+    wait_for_background_tasks(@cache) if @cache
+  end
+
   def test_async_errors_are_reported
     error_subscriber = ErrorSubscriber.new
     Rails.error.subscribe(error_subscriber)
