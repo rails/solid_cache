@@ -37,6 +37,30 @@ module SolidCache
       assert_equal 0, uncached_entry_count
     end
 
+    test "handles key_hash collisions" do
+      Entry.stubs(:key_hash_for).with("hello".b).returns(1)
+      Entry.stubs(:key_hash_for).with("hi".b).returns(1)
+
+      Entry.write "hello".b, "there"
+      assert_equal "there", Entry.read("hello".b)
+      assert_nil Entry.read("hi".b)
+      assert_equal({ "hello" => "there" }, Entry.read_multi([ "hello", "hi" ]))
+
+      Entry.write "hi".b, "now"
+      assert_nil Entry.read("hello".b)
+      assert_equal "now", Entry.read("hi".b)
+      assert_equal({ "hi" => "now" }, Entry.read_multi([ "hello", "hi" ]))
+    end
+
+    test "byte_size" do
+      Entry.write "hello".b, "test"
+      assert_equal 37, Entry.uncached { Entry.last.byte_size }
+      Entry.write "hello".b, "12345"
+      assert_equal 38, Entry.uncached { Entry.last.byte_size }
+      Entry.write "hi".b, "12345"
+      assert_equal 35, Entry.uncached { Entry.last.byte_size }
+    end
+
     private
       def write_entries(count = 20)
         Entry.write_multi(count.times.map { |i| { key: "key#{i}", value: "value#{i}" } })

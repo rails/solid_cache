@@ -13,6 +13,12 @@ module SolidCache
 
       SolidCache.executor = config.solid_cache.executor
       SolidCache.connects_to = config.solid_cache.connects_to
+      if config.solid_cache.key_hash_stage
+        unless [:ignored, :unindexed, :indexed].include?(config.solid_cache.key_hash_stage)
+          raise "ArgumentError, :key_hash_stage must be :ignored, :unindexed or :indexed"
+        end
+        SolidCache.key_hash_stage = config.solid_cache.key_hash_stage
+      end
     end
 
     config.after_initialize do
