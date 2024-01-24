@@ -22,7 +22,6 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
     end
 
     sleep 0.1
-
     assert_equal 1, error_subscriber.errors.count
     assert_equal "Boom!", error_subscriber.errors.first[0].message
     if Rails.version >= "7.1"
@@ -32,6 +31,7 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
     end
   ensure
     Rails.error.unsubscribe(error_subscriber) if Rails.error.respond_to?(:unsubscribe)
+    @cache = nil #  to avoid waiting for background tasks as the error one won't have completed
   end
 
   def test_active_record_instrumention_instrumented
@@ -77,13 +77,13 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
       uninstrumented_cache.write("foo", "bar")
       uninstrumented_cache.write("foo", "bar")
       uninstrumented_cache.write("foo", "bar")
-      sleep 0.1
+      wait_for_background_tasks(uninstrumented_cache)
 
       assert_no_changes -> { calls } do
         uninstrumented_cache.write("foo", "bar")
         uninstrumented_cache.write("foo", "bar")
         uninstrumented_cache.write("foo", "bar")
-        sleep 0.1
+        wait_for_background_tasks(uninstrumented_cache)
       end
     end
 
@@ -92,13 +92,13 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
       instrumented_cache.write("foo", "bar")
       instrumented_cache.write("foo", "bar")
       instrumented_cache.write("foo", "bar")
-      sleep 0.1
+      wait_for_background_tasks(instrumented_cache)
 
       assert_changes -> { calls } do
         instrumented_cache.write("foo", "bar")
         instrumented_cache.write("foo", "bar")
         instrumented_cache.write("foo", "bar")
-        sleep 0.1
+        wait_for_background_tasks(instrumented_cache)
       end
     end
   end

@@ -26,6 +26,10 @@ class ActiveSupport::TestCase
       SolidCache::Entry.delete_all
     end
   end
+
+  teardown do
+    wait_for_background_tasks(@cache) if @cache
+  end
 end
 
 def lookup_store(options = {})
@@ -39,6 +43,19 @@ def send_entries_back_in_time(distance)
       SolidCache::Entry.all.each do |entry|
         entry.update_columns(created_at: entry.created_at - distance)
       end
+    end
+  end
+end
+
+def wait_for_background_tasks(cache, timeout: 2)
+  timeout_at = Time.now + timeout
+  threadpools = cache.clusters.map { |cluster| cluster.instance_variable_get("@background") }
+
+  threadpools.each do |threadpool|
+    loop do
+      break if threadpool.completed_task_count == threadpool.scheduled_task_count
+      raise "Timeout waiting for cache background tasks" if Time.now > timeout_at
+      sleep 0.05
     end
   end
 end
