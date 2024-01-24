@@ -9,6 +9,7 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
 
   setup do
     @namespace = "test-#{SecureRandom.hex}"
+    @single_shard_cluster = ENV["NO_CONNECTS_TO"] ? {} : { shards: [ :default ] }
   end
 
   teardown do
@@ -63,7 +64,7 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
     test "expires records no shards (#{expiry_method})" do
       SolidCache::Cluster.any_instance.stubs(:rand).returns(0)
 
-      @cache = ActiveSupport::Cache.lookup_store(:solid_cache_store, expiry_batch_size: 3, namespace: @namespace, max_entries: 2, expiry_method: expiry_method)
+      @cache = ActiveSupport::Cache.lookup_store(:solid_cache_store, expiry_batch_size: 3, namespace: @namespace, max_entries: 2, expiry_method: expiry_method, cluster: @single_shard_cluster)
       default_shard_keys = shard_keys(@cache, :default)
 
       @cache.write(default_shard_keys[0], 1)
@@ -173,6 +174,57 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
 
     perform_enqueued_jobs
     assert_equal 0, SolidCache.each_shard.sum { SolidCache::Entry.count }
+  end
+
+  test "triggers multiple expiry tasks when there are many writes" do
+    @cache = lookup_store(expiry_batch_size: 10, max_entries: 2, expiry_queue: :cache_expiry, cluster: @single_shard_cluster)
+    background = @cache.primary_cluster.instance_variable_get("@background")
+
+    # We expect 1 expiry job for 8 writes
+    assert_difference -> { background.scheduled_task_count }, +1 do
+      @cache.write_multi(8.times.index_by { |i| "key#{i}" })
+      wait_for_background_tasks(@cache)
+    end
+
+    assert_difference -> { background.scheduled_task_count }, +3 do
+      @cache.write_multi(24.times.index_by { |i| "key#{i}" })
+      wait_for_background_tasks(@cache)
+    end
+
+    # Whether we overflow an extra job depends on rand
+    SolidCache::Cluster.any_instance.stubs(:rand).returns(0.25, 0.24)
+    assert_difference -> { background.scheduled_task_count }, +1 do
+      @cache.write_multi(10.times.index_by { |i| "key#{i}" })
+      wait_for_background_tasks(@cache)
+    end
+
+    assert_difference -> { background.scheduled_task_count }, +2 do
+      @cache.write_multi(10.times.index_by { |i| "key#{i}" })
+      wait_for_background_tasks(@cache)
+    end
+  end
+
+  test "triggers multiple expiry jobs when there are many writes" do
+    @cache = lookup_store(expiry_batch_size: 10, max_entries: 2, expiry_queue: :cache_expiry, expiry_method: :job, cluster: @single_shard_cluster)
+
+    # We expect 1 expiry job for 8 writes
+    assert_enqueued_jobs(1, only: SolidCache::ExpiryJob) do
+      @cache.write_multi(8.times.index_by { |i| "key#{i}" })
+    end
+
+    assert_enqueued_jobs(3, only: SolidCache::ExpiryJob) do
+      @cache.write_multi(24.times.index_by { |i| "key#{i}" })
+    end
+
+    # Whether we overflow an extra job depends on rand
+    SolidCache::Cluster.any_instance.stubs(:rand).returns(0.25, 0.24)
+    assert_enqueued_jobs(1, only: SolidCache::ExpiryJob) do
+      @cache.write_multi(10.times.index_by { |i| "key#{i}" })
+    end
+
+    assert_enqueued_jobs(2, only: SolidCache::ExpiryJob) do
+      @cache.write_multi(10.times.index_by { |i| "key#{i}" })
+    end
   end
 
   private
