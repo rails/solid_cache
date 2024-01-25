@@ -45,7 +45,7 @@ GIT
 PATH
   remote: ..
   specs:
-    solid_cache (0.4.0)
+    solid_cache (0.4.1)
       activejob (>= 7)
       activerecord (>= 7)
       railties (>= 7)
