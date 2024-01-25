@@ -99,7 +99,7 @@ module SolidCache
         end
 
         def key_hash_indexed?
-          SolidCache.key_hash_stage == :indexed
+          key_hash? && SolidCache.key_hash_stage == :indexed
         end
 
         def lookup_column
