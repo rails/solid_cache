@@ -1,10 +1,10 @@
 # Upgrading to version 0.4.x
 
-The database schema has been updated from v0.4.0 onwards, so you'll need to follow the upgrade steps if you have used v0.3.x or lower.
+The database schema has been updated in v0.4.0, so you'll need to follow the upgrade steps if you have used v0.3 or lower.
 
 ## Why has the schema changed?
 
-There are two new changes in v0.4.x.
+There are two new changes in v0.4.x
 
 1. Using a `key_hash` index instead of a `key` index. `key_hash` is a new 64 bit integer column derived from the SHA256 hash of the key.
    We'll store this value in the database and query by it. An index on a 64 bit integer is much more compact than one on a
@@ -14,9 +14,14 @@ There are two new changes in v0.4.x.
 
 ## What will I need to do?
 
-1. Update your app to use v0.4.x. This version will work with the old and new schemas
+1. Update your app to use v0.4.x. This version will work with the old and new schemas. v0.5.0 and above will require the updated schema.
 2. Follow the migration steps detailed below to update your schema
 3. Now you should be good to upgrade to future versions
+
+## What if I am starting with v0.4.x?
+
+If you are starting with v0.4.0 or later you don't need to follow the upgrade steps. Install and apply all the migrations and you
+should be good to go.
 
 ## Upgrade steps
 
@@ -39,8 +44,8 @@ There are two new changes in v0.4.x.
 
 4. Prepare the data
 
-   We will be adding not null constraints and unique indexes in the following step so we need to make sure that there are no null
-   values. The easiest thing to do here is to truncate the data if your app can handle restarting with a fresh cache.
+   We will be adding not null constraints and a unique index in the following step so we need to make sure that there are no null
+   values. The easiest thing to do here is to truncate the solid_cache_entries table if your app can handle a full cache invalidation.
 
    Otherwise you'll need to run a script to backfill the missing values.
 
@@ -78,8 +83,3 @@ def populate_key_hash_and_byte_size(from_id: nil, to_id: nil, batch_size: 1000, 
   end
 end
 ```
-
-## What if I am starting with v0.4.x?
-
-If you are starting with v0.4.x or later you don't need to follow the upgrade steps. Install and apply all the migrations together and you
-should be good to go.

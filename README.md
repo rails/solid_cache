@@ -1,5 +1,7 @@
 # Solid Cache
 
+**Upgrading from v0.3.0 or earlier? Please see [upgrading to version 0.4.0](upgrading_to_version_0.4.x.md)**
+
 Solid Cache is a database-backed Active Support cache store implementation.
 
 Using SQL databases backed by SSDs we can have caches that are much larger and cheaper than traditional memory only Redis or Memcached backed caches.

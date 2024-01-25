@@ -12,6 +12,11 @@ Gem::Specification.new do |spec|
   spec.description = "A database backed ActiveSupport::Cache::Store"
   spec.license     = "MIT"
 
+  spec.post_install_message = <<~MESSAGE
+    Solid Cache v0.4 contains new database migrations.
+    See https://github.com/rails/solid_cache/blob/main/upgrading_to_version_0.4.x.md for upgrade instructions.
+  MESSAGE
+
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "http://github.com/rails/solid_cache"
 
