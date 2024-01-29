@@ -31,31 +31,39 @@ should be good to go.
      config.solid_cache.key_hash_stage = :ignored
    ```
 
-2. Install and run the first migration (AddKeyHashAndByteSizeToSolidCacheEntries)
+2. Copy over the database migrations
+
+   Run `bin/rails solid_cache:install:migrations` to copy over the new Solid Cache migrations.
+
+3. Run the first migration (AddKeyHashAndByteSizeToSolidCacheEntries)
+
+   Run `bin/rails db:migrate:status` to see the pending migrations.
+
+   Run `bin/rails db:migrate:up VERSION=XXXX` where XXXX is the desired "Migration ID" to run a specific migration.
 
    This adds the new columns.
 
-3. Update your config
+4. Update your config
 
    ```
      config.solid_cache.key_hash_stage = :unindexed
    ```
    Now the application will be populating those columns.
 
-4. Prepare the data
+5. Prepare the data
 
    We will be adding not null constraints and a unique index in the following step so we need to make sure that there are no null
    values. The easiest thing to do here is to truncate the solid_cache_entries table if your app can handle a full cache invalidation.
 
    Otherwise you'll need to run a script to backfill the missing values.
 
-5. Install and run the second migration (AddKeyHashAndByteSizeIndexesAndNullConstraintsToSolidCacheEntries)
+6. Install and run the second migration (AddKeyHashAndByteSizeIndexesAndNullConstraintsToSolidCacheEntries)
 
    If you truncated the data in the previous step this should run quickly. If not and you have a large table it could take a while.
 
    If you have a process for online schema changes for large tables (pt-online-schema-change, gh-ost etc) you may need to use that here.
 
-6. Update your config
+7. Update your config
 
    ```
      config.solid_cache.key_hash_stage = :indexed # this is the default so you can also remove it instead
@@ -63,7 +71,7 @@ should be good to go.
 
    Now we will be querying the data by the new `key_hash` column
 
-7. Install and run the final migration (RemoveKeyIndexFromSolidCacheEntries)
+8. Install and run the final migration (RemoveKeyIndexFromSolidCacheEntries)
 
    This will remove the old index on `key`.
 
