@@ -47,7 +47,7 @@ class SolidCache::StatsTest < ActiveSupport::TestCase
       @cache.write("foo", 1)
       @cache.write("bar", 1)
 
-      SolidCache.each_shard do
+      SolidCache::Record.each_shard do
         SolidCache::Entry.update_all(created_at: Time.now - 20.minutes)
       end
 

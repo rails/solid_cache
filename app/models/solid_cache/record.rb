@@ -6,7 +6,9 @@ module SolidCache
 
     self.abstract_class = true
 
-    connects_to(**SolidCache.connects_to) if SolidCache.connects_to
+    if SolidCache.configuration.sharded?
+      connects_to(**SolidCache.configuration.connects_to_config)
+    end
 
     class << self
       def disable_instrumentation(&block)
@@ -14,10 +16,22 @@ module SolidCache
       end
 
       def with_shard(shard, &block)
-        if shard && SolidCache.connects_to
+        if shard && SolidCache.configuration.sharded?
           connected_to(shard: shard, role: default_role, prevent_writes: false, &block)
         else
           block.call
+        end
+      end
+
+      def each_shard(&block)
+        return to_enum(:each_shard) unless block_given?
+
+        if SolidCache.configuration.sharded?
+          SolidCache.configuration.shard_keys.each do |shard|
+            Record.with_shard(shard, &block)
+          end
+        else
+          yield
         end
       end
     end

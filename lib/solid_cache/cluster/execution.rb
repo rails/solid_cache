@@ -31,8 +31,8 @@ module SolidCache
         end
 
         def wrap_in_rails_executor(&block)
-          if SolidCache.executor
-            SolidCache.executor.wrap(&block)
+          if SolidCache.configuration.executor
+            SolidCache.configuration.executor.wrap(&block)
           else
             block.call
           end

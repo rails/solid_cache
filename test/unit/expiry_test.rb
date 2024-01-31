@@ -58,7 +58,7 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
       perform_enqueued_jobs
 
       # Two records have been deleted
-      assert_equal 1, SolidCache.each_shard.sum { SolidCache::Entry.count }
+      assert_equal 1, SolidCache::Record.each_shard.sum { SolidCache::Entry.count }
     end
 
     test "expires records no shards (#{expiry_method})" do
@@ -79,7 +79,7 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
       perform_enqueued_jobs
 
       # Three records have been deleted
-      assert_equal 1, SolidCache.each_shard.sum { SolidCache::Entry.count }
+      assert_equal 1, SolidCache::Record.each_shard.sum { SolidCache::Entry.count }
     end
 
     test "expires when random number is below threshold (#{expiry_method})" do
@@ -94,7 +94,7 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
       wait_for_background_tasks(@cache)
       perform_enqueued_jobs
 
-      assert_equal 0, SolidCache.each_shard.sum { SolidCache::Entry.count }
+      assert_equal 0, SolidCache::Record.each_shard.sum { SolidCache::Entry.count }
     end
 
     test "doesn't expire when random number is above threshold (#{expiry_method})" do
@@ -109,7 +109,7 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
       wait_for_background_tasks(@cache)
       perform_enqueued_jobs
 
-      assert_equal 2, SolidCache.each_shard.sum { SolidCache::Entry.count }
+      assert_equal 2, SolidCache::Record.each_shard.sum { SolidCache::Entry.count }
     end
 
     unless ENV["NO_CONNECTS_TO"]
@@ -173,7 +173,7 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
     end
 
     perform_enqueued_jobs
-    assert_equal 0, SolidCache.each_shard.sum { SolidCache::Entry.count }
+    assert_equal 0, SolidCache::Record.each_shard.sum { SolidCache::Entry.count }
   end
 
   test "triggers multiple expiry tasks when there are many writes" do

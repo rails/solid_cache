@@ -22,7 +22,7 @@ ActiveSupport::TestCase.use_transactional_tests = false
 
 class ActiveSupport::TestCase
   setup do
-    SolidCache.each_shard do
+    SolidCache::Record.each_shard do
       SolidCache::Entry.delete_all
     end
   end
@@ -57,5 +57,5 @@ def wait_for_background_tasks(cache, timeout: 2)
 end
 
 def uncached_entry_count
-  SolidCache.each_shard.sum { SolidCache::Entry.uncached { SolidCache::Entry.count } }
+  SolidCache::Record.each_shard.sum { SolidCache::Entry.uncached { SolidCache::Entry.count } }
 end

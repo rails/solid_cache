@@ -11,14 +11,12 @@ module SolidCache
     initializer "solid_cache" do |app|
       app.paths.add "config/solid_cache", with: "config/solid_cache.yml"
 
-      SolidCache.executor = config.solid_cache.executor || app.executor
+      SolidCache.configuration.executor = config.solid_cache.executor || app.executor
 
       if (config_path = Pathname.new(app.config.paths["config/solid_cache"].first)).exist?
         options = app.config_for(config_path)&.to_h&.deep_symbolize_keys || {}
 
-        SolidCache.store_options = options[:store_options] if options.key?(:store_options)
-        SolidCache.connects_to = options[:connects_to] if options.key?(:connects_to)
-        SolidCache.key_hash_stage = options[:key_hash_stage] if options.key?(:key_hash_stage)
+        SolidCache.configuration.set_options(options)
       end
     end
 

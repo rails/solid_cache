@@ -9,28 +9,13 @@ loader.ignore("#{__dir__}/generators")
 loader.setup
 
 module SolidCache
-  mattr_accessor :executor, :connects_to
-  mattr_accessor :key_hash_stage, default: :indexed
-  mattr_accessor :store_options, default: {}
+  mattr_reader :configuration, default: Configuration.new
 
-  def self.all_shard_keys
-    all_shards_config&.keys || []
-  end
-
-  def self.all_shards_config
-    connects_to && connects_to[:shards]
-  end
-
-  def self.each_shard(&block)
-    return to_enum(:each_shard) unless block_given?
-
-    if (shards = all_shards_config&.keys)
-      shards.each do |shard|
-        Record.with_shard(shard, &block)
-      end
-    else
-      yield
-    end
+  class << self
+    # delegate :executor, :executor=, to: :configuration
+    # delegate :connects_to, :connects_to=, to: :configuration
+    # delegate :key_hash_stage, :key_hash_stage=, to: :configuration
+    # delegate :store_options, :store_options=, to: :configuration
   end
 end
 

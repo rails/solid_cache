@@ -10,7 +10,7 @@ module SolidCache
     VALUE_BYTE_SIZE = 4
     FIXED_SIZE_COLUMNS_BYTE_SIZE = ID_BYTE_SIZE + CREATED_AT_BYTE_SIZE + KEY_HASH_BYTE_SIZE + VALUE_BYTE_SIZE
 
-    self.ignored_columns += [ :key_hash, :byte_size] if SolidCache.key_hash_stage == :ignored
+    self.ignored_columns += [ :key_hash, :byte_size] if SolidCache.configuration.key_hash_stage == :ignored
 
     class << self
       def write(key, value)
@@ -94,12 +94,12 @@ module SolidCache
         end
 
         def key_hash?
-          @key_hash ||= [ :indexed, :unindexed ].include?(SolidCache.key_hash_stage) &&
+          @key_hash ||= [ :indexed, :unindexed ].include?(SolidCache.configuration.key_hash_stage) &&
             connection.column_exists?(table_name, :key_hash)
         end
 
         def key_hash_indexed?
-          key_hash? && SolidCache.key_hash_stage == :indexed
+          key_hash? && SolidCache.configuration.key_hash_stage == :indexed
         end
 
         def lookup_column

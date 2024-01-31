@@ -6,7 +6,7 @@ module SolidCache
     prepend ActiveSupport::Cache::Strategy::LocalCache
 
     def initialize(options = {})
-      super(SolidCache.store_options.merge(options))
+      super(SolidCache.configuration.store_options.merge(options))
     end
 
     def self.supports_cache_versioning?
