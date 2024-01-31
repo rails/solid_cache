@@ -11,6 +11,7 @@ loader.setup
 module SolidCache
   mattr_accessor :executor, :connects_to
   mattr_accessor :key_hash_stage, default: :indexed
+  mattr_accessor :store_options, default: {}
 
   def self.all_shard_keys
     all_shards_config&.keys || []

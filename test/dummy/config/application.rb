@@ -23,17 +23,5 @@ module Dummy
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
-
-    unless ENV["NO_CONNECTS_TO"]
-      config.solid_cache.connects_to = {
-        shards: {
-          default: { writing: :primary, reading: :primary_replica },
-          primary_shard_one: { writing: :primary_shard_one },
-          primary_shard_two: { writing: :primary_shard_two },
-          secondary_shard_one: { writing: :secondary_shard_one },
-          secondary_shard_two: { writing: :secondary_shard_two }
-        }
-      }
-    end
   end
 end

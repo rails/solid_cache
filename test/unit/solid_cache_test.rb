@@ -48,6 +48,16 @@ class SolidCacheTest < ActiveSupport::TestCase
     cache = lookup_store(max_key_bytesize: 100)
     assert_equal 100, cache.send(:normalize_key, SecureRandom.hex(200), {}).bytesize
   end
+
+  test "loads defaults from config/solid_cache.yml" do
+    cache = lookup_store
+    assert_equal 3600, cache.primary_cluster.max_age
+  end
+
+  test "cache options override defaults" do
+    cache = lookup_store(max_age: 7200)
+    assert_equal 7200, cache.primary_cluster.max_age
+  end
 end
 
 class SolidCacheFailsafeTest < ActiveSupport::TestCase
