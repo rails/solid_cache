@@ -8,16 +8,18 @@ module SolidCache
 
     config.solid_cache = ActiveSupport::OrderedOptions.new
 
-    initializer "solid_cache" do |app|
-      app.paths.add "config/solid_cache", with: "config/solid_cache.yml"
-
-      SolidCache.configuration.executor = config.solid_cache.executor || app.executor
+    initializer "solid_cache.config" do |app|
+      app.paths.add "config/solid_cache", with: ENV["SOLID_CACHE_CONFIG"] || "config/solid_cache.yml"
 
       if (config_path = Pathname.new(app.config.paths["config/solid_cache"].first)).exist?
-        options = app.config_for(config_path)&.to_h&.deep_symbolize_keys || {}
+        options = app.config_for(config_path).to_h.deep_symbolize_keys
 
-        SolidCache.configuration.set_options(options)
+        SolidCache.configuration = SolidCache::Configuration.new(**options)
       end
+    end
+
+    initializer "solid_cache.app_executor", before: :run_prepare_callbacks do |app|
+      SolidCache.executor = config.solid_cache.executor || app.executor
     end
 
     config.after_initialize do

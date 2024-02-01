@@ -22,40 +22,72 @@ ActiveSupport::TestCase.use_transactional_tests = false
 
 class ActiveSupport::TestCase
   setup do
+    @all_stores = []
     SolidCache::Record.each_shard do
       SolidCache::Entry.delete_all
     end
   end
-end
 
-def lookup_store(options = {})
-  store_options = { namespace: @namespace }.merge(options)
-  ActiveSupport::Cache.lookup_store(:solid_cache_store, store_options)
-end
+  teardown do
+    @all_stores.each do |store|
+      wait_for_background_tasks(store)
+    end
+  end
 
-def send_entries_back_in_time(distance)
-  @cache.primary_cluster.with_each_connection do
-    SolidCache::Entry.uncached do
-      SolidCache::Entry.all.each do |entry|
-        entry.update_columns(created_at: entry.created_at - distance)
+  def lookup_store(options = {})
+    store_options = { namespace: @namespace }.merge(options)
+    ActiveSupport::Cache.lookup_store(:solid_cache_store, store_options).tap do |store|
+      @all_stores << store
+    end
+  end
+
+  def cleanup_stores
+  end
+
+  def send_entries_back_in_time(distance)
+    @cache.primary_cluster.with_each_connection do
+      SolidCache::Entry.uncached do
+        SolidCache::Entry.all.each do |entry|
+          entry.update_columns(created_at: entry.created_at - distance)
+        end
       end
     end
   end
-end
 
-def wait_for_background_tasks(cache, timeout: 2)
-  timeout_at = Time.now + timeout
-  threadpools = cache.clusters.map { |cluster| cluster.instance_variable_get("@background") }
+  def wait_for_background_tasks(cache, timeout: 2)
+    timeout_at = Time.now + timeout
+    threadpools = cache.clusters.map { |cluster| cluster.instance_variable_get("@background") }
 
-  threadpools.each do |threadpool|
-    loop do
-      break if threadpool.completed_task_count == threadpool.scheduled_task_count
-      raise "Timeout waiting for cache background tasks" if Time.now > timeout_at
-      sleep 0.05
+    threadpools.each do |threadpool|
+      loop do
+        break if threadpool.completed_task_count == threadpool.scheduled_task_count
+        raise "Timeout waiting for cache background tasks" if Time.now > timeout_at
+        sleep 0.001
+      end
     end
   end
-end
 
-def uncached_entry_count
-  SolidCache::Record.each_shard.sum { SolidCache::Entry.uncached { SolidCache::Entry.count } }
+  def uncached_entry_count
+    SolidCache::Record.each_shard.sum { SolidCache::Entry.uncached { SolidCache::Entry.count } }
+  end
+
+  def first_shard_key
+    single_database? ? :default : SolidCache.configuration.shard_keys.first
+  end
+
+  def second_shard_key
+    SolidCache.configuration.shard_keys.second
+  end
+
+  def single_database?
+    [ "config/solid_cache_database.yml", "config/solid_cache_no_database.yml" ].include?(ENV["SOLID_CACHE_CONFIG"])
+  end
+
+  def multi_cluster?
+    self.class.multi_cluster?
+  end
+
+  def self.multi_cluster?
+    [ "config/solid_cache_clusters.yml", "config/solid_cache_clusters_named.yml" ].include?(ENV["SOLID_CACHE_CONFIG"])
+  end
 end

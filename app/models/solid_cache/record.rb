@@ -6,9 +6,7 @@ module SolidCache
 
     self.abstract_class = true
 
-    if SolidCache.configuration.sharded?
-      connects_to(**SolidCache.configuration.connects_to_config)
-    end
+    connects_to(**SolidCache.configuration.connects_to) if SolidCache.configuration.connects_to
 
     class << self
       def disable_instrumentation(&block)

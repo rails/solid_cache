@@ -23,5 +23,9 @@ module Dummy
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+
+    initializer :custom_solid_cache_yml, before: :solid_cache do |app|
+      app.paths.add "config/solid_cache", with: ENV["SOLID_CACHE_CONFIG_PATH"]
+    end
   end
 end

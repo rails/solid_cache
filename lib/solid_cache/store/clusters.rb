@@ -11,7 +11,7 @@ module SolidCache
         clusters_options = options.fetch(:clusters) { [ options.fetch(:cluster, {}) ] }
 
         @clusters = clusters_options.map.with_index do |cluster_options, index|
-          Cluster.new(options.merge(cluster_options).merge(async_writes: index != 0))
+          Cluster.new(options.merge(cluster_options).merge(async_writes: index != 0, error_handler: error_handler))
         end
 
         @primary_cluster = clusters.first

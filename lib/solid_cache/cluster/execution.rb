@@ -19,6 +19,8 @@ module SolidCache
                 instrument(&block)
               end
             end
+          rescue Exception => exception
+            error_handler&.call(method: :async, exception: exception, returning: nil)
           end
         end
 
@@ -31,8 +33,8 @@ module SolidCache
         end
 
         def wrap_in_rails_executor(&block)
-          if SolidCache.configuration.executor
-            SolidCache.configuration.executor.wrap(&block)
+          if SolidCache.executor
+            SolidCache.executor.wrap(&block)
           else
             block.call
           end

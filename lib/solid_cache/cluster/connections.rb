@@ -3,6 +3,8 @@
 module SolidCache
   class Cluster
     module Connections
+      attr_reader :shard_options
+
       def initialize(options = {})
         super(options)
         @shard_options = options.fetch(:shards, nil)
@@ -40,13 +42,13 @@ module SolidCache
         connections.names
       end
 
+      def connections
+        @connections ||= SolidCache::Connections.from_config(@shard_options)
+      end
+
       private
         def setup!
           connections
-        end
-
-        def connections
-          @connections ||= SolidCache::Connections.from_config(@shard_options)
         end
     end
   end

@@ -9,7 +9,8 @@ loader.ignore("#{__dir__}/generators")
 loader.setup
 
 module SolidCache
-  mattr_reader :configuration, default: Configuration.new
+  mattr_accessor :executor
+  mattr_accessor :configuration, default: Configuration.new
 
   class << self
     # delegate :executor, :executor=, to: :configuration
