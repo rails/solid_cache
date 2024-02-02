@@ -95,7 +95,7 @@ SolidCache::Record.connects_to database: { writing: :cache_db }
 Setting `databases` to `[cache_db, cache_db2]` is the equivalent of:
 
 ```ruby
-SolidCache::Record.connects_to shards: { cache_db1: { writing: :cache_db1 },  cache_db2: { writing: :cache_db2 }
+SolidCache::Record.connects_to shards: { cache_db1: { writing: :cache_db1 },  cache_db2: { writing: :cache_db2 } }
 ```
 
 If `connects_to` is set it will be passed directly.
