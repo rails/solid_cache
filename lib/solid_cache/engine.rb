@@ -17,6 +17,10 @@ module SolidCache
 
         SolidCache.configuration = SolidCache::Configuration.new(**options)
       end
+
+      if config.solid_cache.key_hash_stage
+        ActiveStorage.deprecator.warn("config.solid_cache.key_hash_stage is deprecated and has no effect.")
+      end
     end
 
     initializer "solid_cache.app_executor", before: :run_prepare_callbacks do |app|

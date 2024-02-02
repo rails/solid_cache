@@ -10,8 +10,6 @@ module SolidCache
     VALUE_BYTE_SIZE = 4
     FIXED_SIZE_COLUMNS_BYTE_SIZE = ID_BYTE_SIZE + CREATED_AT_BYTE_SIZE + KEY_HASH_BYTE_SIZE + VALUE_BYTE_SIZE
 
-    self.ignored_columns += [ :key_hash, :byte_size] if SolidCache.configuration.key_hash_stage == :ignored
-
     class << self
       def write(key, value)
         upsert_all_no_query_cache([ { key: key, value: value } ])
@@ -22,23 +20,23 @@ module SolidCache
       end
 
       def read(key)
-        result = select_all_no_query_cache(get_sql, lookup_value(key)).first
+        result = select_all_no_query_cache(get_sql, key_hash_for(key)).first
         result[1] if result&.first == key
       end
 
       def read_multi(keys)
-        key_hashes = keys.map { |key| lookup_value(key) }
+        key_hashes = keys.map { |key| key_hash_for(key) }
         results = select_all_no_query_cache(get_all_sql(key_hashes), key_hashes).to_h
         results.except!(results.keys - keys)
       end
 
       def delete_by_key(key)
-        delete_no_query_cache(lookup_column, lookup_value(key))
+        delete_no_query_cache(:key_hash, key_hash_for(key))
       end
 
       def delete_multi(keys)
-        serialized_keys = keys.map { |key| lookup_value(key) }
-        delete_no_query_cache(lookup_column, serialized_keys)
+        serialized_keys = keys.map { |key| key_hash_for(key) }
+        delete_no_query_cache(:key_hash, serialized_keys)
       end
 
       def clear_truncate
@@ -52,7 +50,7 @@ module SolidCache
       def increment(key, amount)
         transaction do
           uncached do
-            result = lock.where(lookup_column => lookup_value(key)).pick(:key, :value)
+            result = lock.where(key_hash: key_hash_for(key)).pick(:key, :value)
             amount += result[1].to_i if result&.first == key
             write(key, amount)
             amount
@@ -85,33 +83,10 @@ module SolidCache
         def add_key_hash_and_byte_size(payloads)
           payloads.map do |payload|
             payload.dup.tap do |payload|
-              if key_hash?
-                payload[:key_hash] = key_hash_for(payload[:key])
-                payload[:byte_size] = byte_size_for(payload)
-              end
+              payload[:key_hash] = key_hash_for(payload[:key])
+              payload[:byte_size] = byte_size_for(payload)
             end
           end
-        end
-
-        def key_hash?
-          @key_hash ||= [ :indexed, :unindexed ].include?(SolidCache.configuration.key_hash_stage) &&
-            connection.column_exists?(table_name, :key_hash)
-        end
-
-        def key_hash_indexed?
-          key_hash? && SolidCache.configuration.key_hash_stage == :indexed
-        end
-
-        def lookup_column
-          key_hash_indexed? ? :key_hash : :key
-        end
-
-        def lookup_value(key)
-          key_hash_indexed? ? key_hash_for(key) : to_binary(key)
-        end
-
-        def lookup_placeholder
-          key_hash_indexed? ? 1 : "placeholder"
         end
 
         def exec_query_method
@@ -119,31 +94,23 @@ module SolidCache
         end
 
         def upsert_unique_by
-          connection.supports_insert_conflict_target? ? lookup_column : nil
+          connection.supports_insert_conflict_target? ? :key_hash : nil
         end
 
         def upsert_update_only
-          if key_hash_indexed?
-            [ :key, :value, :byte_size ]
-          elsif key_hash?
-            [ :value, :key_hash, :byte_size ]
-          else
-            [ :value ]
-          end
+          [ :key, :value, :byte_size ]
         end
 
         def get_sql
-          @get_sql ||= {}
-          @get_sql[lookup_column] ||= build_sql(where(lookup_column => lookup_placeholder).select(:key, :value))
+          @get_sql ||= build_sql(where(key_hash: 1).select(:key, :value))
         end
 
         def get_all_sql(key_hashes)
           if connection.prepared_statements?
             @get_all_sql_binds ||= {}
-            @get_all_sql_binds[[key_hashes.count, lookup_column]] ||= build_sql(where(lookup_column => key_hashes).select(:key, :value))
+            @get_all_sql_binds[key_hashes.count] ||= build_sql(where(key_hash: key_hashes).select(:key, :value))
           else
-            @get_all_sql_no_binds ||= {}
-            @get_all_sql_no_binds[lookup_column] ||= build_sql(where(lookup_column => [ lookup_placeholder, lookup_placeholder ]).select(:key, :value)).gsub("?, ?", "?")
+            @get_all_sql_no_binds ||= build_sql(where(key_hash: [ 1, 2 ]).select(:key, :value)).gsub("?, ?", "?")
           end
         end
 
