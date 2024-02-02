@@ -22,7 +22,7 @@ module SolidCache
       SolidCache.configuration = SolidCache::Configuration.new(**options)
 
       if config.solid_cache.key_hash_stage
-        ActiveStorage.deprecator.warn("config.solid_cache.key_hash_stage is deprecated and has no effect.")
+        ActiveSupport.deprecator.warn("config.solid_cache.key_hash_stage is deprecated and has no effect.")
       end
     end
 
