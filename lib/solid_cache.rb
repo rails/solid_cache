@@ -11,13 +11,6 @@ loader.setup
 module SolidCache
   mattr_accessor :executor
   mattr_accessor :configuration, default: Configuration.new
-
-  class << self
-    # delegate :executor, :executor=, to: :configuration
-    # delegate :connects_to, :connects_to=, to: :configuration
-    # delegate :key_hash_stage, :key_hash_stage=, to: :configuration
-    # delegate :store_options, :store_options=, to: :configuration
-  end
 end
 
 loader.eager_load
