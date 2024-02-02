@@ -13,6 +13,7 @@ module SolidCache
 
       if (config_path = Pathname.new(app.config.paths["config/solid_cache"].first)).exist?
         options = app.config_for(config_path).to_h.deep_symbolize_keys
+        options[:connects_to] = config.solid_cache.connects_to if config.solid_cache.connects_to
 
         SolidCache.configuration = SolidCache::Configuration.new(**options)
       end
