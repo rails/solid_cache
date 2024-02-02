@@ -8,7 +8,7 @@ module SolidCache
 
     config.solid_cache = ActiveSupport::OrderedOptions.new
 
-    initializer "solid_cache.config" do |app|
+    initializer "solid_cache.config", before: :initialize_cache do |app|
       app.paths.add "config/solid_cache", with: ENV["SOLID_CACHE_CONFIG"] || "config/solid_cache.yml"
 
       options = {}
