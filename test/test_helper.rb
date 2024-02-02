@@ -20,6 +20,10 @@ end
 
 ActiveSupport::TestCase.use_transactional_tests = false
 
+if Rails::VERSION::MAJOR == 7 && Rails::VERSION::MINOR == 0 && SolidCache.configuration.connects_to
+  SolidCache::Record.connecting_to(shard: SolidCache.configuration.shard_keys.first || :default)
+end
+
 class ActiveSupport::TestCase
   setup do
     @all_stores = []
