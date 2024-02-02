@@ -6,21 +6,25 @@ module SolidCache
       extend ActiveSupport::Concern
 
       class_methods do
-        def id_range
-          uncached do
-            pick(Arel.sql("max(id) - min(id) + 1")) || 0
-          end
-        end
-
-        def expire(count, max_age:, max_entries:)
-          if (ids = expiry_candidate_ids(count, max_age: max_age, max_entries: max_entries)).any?
+        def expire(count, max_age:, max_entries:, max_size:)
+          if (ids = expiry_candidate_ids(count, max_age: max_age, max_entries: max_entries, max_size: max_size)).any?
             delete(ids)
           end
         end
 
         private
-          def expiry_candidate_ids(count, max_age:, max_entries:)
-            cache_full = max_entries && max_entries < id_range
+          def cache_full?(max_entries:, max_size:)
+            if max_entries && max_entries < id_range
+              true
+            elsif max_size && max_size < estimated_size
+              true
+            else
+              false
+            end
+          end
+
+          def expiry_candidate_ids(count, max_age:, max_entries:, max_size:)
+            cache_full = cache_full?(max_entries: max_entries, max_size: max_size)
             return [] unless cache_full || max_age
 
             # In the case of multiple concurrent expiry operations, it is desirable to

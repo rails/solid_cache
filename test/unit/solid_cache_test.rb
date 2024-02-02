@@ -57,11 +57,12 @@ class SolidCacheFailsafeTest < ActiveSupport::TestCase
   end
 
   def emulating_unavailability
+    wait_for_background_tasks(@cache)
     stub_matcher = ActiveRecord::Base.connection.class.any_instance
     stub_matcher.stubs(:exec_query).raises(ActiveRecord::StatementInvalid)
     stub_matcher.stubs(:internal_exec_query).raises(ActiveRecord::StatementInvalid)
     stub_matcher.stubs(:exec_delete).raises(ActiveRecord::StatementInvalid)
-    yield ActiveSupport::Cache::SolidCacheStore.new(namespace: @namespace)
+    yield lookup_store(namespace: @namespace)
   ensure
     stub_matcher.unstub(:exec_query)
     stub_matcher.unstub(:internal_exec_query)
@@ -84,11 +85,12 @@ class SolidCacheRaisingTest < ActiveSupport::TestCase
   end
 
   def emulating_unavailability
+    wait_for_background_tasks(@cache)
     stub_matcher = ActiveRecord::Base.connection.class.any_instance
     stub_matcher.stubs(:exec_query).raises(ActiveRecord::StatementInvalid)
     stub_matcher.stubs(:internal_exec_query).raises(ActiveRecord::StatementInvalid)
     stub_matcher.stubs(:exec_delete).raises(ActiveRecord::StatementInvalid)
-    yield ActiveSupport::Cache::SolidCacheStore.new(namespace: @namespace,
+    yield lookup_store(namespace: @namespace,
       error_handler: ->(method:, returning:, exception:) { raise exception })
   ensure
     stub_matcher.unstub(:exec_query)

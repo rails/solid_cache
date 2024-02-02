@@ -55,8 +55,6 @@ $ bin/rails db:migrate
 
 ### Configuration
 
-#### solid_cache.yml
-
 Configuration will be read from solid_cache.yml. You can change the location of the config file by setting the `SOLID_CACHE_CONFIG` env variable.
 
 The format of the file is:
@@ -66,21 +64,22 @@ default:
   store_options: &default_store_options
     max_age: <%= 60.days.to_i %>
     namespace: <%= Rails.env %>
+  size_estimate_samples: 1000
 
 development: &production
   database: development_cache
   store_options:
     <<: *default_store_options
-    max_entries: 1_000_000
+    max_size: <%= 256.gigabytes %>
 
 production: &production
   databases: [production_cache1, production_cache2]
   store_options:
     <<: *default_store_options
-    max_entries: 10_000_000
+    max_entries: <%= 256.gigabytes %>
 ```
 
-For the full list of store_options see [Cache configuration](#cache_configuration). Any options passed to the cache lookup will overwrite those specified here.
+For the full list of keys for `store_options` see [Cache configuration](#cache_configuration). Any options passed to the cache lookup will overwrite those specified here.
 
 #### Connection configuration
 
@@ -106,6 +105,7 @@ There are two options that can be set on the engine:
 
 - `executor` - the [Rails executor](https://guides.rubyonrails.org/threading_and_code_execution.html#executor) used to wrap asynchronous operations, defaults to the app executor
 - `connects_to` - a custom connects to value for the abstract `SolidCache::Record` active record model. Required for sharding and/or using a separate cache database to the main app. This will overwrite any value set in `config/solid_cache.yml`
+- `size_estimate_samples` - if `max_size` is set on the cache, the number of the samples used to estimates the size.
 
 These can be set in your Rails configuration:
 
@@ -130,6 +130,7 @@ Solid Cache supports these options in addition to the standard `ActiveSupport::C
 - `expiry_queue` - which queue to add expiry jobs to (default: `default`)
 - `max_age` - the maximum age of entries in the cache (default: `2.weeks.to_i`). Can be set to `nil`, but this is not recommended unless using `max_entries` to limit the size of the cache.
 - `max_entries` - the maximum number of entries allowed in the cache (default: `nil`, meaning no limit)
+- `max_size` - the maximum size of the cache entries (default `nil`, meaning no limit)
 - `cluster` - a Hash of options for the cache database cluster, e.g `{ shards: [:database1, :database2, :database3] }`
 - `clusters` - and Array of Hashes for multiple cache clusters (ignored if `:cluster` is set)
 - `active_record_instrumentation` - whether to instrument the cache's queries (default: `true`)
@@ -142,7 +143,9 @@ For more information on cache clusters see [Sharding the cache](#sharding-the-ca
 
 Solid Cache tracks writes to the cache. For every write it increments a counter by 1. Once the counter reaches 80% of the `expiry_batch_size` it adds a task to run on a background thread. That task will:
 
-1. Check if we have exceeded the `max_entries` value (if set) by subtracting the max and min IDs from the `SolidCache::Entry` table (this is an estimate that ignores any gaps).
+1. Check if we have exceeded the `max_entries` or `max_size` values (if set)
+   The current entries are estimated by subtracting the max and min IDs from the `SolidCache::Entry` table.
+   The current size is estimated by sampling the entry `byte_size` columns.
 2. If we have it will delete `expiry_batch_size` entries
 3. If not it will delete up to `expiry_batch_size` entries, provided they are all older than `max_age`.
 
