@@ -55,12 +55,57 @@ $ bin/rails db:migrate
 
 ### Configuration
 
+#### solid_cache.yml
+
+Configuration will be read from solid_cache.yml. You can change the location of the config file by setting the `SOLID_CACHE_CONFIG` env variable.
+
+The format of the file is:
+
+```yml
+default:
+  store_options: &default_store_options
+    max_age: <%= 60.days.to_i %>
+    namespace: <%= Rails.env %>
+
+development: &production
+  database: development_cache
+  store_options:
+    <<: *default_store_options
+    max_entries: 1_000_000
+
+production: &production
+  databases: [production_cache1, production_cache2]
+  store_options:
+    <<: *default_store_options
+    max_entries: 10_000_000
+```
+
+For the full list of store_options see [Cache configuration](#cache_configuration). Any options passed to the cache lookup will overwrite those specified here.
+
+#### Connection configuration
+
+You can set one of `database`, `databases` and `connects_to` in the config file. They will be used to configure the cache databases in `SolidCache::Record#connects_to`.
+
+Setting `database` to `cache_db` will configure with:
+
+```ruby
+SolidCache::Record.connects_to database: { writing: :cache_db }
+```
+
+Setting `databases` to `[cache_db, cache_db2]` is the equivalent of:
+
+```ruby
+SolidCache::Record.connects_to shards: { cache_db1: { writing: :cache_db1 },  cache_db2: { writing: :cache_db2 } }
+```
+
+If `connects_to` is set it will be passed directly.
+
 #### Engine configuration
 
 There are two options that can be set on the engine:
 
 - `executor` - the [Rails executor](https://guides.rubyonrails.org/threading_and_code_execution.html#executor) used to wrap asynchronous operations, defaults to the app executor
-- `connects_to` - a custom connects to value for the abstract `SolidCache::Record` active record model. Required for sharding and/or using a separate cache database to the main app.
+- `connects_to` - a custom connects to value for the abstract `SolidCache::Record` active record model. Required for sharding and/or using a separate cache database to the main app. This will overwrite any value set in `config/solid_cache.yml`
 
 These can be set in your Rails configuration:
 

@@ -19,6 +19,8 @@ module SolidCache
                 instrument(&block)
               end
             end
+          rescue Exception => exception
+            error_handler&.call(method: :async, exception: exception, returning: nil)
           end
         end
 

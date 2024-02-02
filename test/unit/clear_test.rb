@@ -2,11 +2,10 @@
 
 require "test_helper"
 
-class DeleteMatchedTest < ActiveSupport::TestCase
+class ClearTest < ActiveSupport::TestCase
   setup do
     @namespace = "test-#{SecureRandom.hex}"
-
-    @delete_cache = lookup_store(expires_in: 60, clear_with: :delete)
+    skip if multi_cluster?
   end
 
   test "clear by truncation" do

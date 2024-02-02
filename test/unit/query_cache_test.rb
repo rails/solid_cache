@@ -8,12 +8,12 @@ class QueryCacheTest < ActiveSupport::TestCase
     @namespace = "test-#{SecureRandom.hex}"
 
     # Ensure just one shard
-    if ENV["NO_CONNECTS_TO"]
+    if single_database?
       @cache = lookup_store(expires_in: 60)
       @peek = lookup_store(expires_in: 60)
     else
-      @cache = lookup_store(expires_in: 60, cluster: { shards: [ :default ] })
-      @peek = lookup_store(expires_in: 60, cluster: { shards: [ :default ] })
+      @cache = lookup_store(expires_in: 60, clusters: [ { shards: [ first_shard_key ] } ])
+      @peek = lookup_store(expires_in: 60, clusters: [ { shards: [ first_shard_key ] } ])
     end
   end
 

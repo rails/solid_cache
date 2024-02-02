@@ -1,0 +1,12 @@
+default: &default
+  database: primary
+
+  store_options:
+    max_age: 3600
+    max_size:
+
+development:
+  <<: *default
+
+test:
+  <<: *default

@@ -13,10 +13,6 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
     @cache = lookup_store(expiry_batch_size: 2, shards: nil)
   end
 
-  teardown do
-    wait_for_background_tasks(@cache) if @cache
-  end
-
   def test_async_errors_are_reported
     error_subscriber = ErrorSubscriber.new
     Rails.error.subscribe(error_subscriber)
@@ -35,7 +31,7 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
     end
   ensure
     Rails.error.unsubscribe(error_subscriber) if Rails.error.respond_to?(:unsubscribe)
-    @cache = nil #  to avoid waiting for background tasks as the error one won't have completed
+    @all_stores = [] #  to avoid waiting for background tasks as the error one won't have completed
   end
 
   def test_active_record_instrumention_instrumented
@@ -107,39 +103,38 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
         wait_for_background_tasks(instrumented_cache)
       end
     end
-  rescue Exception
-    puts sql.join("\n")
-    raise
   end
 
-  unless ENV["NO_CONNECTS_TO"]
-    def test_no_connections_uninstrumented
-      ActiveRecord::ConnectionAdapters::ConnectionPool.any_instance.stubs(:connection).raises(ActiveRecord::StatementInvalid)
+  def test_no_connections_uninstrumented
+    skip if multi_cluster?
 
-      cache = lookup_store(expires_in: 60, cluster: { shards: [ :primary_shard_one, :primary_shard_two ] }, active_record_instrumentation: false)
+    ActiveRecord::ConnectionAdapters::ConnectionPool.any_instance.stubs(:connection).raises(ActiveRecord::StatementInvalid)
 
-      assert_equal false, cache.write("1", "fsjhgkjfg")
-      assert_nil cache.read("1")
-      assert_nil cache.increment("1")
-      assert_nil cache.decrement("1")
-      assert_equal false, cache.delete("1")
-      assert_equal({}, cache.read_multi("1", "2", "3"))
-      assert_equal false, cache.write_multi("1" => "a", "2" => "b", "3" => "c")
-    end
+    cache = lookup_store(expires_in: 60, active_record_instrumentation: false)
 
-    def test_no_connections_instrumented
-      ActiveRecord::ConnectionAdapters::ConnectionPool.any_instance.stubs(:connection).raises(ActiveRecord::StatementInvalid)
+    assert_equal false, cache.write("1", "fsjhgkjfg")
+    assert_nil cache.read("1")
+    assert_nil cache.increment("1")
+    assert_nil cache.decrement("1")
+    assert_equal false, cache.delete("1")
+    assert_equal({}, cache.read_multi("1", "2", "3"))
+    assert_equal false, cache.write_multi("1" => "a", "2" => "b", "3" => "c")
+  end
 
-      cache = lookup_store(expires_in: 60, cluster: { shards: [ :primary_shard_one, :primary_shard_two ] })
+  def test_no_connections_instrumented
+    skip if multi_cluster?
 
-      assert_equal false, cache.write("1", "fsjhgkjfg")
-      assert_nil cache.read("1")
-      assert_nil cache.increment("1")
-      assert_nil cache.decrement("1")
-      assert_equal false, cache.delete("1")
-      assert_equal({}, cache.read_multi("1", "2", "3"))
-      assert_equal false, cache.write_multi("1" => "a", "2" => "b", "3" => "c")
-    end
+    ActiveRecord::ConnectionAdapters::ConnectionPool.any_instance.stubs(:connection).raises(ActiveRecord::StatementInvalid)
+
+    cache = lookup_store(expires_in: 60)
+
+    assert_equal false, cache.write("1", "fsjhgkjfg")
+    assert_nil cache.read("1")
+    assert_nil cache.increment("1")
+    assert_nil cache.decrement("1")
+    assert_equal false, cache.delete("1")
+    assert_equal({}, cache.read_multi("1", "2", "3"))
+    assert_equal false, cache.write_multi("1" => "a", "2" => "b", "3" => "c")
   end
 
   class ErrorSubscriber

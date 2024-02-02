@@ -1,0 +1,19 @@
+default: &default
+  databases: [primary_shard_one, primary_shard_two, secondary_shard_one, secondary_shard_two]
+
+  store_options:
+    max_age: 3600
+    max_size:
+    clusters:
+      - shards:
+          primary_shard_one: node1
+          primary_shard_two: node2
+      - shards:
+          secondary_shard_one: node3
+          secondary_shard_two: node4
+
+development:
+  <<: *default
+
+test:
+  <<: *default
