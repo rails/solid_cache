@@ -79,7 +79,7 @@ production: &production
     max_entries: <%= 256.gigabytes %>
 ```
 
-For the full list of keys for `store_options` see [Cache configuration](#cache_configuration). Any options passed to the cache lookup will overwrite those specified here.
+For the full list of keys for `store_options` see [Cache configuration](#cache-configuration). Any options passed to the cache lookup will overwrite those specified here.
 
 #### Connection configuration
 
