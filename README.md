@@ -66,7 +66,7 @@ default:
     namespace: <%= Rails.env %>
   size_estimate_samples: 1000
 
-development: &production
+development: &development
   database: development_cache
   store_options:
     <<: *default_store_options
