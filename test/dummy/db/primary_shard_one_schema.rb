@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_01_10_111702) do
+ActiveRecord::Schema[7.2].define(version: 2024_08_20_123641) do
   create_table "solid_cache_entries", force: :cascade do |t|
     t.binary "key", limit: 1024, null: false
     t.binary "value", limit: 536870912, null: false
@@ -21,5 +21,4 @@ ActiveRecord::Schema[7.0].define(version: 2024_01_10_111702) do
     t.index ["key_hash", "byte_size"], name: "index_solid_cache_entries_on_key_hash_and_byte_size"
     t.index ["key_hash"], name: "index_solid_cache_entries_on_key_hash", unique: true
   end
-
 end
