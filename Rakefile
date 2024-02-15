@@ -23,7 +23,7 @@ def run_without_aborting(*tasks)
 end
 
 def configs
-  [ :default, :cluster, :clusters, :clusters_named, :database, :no_database ]
+  [ :default, :cluster, :cluster_inferred, :clusters, :clusters_named, :database, :no_database ]
 end
 
 task :test do

@@ -1,0 +1,12 @@
+default: &default
+  databases: [primary_shard_one, primary_shard_two]
+
+  store_options:
+    max_age: 3600
+    max_size:
+
+development:
+  <<: *default
+
+test:
+  <<: *default
