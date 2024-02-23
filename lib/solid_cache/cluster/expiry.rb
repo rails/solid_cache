@@ -7,7 +7,7 @@ module SolidCache
     module Expiry
       # For every write that we do, we attempt to delete EXPIRY_MULTIPLIER times as many records.
       # This ensures there is downward pressure on the cache size while there is valid data to delete
-      EXPIRY_MULTIPLIER = 1.25
+      EXPIRY_MULTIPLIER = 2
 
       attr_reader :expiry_batch_size, :expiry_method, :expiry_queue, :expires_per_write, :max_age, :max_entries, :max_size
 
