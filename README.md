@@ -239,7 +239,7 @@ end
 
 You can add secondary cache clusters. Reads will only be sent to the primary cluster (i.e. the first one listed).
 
-Writes will go to all clusters. The writes to the primary cluster are synchronous, but asyncronous to the secondary clusters.
+Writes will go to all clusters. The writes to the primary cluster are synchronous, but asynchronous to the secondary clusters.
 
 To specific multiple clusters you can do:
 
