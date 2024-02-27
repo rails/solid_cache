@@ -4,12 +4,10 @@ module SolidCache
   class Entry < Record
     include Expiration, Size
 
-    ID_BYTE_SIZE = 8
-    CREATED_AT_BYTE_SIZE = 8
-    KEY_HASH_BYTE_SIZE = 8
-    VALUE_BYTE_SIZE = 4
-    FIXED_SIZE_COLUMNS_BYTE_SIZE = ID_BYTE_SIZE + CREATED_AT_BYTE_SIZE + KEY_HASH_BYTE_SIZE + VALUE_BYTE_SIZE
-
+    # The estimated cost of an extra row in bytes, including fixed size columns, overhead, indexes and free space
+    # Based on expirimentation on SQLite, MySQL and Postgresql.
+    # A bit high for SQLite (more like 90 bytes), but about right for MySQL/Postgresql.
+    ESTIMATED_ROW_OVERHEAD = 140
     KEY_HASH_ID_RANGE = -(2**63)..(2**63 - 1)
 
     class << self
@@ -167,7 +165,7 @@ module SolidCache
         end
 
         def byte_size_for(payload)
-          payload[:key].to_s.bytesize + payload[:value].to_s.bytesize + FIXED_SIZE_COLUMNS_BYTE_SIZE
+          payload[:key].to_s.bytesize + payload[:value].to_s.bytesize + ESTIMATED_ROW_OVERHEAD
         end
     end
   end
