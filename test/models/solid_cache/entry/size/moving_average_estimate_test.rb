@@ -13,7 +13,7 @@ module SolidCache
 
       estimate = Entry::Size::MovingAverageEstimate.new(samples: 12)
       assert_predicate estimate, :exact?
-      assert_equal 415, estimate.size
+      assert_equal 1535, estimate.size
     end
 
     test "tracks moving average" do
@@ -22,10 +22,10 @@ module SolidCache
       Entry.write Entry::Size::MovingAverageEstimate::ESTIMATES_KEY, "4637774|4754378|7588547"
 
       with_fixed_srand(1) do
-        assert_equal 10075987, estimate(samples: 1)
+        assert_equal 10449357, estimate(samples: 1)
       end
 
-      assert_equal "4754378|7588547|17885035", Entry.read(Entry::Size::MovingAverageEstimate::ESTIMATES_KEY)
+      assert_equal "4754378|7588547|19005147", Entry.read(Entry::Size::MovingAverageEstimate::ESTIMATES_KEY)
     end
 
     test "appends to moving average when less than required items" do
@@ -33,13 +33,13 @@ module SolidCache
 
       assert_nil Entry.read(Entry::Size::MovingAverageEstimate::ESTIMATES_KEY)
 
-      with_fixed_srand(1) { assert_equal 19872121, estimate(samples: 2) }
+      with_fixed_srand(1) { assert_equal 20991897, estimate(samples: 2) }
 
-      assert_equal "19872121", Entry.read(Entry::Size::MovingAverageEstimate::ESTIMATES_KEY)
+      assert_equal "20991897", Entry.read(Entry::Size::MovingAverageEstimate::ESTIMATES_KEY)
 
-      with_fixed_srand(2) { assert_equal 11077118, estimate(samples: 2) }
+      with_fixed_srand(2) { assert_equal 11917062, estimate(samples: 2) }
 
-      assert_equal "19872121|2282115", Entry.read(Entry::Size::MovingAverageEstimate::ESTIMATES_KEY)
+      assert_equal "20991897|2842227", Entry.read(Entry::Size::MovingAverageEstimate::ESTIMATES_KEY)
     end
 
     private

@@ -54,11 +54,11 @@ module SolidCache
 
     test "byte_size" do
       Entry.write "hello".b, "test"
-      assert_equal 37, Entry.uncached { Entry.last.byte_size }
+      assert_equal 149, Entry.uncached { Entry.last.byte_size }
       Entry.write "hello".b, "12345"
-      assert_equal 38, Entry.uncached { Entry.last.byte_size }
+      assert_equal 150, Entry.uncached { Entry.last.byte_size }
       Entry.write "hi".b, "12345"
-      assert_equal 35, Entry.uncached { Entry.last.byte_size }
+      assert_equal 147, Entry.uncached { Entry.last.byte_size }
     end
 
     private
