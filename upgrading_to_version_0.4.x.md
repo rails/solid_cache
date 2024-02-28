@@ -2,6 +2,8 @@
 
 The database schema has been updated in v0.4.0, so you'll need to follow the upgrade steps if you have used v0.3 or lower.
 
+**IMPORTANT: You cannot upgrade directly from v0.3.x or lower to v0.5.x or higher, always go via v0.4.x first**
+
 ## Why has the schema changed?
 
 There are two new changes in v0.4.x

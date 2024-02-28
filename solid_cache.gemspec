@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
   spec.license     = "MIT"
 
   spec.post_install_message = <<~MESSAGE
-    Solid Cache v0.4 contains new database migrations.
+    Upgrading from Solid Cache v0.3 or earlier? There are new database migrations in v0.4.
     See https://github.com/rails/solid_cache/blob/main/upgrading_to_version_0.4.x.md for upgrade instructions.
   MESSAGE
 

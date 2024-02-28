@@ -1,14 +1,10 @@
 # Solid Cache
 
-**Upgrading from v0.3.0 or earlier? Please see [upgrading to version 0.4.0](upgrading_to_version_0.4.x.md)**
+**Upgrading from v0.3.0 or earlier? Please see [upgrading to version v0.4.x and beyond](upgrading_to_version_0.4.x.md)**
 
 Solid Cache is a database-backed Active Support cache store implementation.
 
 Using SQL databases backed by SSDs we can have caches that are much larger and cheaper than traditional memory only Redis or Memcached backed caches.
-
-Testing on [HEY](https://hey.com) shows that reads and writes are 25%-50% slower than with a Redis cache (1.2ms vs 0.8-1ms per single-key read), but this is not a significant percentage of the overall request time.
-
-If cache misses are expensive (up to 50x the cost of a hit on HEY), then there are big advantages to caches that can hold months rather than days of data.
 
 ## Usage
 
@@ -18,7 +14,7 @@ To set Solid Cache as your Rails cache, you should add this to your environment 
 config.cache_store = :solid_cache_store
 ```
 
-Solid Cache is a FIFO (first in, first out) cache. While this is not as efficient as an LRU cache, this is mitigated by the longer cache lifespans.
+Solid Cache is a FIFO (first in, first out) cache. While this is not as efficient as an LRU cache, this is mitigated by the longer cache lifespan.
 
 A FIFO cache is much easier to manage:
 1. We don't need to track when items are read
@@ -55,7 +51,7 @@ $ bin/rails db:migrate
 
 ### Configuration
 
-Configuration will be read from solid_cache.yml. You can change the location of the config file by setting the `SOLID_CACHE_CONFIG` env variable.
+Configuration will be read from `config/solid_cache.yml`. You can change the location of the config file by setting the `SOLID_CACHE_CONFIG` env variable.
 
 The format of the file is:
 
@@ -99,9 +95,12 @@ SolidCache::Record.connects_to shards: { cache_db1: { writing: :cache_db1 },  ca
 
 If `connects_to` is set it will be passed directly.
 
+If none of these are set, then Solid Cache will use the `ActiveRecord::Base` connection pool. This means that cache reads and writes will be part of any wrapping
+database transaction.
+
 #### Engine configuration
 
-There are two options that can be set on the engine:
+There are three options that can be set on the engine:
 
 - `executor` - the [Rails executor](https://guides.rubyonrails.org/threading_and_code_execution.html#executor) used to wrap asynchronous operations, defaults to the app executor
 - `connects_to` - a custom connects to value for the abstract `SolidCache::Record` active record model. Required for sharding and/or using a separate cache database to the main app. This will overwrite any value set in `config/solid_cache.yml`
@@ -111,12 +110,7 @@ These can be set in your Rails configuration:
 
 ```ruby
 Rails.application.configure do
-  config.solid_cache.connects_to = {
-    shards: {
-      shard1: { writing: :cache_primary_shard1 },
-      shard2: { writing: :cache_primary_shard2 }
-    }
-  }
+  config.solid_cache.size_estimate_samples = 1000
 end
 ```
 
@@ -184,10 +178,10 @@ $ mv db/migrate/*.solid_cache.rb db/cache/migrate
 ```
 
 Set the engine configuration to point to the new database:
-```
-Rails.application.configure do
-  config.solid_cache.connects_to = { database: { writing: :cache } }
-end
+```yaml
+# config/solid_cache.yml
+production:
+  database: cache
 ```
 
 Run migrations:
@@ -220,19 +214,10 @@ production:
     host: cache3-db
 ```
 
-```ruby
-# config/environment/production.rb
-Rails.application.configure do
-  config.solid_cache.connects_to = {
-    shards: {
-      cache_shard1: { writing: :cache_shard1 },
-      cache_shard2: { writing: :cache_shard2 },
-      cache_shard3: { writing: :cache_shard3 },
-    }
-  }
-
-  config.cache_store = [ :solid_cache_store, cluster: { shards: [ :cache_shard1, :cache_shard2, :cache_shard3 ] } ]
-end
+```yaml
+# config/solid_cache.yml
+production:
+  databases: [cache_shard1, cache_shard2, cache_shard3]
 ```
 
 ### Secondary cache clusters
@@ -243,21 +228,14 @@ Writes will go to all clusters. The writes to the primary cluster are synchronou
 
 To specific multiple clusters you can do:
 
-```ruby
-Rails.application.configure do
-  config.solid_cache.connects_to = {
-    shards: {
-      cache_primary_shard1: { writing: :cache_primary_shard1 },
-      cache_primary_shard2: { writing: :cache_primary_shard2 },
-      cache_secondary_shard1: { writing: :cache_secondary_shard1 },
-      cache_secondary_shard2: { writing: :cache_secondary_shard2 },
-    }
-  }
-
-  primary_cluster = { shards: [ :cache_primary_shard1, :cache_primary_shard2 ] }
-  secondary_cluster = { shards: [ :cache_secondary_shard1, :cache_secondary_shard2 ] }
-  config.cache_store = [ :solid_cache_store, clusters: [ primary_cluster, secondary_cluster ] ]
-end
+```yaml
+# config/solid_cache.yml
+production:
+  databases: [cache_primary_shard1, cache_primary_shard2, cache_secondary_shard1, cache_secondary_shard2]
+  store_options:
+    clusters:
+      - shards: [cache_primary_shard1, cache_primary_shard2]
+      - shards: [cache_secondary_shard1, cache_secondary_shard2]
 ```
 
 ### Named shard destinations
@@ -266,23 +244,18 @@ By default, the node key used for sharding is the name of the database in `datab
 
 It is possible to add names for the shards in the cluster config. This will allow you to shuffle or remove shards without breaking consistent hashing.
 
-```ruby
-Rails.application.configure do
-  config.solid_cache.connects_to = {
-    shards: {
-      cache_primary_shard1: { writing: :cache_primary_shard1 },
-      cache_primary_shard2: { writing: :cache_primary_shard2 },
-      cache_secondary_shard1: { writing: :cache_secondary_shard1 },
-      cache_secondary_shard2: { writing: :cache_secondary_shard2 },
-    }
-  }
-
-  primary_cluster = { shards: { cache_primary_shard1: :node1, cache_primary_shard2: :node2 } }
-  secondary_cluster = { shards: { cache_primary_shard1: :node3, cache_primary_shard2: :node4 } }
-  config.cache_store = [ :solid_cache_store, clusters: [ primary_cluster, secondary_cluster ] ]
-end
+```yaml
+production:
+  databases: [cache_primary_shard1, cache_primary_shard2, cache_secondary_shard1, cache_secondary_shard2]
+  store_options:
+    clusters:
+      - shards:
+          cache_primary_shard1: node1
+          cache_primary_shard2: node2
+      - shards:
+          cache_secondary_shard1: node3
+          cache_secondary_shard2: node4
 ```
-
 
 ### Enabling encryption
 
@@ -302,7 +275,7 @@ The Solid Cache migrations try to create an index with 1024 byte entries. If tha
 
 ## Development
 
-Run the tests with `bin/rails test`. By default, these will run against SQLite.
+Run the tests with `bin/rake test`. By default, these will run against SQLite.
 
 You can also run the tests against MySQL and PostgreSQL. First start up the databases:
 
@@ -321,8 +294,8 @@ $ TARGET_DB=postgres bin/rails db:setup
 Then run the tests for the target database:
 
 ```shell
-$ TARGET_DB=mysql bin/rails test
-$ TARGET_DB=postgres bin/rails test
+$ TARGET_DB=mysql bin/rake test
+$ TARGET_DB=postgres bin/rake test
 ```
 
 ### Testing with multiple Rails version
@@ -333,7 +306,7 @@ multiple Rails version.
 To run a test for a specific version run:
 
 ```shell
-bundle exec appraisal rails-7-1 bin/rails test
+bundle exec appraisal rails-7-1 bin/rake test
 ```
 
 After updating the dependencies in the `Gemfile` please run:
