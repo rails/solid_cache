@@ -65,13 +65,13 @@ module SolidCache
 
         def entry_delete(key)
           writing_key(key, failsafe: :delete_entry, failsafe_returning: false) do
-            Entry.delete_by_key(key)
+            Entry.delete_by_key(key) > 0
           end
         end
 
         def entry_delete_multi(entries)
           writing_keys(entries, failsafe: :delete_multi_entries, failsafe_returning: 0) do
-            Entry.delete_multi(entries)
+            Entry.delete_by_key(*entries)
           end
         end
     end
