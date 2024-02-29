@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    solid_cache (0.5.2)
+    solid_cache (0.5.3)
       activejob (>= 7)
       activerecord (>= 7)
       railties (>= 7)
