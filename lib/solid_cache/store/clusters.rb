@@ -67,12 +67,12 @@ module SolidCache
 
         def writing_all(failsafe:, failsafe_returning: nil, &block)
           first_cluster_sync_rest_async do |cluster, async|
-            cluster.connection_names.each do |connection|
+            cluster.connection_names.map do |connection|
               failsafe(failsafe, returning: failsafe_returning) do
                 cluster.with_connection(connection, async: async, &block)
               end
             end
-          end
+          end.first
         end
 
         def first_cluster_sync_rest_async
