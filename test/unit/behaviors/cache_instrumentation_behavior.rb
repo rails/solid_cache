@@ -35,7 +35,7 @@ module CacheInstrumentationBehavior
   end
 
   def test_fetch_multi_instrumentation_order_of_operations
-    skip if Gem::Version.new(Rails.version) < Gem::Version.new("7.2")
+    skip if Rails::VERSION::MAJOR == 7 && Rails::VERSION::MINOR < 2
     operations = []
     callback = ->(name, *) { operations << name }
 

@@ -242,7 +242,7 @@ module LocalCacheBehavior
   end
 
   def test_local_cache_of_read_multi_prioritizes_local_entries
-    skip if Gem::Version.new(Rails.version) < Gem::Version.new("7.2")
+    skip if Rails::VERSION::MAJOR == 7 && Rails::VERSION::MINOR < 2
     key = "key#{rand}"
     @cache.with_local_cache do
       @cache.write(key, "foo")
