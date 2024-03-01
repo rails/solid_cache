@@ -27,15 +27,9 @@ module SolidCache
           end
         end
 
-        def entry_increment(key, amount)
+        def entry_lock_and_write(key, &block)
           writing_key(key, failsafe: :increment) do
-            Entry.increment(key, amount)
-          end
-        end
-
-        def entry_decrement(key, amount)
-          writing_key(key, failsafe: :decrement) do
-            Entry.decrement(key, amount)
+            Entry.lock_and_write(key, &block)
           end
         end
 
