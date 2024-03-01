@@ -31,7 +31,7 @@ module SolidCache
       end
 
       def delete_by_key(key)
-        delete_no_query_cache(:key_hash, key_hash_for(key))
+        delete_no_query_cache(:key_hash, key_hash_for(key)) > 0
       end
 
       def delete_multi(keys)
@@ -148,9 +148,9 @@ module SolidCache
 
             # exec_delete does not clear the query cache
             if connection.prepared_statements?
-              connection.exec_delete(sql, "#{name} Delete All", Array(values)).nonzero?
+              connection.exec_delete(sql, "#{name} Delete All", Array(values))
             else
-              connection.exec_delete(sql, "#{name} Delete All").nonzero?
+              connection.exec_delete(sql, "#{name} Delete All")
             end
           end
         end
