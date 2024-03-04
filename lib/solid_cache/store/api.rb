@@ -15,11 +15,11 @@ module SolidCache
       end
 
       def increment(name, amount = 1, options = nil)
-        change_value_by(name, amount, options)
+        adjust(name, amount, options)
       end
 
       def decrement(name, amount = 1, options = nil)
-        change_value_by(name, -amount, options)
+        adjust(name, -amount, options)
       end
 
       def cleanup(options = nil)
@@ -130,24 +130,28 @@ module SolidCache
           end
         end
 
-        def change_value_by(name, amount, options)
+        def adjust(name, amount, options)
           options = merged_options(options)
           key = normalize_key(name, options)
 
           new_value = entry_lock_and_write(key) do |value|
-            entry = deserialize_entry(value, **options)
-            new_amount, new_options = \
-              if entry && !entry.expired?
-                [ amount + entry.value.to_i, options.dup.merge(expires_in: nil, expires_at: entry.expires_at) ]
-              elsif /\A\d+\z/.match?(value)
-                # This is to match old raw values
-                [ amount + value.to_i, options ]
-              else
-                [ amount, options ]
-              end
-            serialize_entry(ActiveSupport::Cache::Entry.new(new_amount, **new_options))
+            serialize_entry(adjusted_entry(value, amount, options))
           end
           deserialize_entry(new_value, **options).value if new_value
+        end
+
+        def adjusted_entry(value, amount, options)
+          entry = deserialize_entry(value, **options)
+
+          if entry && !entry.expired?
+            ActiveSupport::Cache::Entry.new \
+              amount + entry.value.to_i, **options.dup.merge(expires_in: nil, expires_at: entry.expires_at)
+          elsif /\A\d+\z/.match?(value)
+            # This is to match old raw values
+            ActiveSupport::Cache::Entry.new(amount + value.to_i, **options)
+          else
+            ActiveSupport::Cache::Entry.new(amount, **options)
+          end
         end
     end
   end
