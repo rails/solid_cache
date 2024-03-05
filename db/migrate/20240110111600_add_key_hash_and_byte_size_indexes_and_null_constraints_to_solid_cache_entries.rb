@@ -1,4 +1,4 @@
-class AddKeyHashAndByteSizeIndexesAndNullConstraintsToSolidCacheEntries < ActiveRecord::Migration[7.1]
+class AddKeyHashAndByteSizeIndexesAndNullConstraintsToSolidCacheEntries < ActiveRecord::Migration[7.0]
   def change
     change_table :solid_cache_entries, bulk: true do |t|
       t.change_null :key_hash, false
