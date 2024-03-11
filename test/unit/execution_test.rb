@@ -108,7 +108,7 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
   def test_no_connections_uninstrumented
     skip if multi_cluster?
 
-    ActiveRecord::ConnectionAdapters::ConnectionPool.any_instance.stubs(:connection).raises(ActiveRecord::StatementInvalid)
+    ActiveRecord::ConnectionAdapters::ConnectionPool.any_instance.stubs(connection).raises(ActiveRecord::StatementInvalid)
 
     cache = lookup_store(expires_in: 60, active_record_instrumentation: false)
 
@@ -124,7 +124,7 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
   def test_no_connections_instrumented
     skip if multi_cluster?
 
-    ActiveRecord::ConnectionAdapters::ConnectionPool.any_instance.stubs(:connection).raises(ActiveRecord::StatementInvalid)
+    ActiveRecord::ConnectionAdapters::ConnectionPool.any_instance.stubs(connection).raises(ActiveRecord::StatementInvalid)
 
     cache = lookup_store(expires_in: 60)
 
@@ -148,4 +148,9 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
       errors << [ error, { context: context, handled: handled, level: severity, source: source } ]
     end
   end
+
+  private
+    def connection
+      Rails.version >= "7.2" ? :lease_connection : :connection
+    end
 end

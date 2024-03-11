@@ -70,13 +70,13 @@ module SolidCache
 
       private
         def upsert_all_no_query_cache(payloads)
-          insert_all = ActiveRecord::InsertAll.new(
-            self,
-            add_key_hash_and_byte_size(payloads),
-            unique_by: upsert_unique_by,
-            on_duplicate: :update,
-            update_only: upsert_update_only
-          )
+          args = [ self,
+                   connection_for_insert_all,
+                   add_key_hash_and_byte_size(payloads) ].compact
+          options = { unique_by: upsert_unique_by,
+                      on_duplicate: :update,
+                      update_only: upsert_update_only }
+          insert_all = ActiveRecord::InsertAll.new(*args, **options)
           sql = connection.build_insert_sql(ActiveRecord::InsertAll::Builder.new(insert_all))
 
           message = +"#{self} "
@@ -84,6 +84,10 @@ module SolidCache
           message << "Upsert"
           # exec_query_method does not clear the query cache, exec_insert_all does
           connection.send exec_query_method, sql, message
+        end
+
+        def connection_for_insert_all
+          Rails.version >= "7.2" ? connection : nil
         end
 
         def add_key_hash_and_byte_size(payloads)
