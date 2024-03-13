@@ -112,7 +112,7 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
 
     cache = lookup_store(expires_in: 60, active_record_instrumentation: false)
 
-    assert_equal false, cache.write("1", "fsjhgkjfg")
+    assert_nil cache.write("1", "fsjhgkjfg")
     assert_nil cache.read("1")
     assert_nil cache.increment("1")
     assert_nil cache.decrement("1")
@@ -128,7 +128,7 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
 
     cache = lookup_store(expires_in: 60)
 
-    assert_equal false, cache.write("1", "fsjhgkjfg")
+    assert_nil cache.write("1", "fsjhgkjfg")
     assert_nil cache.read("1")
     assert_nil cache.increment("1")
     assert_nil cache.decrement("1")

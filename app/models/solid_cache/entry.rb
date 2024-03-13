@@ -31,7 +31,7 @@ module SolidCache
       end
 
       def delete_by_key(key)
-        delete_no_query_cache(:key_hash, key_hash_for(key))
+        delete_no_query_cache(:key_hash, key_hash_for(key)) > 0
       end
 
       def delete_multi(keys)
@@ -47,19 +47,15 @@ module SolidCache
         in_batches.delete_all
       end
 
-      def increment(key, amount)
+      def lock_and_write(key, &block)
         transaction do
           uncached do
             result = lock.where(key_hash: key_hash_for(key)).pick(:key, :value)
-            amount += result[1].to_i if result&.first == key
-            write(key, amount)
-            amount
+            new_value = block.call(result&.first == key ? result[1] : nil)
+            write(key, new_value)
+            new_value
           end
         end
-      end
-
-      def decrement(key, amount)
-        increment(key, -amount)
       end
 
       def id_range
@@ -152,9 +148,9 @@ module SolidCache
 
             # exec_delete does not clear the query cache
             if connection.prepared_statements?
-              connection.exec_delete(sql, "#{name} Delete All", Array(values)).nonzero?
+              connection.exec_delete(sql, "#{name} Delete All", Array(values))
             else
-              connection.exec_delete(sql, "#{name} Delete All").nonzero?
+              connection.exec_delete(sql, "#{name} Delete All")
             end
           end
         end

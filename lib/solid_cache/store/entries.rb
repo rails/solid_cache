@@ -18,7 +18,7 @@ module SolidCache
 
       private
         def entry_clear
-          writing_all(failsafe: :clear) do
+          writing_all(failsafe: :clear, failsafe_returning: nil) do
             if clear_with == :truncate
               Entry.clear_truncate
             else
@@ -27,15 +27,9 @@ module SolidCache
           end
         end
 
-        def entry_increment(key, amount)
+        def entry_lock_and_write(key, &block)
           writing_key(key, failsafe: :increment) do
-            Entry.increment(key, amount)
-          end
-        end
-
-        def entry_decrement(key, amount)
-          writing_key(key, failsafe: :decrement) do
-            Entry.decrement(key, amount)
+            Entry.lock_and_write(key, &block)
           end
         end
 
@@ -52,7 +46,7 @@ module SolidCache
         end
 
         def entry_write(key, payload)
-          writing_key(key, failsafe: :write_entry, failsafe_returning: false) do |cluster|
+          writing_key(key, failsafe: :write_entry, failsafe_returning: nil) do |cluster|
             Entry.write(key, payload)
             cluster.track_writes(1)
             true
@@ -74,7 +68,7 @@ module SolidCache
         end
 
         def entry_delete_multi(entries)
-          writing_keys(entries, failsafe: :delete_multi_entries, failsafe_returning: false) do
+          writing_keys(entries, failsafe: :delete_multi_entries, failsafe_returning: 0) do
             Entry.delete_multi(entries)
           end
         end

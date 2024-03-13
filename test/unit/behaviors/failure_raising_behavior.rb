@@ -129,4 +129,12 @@ module FailureRaisingBehavior
       end
     end
   end
+
+  def test_clear_failure_returns_nil
+    assert_raise ActiveRecord::ActiveRecordError do
+      emulating_unavailability do |cache|
+        cache.clear
+      end
+    end
+  end
 end
