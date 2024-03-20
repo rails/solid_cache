@@ -51,9 +51,9 @@ PATH
   remote: ..
   specs:
     solid_cache (0.5.3)
-      activejob (>= 7.1)
-      activerecord (>= 7.1)
-      railties (>= 7.1)
+      activejob (>= 7)
+      activerecord (>= 7)
+      railties (>= 7)
 
 GEM
   remote: https://rubygems.org/
