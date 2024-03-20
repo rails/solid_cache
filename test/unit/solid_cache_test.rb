@@ -6,14 +6,28 @@ require "active_support/testing/method_call_assertions"
 
 class SolidCacheTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
-  include CacheStoreBehavior
-  include CacheStoreVersionBehavior
-  include CacheStoreFormatVersionBehavior
-  include CacheStoreCoderBehavior
-  include LocalCacheBehavior
-  include CacheIncrementDecrementBehavior
-  include CacheInstrumentationBehavior
-  include EncodedKeyCacheBehavior
+
+  if Rails::VERSION::MAJOR == 7 && Rails::VERSION::MINOR == 0
+    include CacheStoreBehavior
+    include CacheStoreVersionBehavior
+    include CacheStoreCoderBehavior
+    include LocalCacheBehavior
+    include CacheIncrementDecrementBehavior
+    include CacheInstrumentationBehavior
+    include EncodedKeyCacheBehavior
+  else
+    include CacheStoreBehavior
+    include CacheStoreVersionBehavior
+    include CacheStoreCoderBehavior
+    include CacheStoreCompressionBehavior
+    include CacheStoreFormatVersionBehavior
+    include CacheStoreSerializerBehavior
+    include LocalCacheBehavior
+    include CacheIncrementDecrementBehavior
+    include CacheInstrumentationBehavior
+    include CacheLoggingBehavior
+    include EncodedKeyCacheBehavior
+  end
 
   setup do
     @cache = nil

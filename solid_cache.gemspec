@@ -30,4 +30,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency "railties", rails_version
   spec.add_development_dependency "debug"
   spec.add_development_dependency "mocha"
+  spec.add_development_dependency "msgpack"
 end
