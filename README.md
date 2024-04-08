@@ -126,7 +126,7 @@ Solid Cache supports these options in addition to the standard `ActiveSupport::C
 - `max_entries` - the maximum number of entries allowed in the cache (default: `nil`, meaning no limit)
 - `max_size` - the maximum size of the cache entries (default `nil`, meaning no limit)
 - `cluster` - a Hash of options for the cache database cluster, e.g `{ shards: [:database1, :database2, :database3] }`
-- `clusters` - and Array of Hashes for multiple cache clusters (ignored if `:cluster` is set)
+- `clusters` - an Array of Hashes for multiple cache clusters (ignored if `:cluster` is set)
 - `active_record_instrumentation` - whether to instrument the cache's queries (default: `true`)
 - `clear_with` - clear the cache with `:truncate` or `:delete` (default `truncate`, except for when `Rails.env.test?` then `delete`)
 - `max_key_bytesize` - the maximum size of a normalized key in bytes (default `1024`)
