@@ -62,7 +62,7 @@ class SolidCache::StatsTest < ActiveSupport::TestCase
   def test_stats_one_shard
     skip if ENV["SOLID_CACHE_CONFIG"]
 
-    @cache = lookup_store(expiry_batch_size: 2, max_age: 2.weeks.to_i, max_entries: 1000, clusters: [{ shards: [ first_shard_key ] }])
+    @cache = lookup_store(expiry_batch_size: 2, max_age: 2.weeks.to_i, max_entries: 1000, shards: [ first_shard_key ])
 
     expected = {
       connections: 1,
@@ -77,7 +77,7 @@ class SolidCache::StatsTest < ActiveSupport::TestCase
   def test_stats_multiple_shards
     skip if ENV["SOLID_CACHE_CONFIG"]
 
-    @cache = lookup_store(expiry_batch_size: 2, max_age: 2.weeks.to_i, max_entries: 1000, clusters: [{ shards: [ first_shard_key, second_shard_key ] }])
+    @cache = lookup_store(expiry_batch_size: 2, max_age: 2.weeks.to_i, max_entries: 1000, shards: [ first_shard_key, second_shard_key ])
 
     expected = {
       connections: 2,

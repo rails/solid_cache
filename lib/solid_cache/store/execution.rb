@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module SolidCache
-  class Cluster
+  class Store
     module Execution
       def initialize(options = {})
         super(options)
@@ -16,7 +16,7 @@ module SolidCache
           @background << ->() do
             wrap_in_rails_executor do
               connections.with(current_shard) do
-                instrument(&block)
+                setup_instrumentation(&block)
               end
             end
           rescue Exception => exception
@@ -28,7 +28,7 @@ module SolidCache
           if async
             async(&block)
           else
-            instrument(&block)
+            setup_instrumentation(&block)
           end
         end
 
@@ -44,7 +44,7 @@ module SolidCache
           @active_record_instrumentation
         end
 
-        def instrument(&block)
+        def setup_instrumentation(&block)
           if active_record_instrumentation?
             block.call
           else

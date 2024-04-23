@@ -125,8 +125,9 @@ Solid Cache supports these options in addition to the standard `ActiveSupport::C
 - `max_age` - the maximum age of entries in the cache (default: `2.weeks.to_i`). Can be set to `nil`, but this is not recommended unless using `max_entries` to limit the size of the cache.
 - `max_entries` - the maximum number of entries allowed in the cache (default: `nil`, meaning no limit)
 - `max_size` - the maximum size of the cache entries (default `nil`, meaning no limit)
-- `cluster` - a Hash of options for the cache database cluster, e.g `{ shards: [:database1, :database2, :database3] }`
-- `clusters` - an Array of Hashes for multiple cache clusters (ignored if `:cluster` is set)
+- `cluster` - (deprecated) a Hash of options for the cache database cluster, e.g `{ shards: [:database1, :database2, :database3] }`
+- `clusters` - (deprecated) an Array of Hashes for multiple cache clusters (ignored if `:cluster` is set)
+- `shards` - an Array or Hash of databases. When a Hash is supplied, the keys are the database names, and the values are the sharding key.
 - `active_record_instrumentation` - whether to instrument the cache's queries (default: `true`)
 - `clear_with` - clear the cache with `:truncate` or `:delete` (default `truncate`, except for when `Rails.env.test?` then `delete`)
 - `max_key_bytesize` - the maximum size of a normalized key in bytes (default `1024`)
@@ -220,24 +221,6 @@ production:
   databases: [cache_shard1, cache_shard2, cache_shard3]
 ```
 
-### Secondary cache clusters
-
-You can add secondary cache clusters. Reads will only be sent to the primary cluster (i.e. the first one listed).
-
-Writes will go to all clusters. The writes to the primary cluster are synchronous, but asynchronous to the secondary clusters.
-
-To specific multiple clusters you can do:
-
-```yaml
-# config/solid_cache.yml
-production:
-  databases: [cache_primary_shard1, cache_primary_shard2, cache_secondary_shard1, cache_secondary_shard2]
-  store_options:
-    clusters:
-      - shards: [cache_primary_shard1, cache_primary_shard2]
-      - shards: [cache_secondary_shard1, cache_secondary_shard2]
-```
-
 ### Named shard destinations
 
 By default, the node key used for sharding is the name of the database in `database.yml`.
@@ -248,13 +231,9 @@ It is possible to add names for the shards in the cluster config. This will allo
 production:
   databases: [cache_primary_shard1, cache_primary_shard2, cache_secondary_shard1, cache_secondary_shard2]
   store_options:
-    clusters:
-      - shards:
-          cache_primary_shard1: node1
-          cache_primary_shard2: node2
-      - shards:
-          cache_secondary_shard1: node3
-          cache_secondary_shard2: node4
+    shards:
+      cache_primary_shard1: node1
+      cache_primary_shard2: node2
 ```
 
 ### Enabling encryption

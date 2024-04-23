@@ -3,7 +3,7 @@
 require "concurrent/atomic/atomic_fixnum"
 
 module SolidCache
-  class Cluster
+  class Store
     module Expiry
       # For every write that we do, we attempt to delete EXPIRY_MULTIPLIER times as many records.
       # This ensures there is downward pressure on the cache size while there is valid data to delete

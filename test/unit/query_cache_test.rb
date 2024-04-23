@@ -12,8 +12,8 @@ class QueryCacheTest < ActiveSupport::TestCase
       @cache = lookup_store(expires_in: 60)
       @peek = lookup_store(expires_in: 60)
     else
-      @cache = lookup_store(expires_in: 60, clusters: [ { shards: [ first_shard_key ] } ])
-      @peek = lookup_store(expires_in: 60, clusters: [ { shards: [ first_shard_key ] } ])
+      @cache = lookup_store(expires_in: 60, shards: [ first_shard_key ])
+      @peek = lookup_store(expires_in: 60, shards: [ first_shard_key ])
     end
   end
 
