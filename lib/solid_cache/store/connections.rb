@@ -21,8 +21,8 @@ module SolidCache
           @shard_options = options.fetch(:shards, nil)
         end
 
-        if [ Hash, Array, NilClass ].none? { |klass| @shard_options.is_a? klass }
-          raise ArgumentError, "`shards` is a `#{@shard_options.class.name}`, it should be one of Array, Hash or nil"
+        if [ Array, NilClass ].none? { |klass| @shard_options.is_a? klass }
+          raise ArgumentError, "`shards` is a `#{@shard_options.class.name}`, it should be Array or nil"
         end
       end
 

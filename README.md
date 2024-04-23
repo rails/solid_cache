@@ -127,7 +127,7 @@ Solid Cache supports these options in addition to the standard `ActiveSupport::C
 - `max_size` - the maximum size of the cache entries (default `nil`, meaning no limit)
 - `cluster` - (deprecated) a Hash of options for the cache database cluster, e.g `{ shards: [:database1, :database2, :database3] }`
 - `clusters` - (deprecated) an Array of Hashes for multiple cache clusters (ignored if `:cluster` is set)
-- `shards` - an Array or Hash of databases. When a Hash is supplied, the keys are the database names, and the values are the sharding key.
+- `shards` - an Array of databases.
 - `active_record_instrumentation` - whether to instrument the cache's queries (default: `true`)
 - `clear_with` - clear the cache with `:truncate` or `:delete` (default `truncate`, except for when `Rails.env.test?` then `delete`)
 - `max_key_bytesize` - the maximum size of a normalized key in bytes (default `1024`)
@@ -219,21 +219,6 @@ production:
 # config/solid_cache.yml
 production:
   databases: [cache_shard1, cache_shard2, cache_shard3]
-```
-
-### Named shard destinations
-
-By default, the node key used for sharding is the name of the database in `database.yml`.
-
-It is possible to add names for the shards in the cluster config. This will allow you to shuffle or remove shards without breaking consistent hashing.
-
-```yaml
-production:
-  databases: [cache_primary_shard1, cache_primary_shard2, cache_secondary_shard1, cache_secondary_shard2]
-  store_options:
-    shards:
-      cache_primary_shard1: node1
-      cache_primary_shard2: node2
 ```
 
 ### Enabling encryption

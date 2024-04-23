@@ -5,10 +5,9 @@ module SolidCache
     class Sharded
       attr_reader :names, :nodes, :consistent_hash
 
-      def initialize(names, nodes)
+      def initialize(names)
         @names = names
-        @nodes = nodes
-        @consistent_hash = MaglevHash.new(@nodes.keys)
+        @consistent_hash = MaglevHash.new(names)
       end
 
       def with_each(&block)
@@ -35,7 +34,7 @@ module SolidCache
 
       private
         def shard_for(key)
-          nodes[consistent_hash.node(key)]
+          consistent_hash.node(key)
         end
     end
   end
