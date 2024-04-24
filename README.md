@@ -137,15 +137,15 @@ For more information on cache clusters see [Sharding the cache](#sharding-the-ca
 
 Solid Cache tracks writes to the cache. For every write it increments a counter by 1. Once the counter reaches 50% of the `expiry_batch_size` it adds a task to run on a background thread. That task will:
 
-1. Check if we have exceeded the `max_entries` or `max_size` values (if set)
+1. Check if we have exceeded the `max_entries` or `max_size` values (if set).
    The current entries are estimated by subtracting the max and min IDs from the `SolidCache::Entry` table.
    The current size is estimated by sampling the entry `byte_size` columns.
-2. If we have it will delete `expiry_batch_size` entries
-3. If not it will delete up to `expiry_batch_size` entries, provided they are all older than `max_age`.
+2. If we have, it will delete `expiry_batch_size` entries.
+3. If not, it will delete up to `expiry_batch_size` entries, provided they are all older than `max_age`.
 
 Expiring when we reach 50% of the batch size allows us to expire records from the cache faster than we write to it when we need to reduce the cache size.
 
-Only triggering expiry when we write means that the if the cache is idle, the background thread is also idle.
+Only triggering expiry when we write means that if the cache is idle, the background thread is also idle.
 
 If you want the cache expiry to be run in a background job instead of a thread, you can set `expiry_method` to `:job`. This will enqueue a `SolidCache::ExpiryJob`.
 
