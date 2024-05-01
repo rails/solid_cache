@@ -23,7 +23,11 @@ def run_without_aborting(*tasks)
 end
 
 def configs
+<<<<<<< HEAD
   [ :default, :connects_to, :database, :no_database, :shards, :unprepared_statements ]
+=======
+  [ :default, :connects_to, :database, :encrypted, :encrypted_custom, :no_database, :shards, :unprepared_statements ]
+>>>>>>> e7305dc (Encrypt cache values via Solid Cache config)
 end
 
 task :test do
@@ -42,3 +46,5 @@ configs.each do |config|
     end
   end
 end
+
+task default: [:test]

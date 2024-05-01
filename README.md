@@ -120,7 +120,9 @@ There are three options that can be set on the engine:
 
 - `executor` - the [Rails executor](https://guides.rubyonrails.org/threading_and_code_execution.html#executor) used to wrap asynchronous operations, defaults to the app executor
 - `connects_to` - a custom connects to value for the abstract `SolidCache::Record` active record model. Required for sharding and/or using a separate cache database to the main app. This will overwrite any value set in `config/solid_cache.yml`
-- `size_estimate_samples` - if `max_size` is set on the cache, the number of the samples used to estimates the size
+- `size_estimate_samples` - if `max_size` is set on the cache, the number of the samples used to estimate the size.
+- `encrypted` - whether cache values should be encrypted (see [Enabling encryption](#enabling-encryption))
+- `encryption_context_properties` - custom encryption context properties
 
 These can be set in your Rails configuration:
 
@@ -239,12 +241,35 @@ production:
 
 ### Enabling encryption
 
-Add this to an initializer:
+To encrypt the cache values, you can add set the encrypt property.
+
+```yaml
+# config/solid_cache.yml
+production:
+  encrypt: true
+```
+or
+```ruby
+# application.rb
+config.solid_cache.encrypt = true
+```
+
+You will need to set up your application to (use Active Record Encryption)[https://guides.rubyonrails.org/active_record_encryption.html].
+
+Solid Cache by default uses a custom encryptor and message serializer that are optimised for it.
+
+Firstly it disabled compression with the encryptor `ActiveRecord::Encryption::Encryptor.new(compress: false)` - the cache already compresses the data.
+Secondly it uses `ActiveRecord::Encryption::MessagePackMessageSerializer.new` as the serializer. This serializer can only be used for binary columns,
+but can store about 40% more data than the standard serializer.
+
+You can choose your own context properties instead if you prefer:
 
 ```ruby
-ActiveSupport.on_load(:solid_cache_entry) do
-  encrypts :value
-end
+# application.rb
+config.solid_cache.encryption_context_properties = {
+  encryptor: ActiveRecord::Encryption::Encryptor.new,
+  message_serializer: ActiveRecord::Encryption::MessageSerializer.new
+}
 ```
 
 ### Index size limits

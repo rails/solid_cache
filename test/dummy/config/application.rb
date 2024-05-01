@@ -16,13 +16,14 @@ module Dummy
 
     config.cache_store = :solid_cache_store
 
-    # Configuration for the application, engines, and railties goes here.
-    #
-    # These settings can be overridden in specific environments using the files
-    # in config/environments, which are processed later.
-    #
-    # config.time_zone = "Central Time (US & Canada)"
-    # config.eager_load_paths << Rails.root.join("extras")
+    config.active_record.encryption.key_provider = ActiveRecord::Encryption::EnvelopeEncryptionKeyProvider.new
+
+    if ENV["SOLID_CACHE_CONFIG"] == "config/solid_cache_encrypted_custom.yml"
+      config.solid_cache.encryption_context_properties = {
+        encryptor: ActiveRecord::Encryption::Encryptor.new,
+        message_serializer: ActiveRecord::Encryption::MessageSerializer.new
+      }
+    end
 
     initializer :custom_solid_cache_yml, before: :solid_cache do |app|
       app.paths.add "config/solid_cache", with: ENV["SOLID_CACHE_CONFIG_PATH"]

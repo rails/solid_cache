@@ -2,7 +2,7 @@
 
 module SolidCache
   class Entry < Record
-    include Expiration, Size
+    include Encryption, Expiration, Size
 
     # The estimated cost of an extra row in bytes, including fixed size columns, overhead, indexes and free space
     # Based on experimentation on SQLite, MySQL and Postgresql.

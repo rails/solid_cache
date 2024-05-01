@@ -248,11 +248,4 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
       @cache.write_multi(10.times.index_by { |i| "key#{i}" })
     end
   end
-
-  private
-    def shard_keys(cache, shard)
-      namespaced_keys = 100.times.map { |i| @cache.send(:normalize_key, "key#{i}", {}) }
-      shard_keys = cache.send(:connections).assign(namespaced_keys)[shard]
-      shard_keys.map { |key| key.delete_prefix("#{@namespace}:") }
-    end
 end
