@@ -2,7 +2,7 @@
 
 module SolidCache
   class Store < ActiveSupport::Cache::Store
-    include Api, Clusters, Entries, Failsafe
+    include Api, Connections, Entries, Execution, Expiry, Failsafe, Stats
     prepend ActiveSupport::Cache::Strategy::LocalCache
 
     def initialize(options = {})
@@ -15,10 +15,6 @@ module SolidCache
 
     def setup!
       super
-    end
-
-    def stats
-      primary_cluster.stats
     end
   end
 end

@@ -5,7 +5,6 @@ require "test_helper"
 class ClearTest < ActiveSupport::TestCase
   setup do
     @namespace = "test-#{SecureRandom.hex}"
-    skip if multi_cluster?
   end
 
   test "clear by truncation" do

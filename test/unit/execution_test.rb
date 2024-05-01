@@ -17,7 +17,7 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
     error_subscriber = ErrorSubscriber.new
     Rails.error.subscribe(error_subscriber)
 
-    @cache.primary_cluster.send(:async) do
+    @cache.send(:async) do
       raise "Boom!"
     end
 
@@ -106,8 +106,6 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
   end
 
   def test_no_connections_uninstrumented
-    skip if multi_cluster?
-
     ActiveRecord::ConnectionAdapters::ConnectionPool.any_instance.stubs(connection).raises(ActiveRecord::StatementInvalid)
 
     cache = lookup_store(expires_in: 60, active_record_instrumentation: false)
@@ -122,8 +120,6 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
   end
 
   def test_no_connections_instrumented
-    skip if multi_cluster?
-
     ActiveRecord::ConnectionAdapters::ConnectionPool.any_instance.stubs(connection).raises(ActiveRecord::StatementInvalid)
 
     cache = lookup_store(expires_in: 60)

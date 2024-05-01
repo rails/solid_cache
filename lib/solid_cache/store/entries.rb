@@ -46,17 +46,17 @@ module SolidCache
         end
 
         def entry_write(key, payload)
-          writing_key(key, failsafe: :write_entry, failsafe_returning: nil) do |cluster|
+          writing_key(key, failsafe: :write_entry, failsafe_returning: nil) do
             Entry.write(key, payload)
-            cluster.track_writes(1)
+            track_writes(1)
             true
           end
         end
 
         def entry_write_multi(entries)
-          writing_keys(entries, failsafe: :write_multi_entries, failsafe_returning: false) do |cluster, entries|
+          writing_keys(entries, failsafe: :write_multi_entries, failsafe_returning: false) do |entries|
             Entry.write_multi(entries)
-            cluster.track_writes(entries.count)
+            track_writes(entries.count)
             true
           end
         end

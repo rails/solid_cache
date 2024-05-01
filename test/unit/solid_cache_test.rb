@@ -47,12 +47,12 @@ class SolidCacheTest < ActiveSupport::TestCase
 
   test "loads defaults from config/solid_cache.yml" do
     cache = lookup_store
-    assert_equal 3600, cache.primary_cluster.max_age
+    assert_equal 3600, cache.max_age
   end
 
   test "cache options override defaults" do
     cache = lookup_store(max_age: 7200)
-    assert_equal 7200, cache.primary_cluster.max_age
+    assert_equal 7200, cache.max_age
   end
 end
 

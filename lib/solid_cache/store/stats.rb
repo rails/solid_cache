@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 module SolidCache
-  class Cluster
+  class Store
     module Stats
       def initialize(options = {})
-        super()
+        super(options)
       end
 
       def stats

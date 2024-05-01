@@ -2,9 +2,6 @@
 default: &default
   connects_to:
     shards:
-      default:
-        writing: :primary
-        reading: :primary_replica
       primary_shard_one:
         writing: :primary_shard_one
       primary_shard_two:
