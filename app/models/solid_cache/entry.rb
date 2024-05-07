@@ -8,6 +8,10 @@ module SolidCache
     # Based on experimentation on SQLite, MySQL and Postgresql.
     # A bit high for SQLite (more like 90 bytes), but about right for MySQL/Postgresql.
     ESTIMATED_ROW_OVERHEAD = 140
+
+    # Assuming MessagePack serialization
+    ESTIMATED_ENCRYPTION_OVERHEAD = 170
+
     KEY_HASH_ID_RANGE = -(2**63)..(2**63 - 1)
 
     class << self
@@ -99,7 +103,15 @@ module SolidCache
         end
 
         def byte_size_for(payload)
-          payload[:key].to_s.bytesize + payload[:value].to_s.bytesize + ESTIMATED_ROW_OVERHEAD
+          payload[:key].to_s.bytesize + payload[:value].to_s.bytesize + estimated_row_overhead
+        end
+
+        def estimated_row_overhead
+          if SolidCache.configuration.encrypt?
+            ESTIMATED_ROW_OVERHEAD + ESTIMATED_ENCRYPTION_OVERHEAD
+          else
+            ESTIMATED_ROW_OVERHEAD
+          end
         end
 
         def without_query_cache(&block)

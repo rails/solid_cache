@@ -4,6 +4,10 @@ require "test_helper"
 
 module SolidCache
   class EntrySizeMovingAverageEstimateTest < ActiveSupport::TestCase
+    setup do
+      @encrypted = SolidCache.configuration.encrypt?
+    end
+
     test "write and read cache entries" do
       assert_equal 0, estimate(samples: 10)
     end
@@ -13,7 +17,7 @@ module SolidCache
 
       estimate = Entry::Size::MovingAverageEstimate.new(samples: 12)
       assert_predicate estimate, :exact?
-      assert_equal 1535, estimate.size
+      assert_equal @encrypted ? 3235 : 1535, estimate.size
     end
 
     test "tracks moving average" do
@@ -22,10 +26,10 @@ module SolidCache
       Entry.write Entry::Size::MovingAverageEstimate::ESTIMATES_KEY, "4637774|4754378|7588547"
 
       with_fixed_srand(1) do
-        assert_equal 10449357, estimate(samples: 1)
+        assert_equal @encrypted ? 11016081 : 10449357, estimate(samples: 1)
       end
 
-      assert_equal "4754378|7588547|19005147", Entry.read(Entry::Size::MovingAverageEstimate::ESTIMATES_KEY)
+      assert_equal @encrypted ? "4754378|7588547|20705317" : "4754378|7588547|19005147", Entry.read(Entry::Size::MovingAverageEstimate::ESTIMATES_KEY)
     end
 
     test "appends to moving average when less than required items" do
@@ -33,13 +37,13 @@ module SolidCache
 
       assert_nil Entry.read(Entry::Size::MovingAverageEstimate::ESTIMATES_KEY)
 
-      with_fixed_srand(1) { assert_equal 20991897, estimate(samples: 2) }
+      with_fixed_srand(1) { assert_equal @encrypted ? 22691557 : 20991897, estimate(samples: 2) }
 
-      assert_equal "20991897", Entry.read(Entry::Size::MovingAverageEstimate::ESTIMATES_KEY)
+      assert_equal @encrypted ? "22691557" : "20991897", Entry.read(Entry::Size::MovingAverageEstimate::ESTIMATES_KEY)
 
-      with_fixed_srand(2) { assert_equal 11917062, estimate(samples: 2) }
+      with_fixed_srand(2) { assert_equal @encrypted ? 13191977 : 11917062, estimate(samples: 2) }
 
-      assert_equal "20991897|2842227", Entry.read(Entry::Size::MovingAverageEstimate::ESTIMATES_KEY)
+      assert_equal @encrypted ? "22691557|3692397" : "20991897|2842227", Entry.read(Entry::Size::MovingAverageEstimate::ESTIMATES_KEY)
     end
 
     private
