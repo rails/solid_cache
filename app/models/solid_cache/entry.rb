@@ -49,7 +49,7 @@ module SolidCache
 
       def lock_and_write(key, &block)
         transaction do
-          uncached do
+          without_query_cache do
             result = lock.where(key_hash: key_hash_for(key)).pick(:key, :value)
             new_value = block.call(result&.first == key ? result[1] : nil)
             write(key, new_value)
@@ -59,31 +59,24 @@ module SolidCache
       end
 
       def id_range
-        uncached do
+        without_query_cache do
           pick(Arel.sql("max(id) - min(id) + 1")) || 0
         end
       end
 
       private
         def upsert_all_no_query_cache(payloads)
-          args = [ self,
-                   connection_for_insert_all,
-                   add_key_hash_and_byte_size(payloads) ].compact
-          options = { unique_by: upsert_unique_by,
-                      on_duplicate: :update,
-                      update_only: upsert_update_only }
-          insert_all = ActiveRecord::InsertAll.new(*args, **options)
-          sql = connection.build_insert_sql(ActiveRecord::InsertAll::Builder.new(insert_all))
-
-          message = +"#{self} "
-          message << "Bulk " if payloads.many?
-          message << "Upsert"
-          # exec_query_method does not clear the query cache, exec_insert_all does
-          connection.send exec_query_method, sql, message
+          without_query_cache do
+            upsert_all \
+              add_key_hash_and_byte_size(payloads),
+              unique_by: upsert_unique_by, on_duplicate: :update, update_only: [ :key, :value, :byte_size ]
+          end
         end
 
-        def connection_for_insert_all
-          Rails.version >= "7.2" ? connection : nil
+        def delete_no_query_cache(attribute, values)
+          without_query_cache do
+            where(attribute => values).delete_all
+          end
         end
 
         def add_key_hash_and_byte_size(payloads)
@@ -95,16 +88,8 @@ module SolidCache
           end
         end
 
-        def exec_query_method
-          connection.respond_to?(:internal_exec_query) ? :internal_exec_query : :exec_query
-        end
-
         def upsert_unique_by
           connection.supports_insert_conflict_target? ? :key_hash : nil
-        end
-
-        def upsert_update_only
-          [ :key, :value, :byte_size ]
         end
 
         def get_sql
@@ -130,7 +115,7 @@ module SolidCache
         end
 
         def select_all_no_query_cache(query, values)
-          uncached do
+          without_query_cache do
             if connection.prepared_statements?
               result = connection.select_all(sanitize_sql(query), "#{name} Load", Array(values), preparable: true)
             else
@@ -141,24 +126,6 @@ module SolidCache
           end
         end
 
-        def delete_no_query_cache(attribute, values)
-          uncached do
-            relation = where(attribute => values)
-            sql = connection.to_sql(relation.arel.compile_delete(relation.table[primary_key]))
-
-            # exec_delete does not clear the query cache
-            if connection.prepared_statements?
-              connection.exec_delete(sql, "#{name} Delete All", Array(values))
-            else
-              connection.exec_delete(sql, "#{name} Delete All")
-            end
-          end
-        end
-
-        def to_binary(key)
-          ActiveModel::Type::Binary.new.serialize(key)
-        end
-
         def key_hash_for(key)
           # Need to unpack this as a signed integer - Postgresql and SQLite don't support unsigned integers
           Digest::SHA256.digest(key.to_s).unpack("q>").first
@@ -166,6 +133,10 @@ module SolidCache
 
         def byte_size_for(payload)
           payload[:key].to_s.bytesize + payload[:value].to_s.bytesize + ESTIMATED_ROW_OVERHEAD
+        end
+
+        def without_query_cache(&block)
+          uncached(dirties: false, &block)
         end
     end
   end
