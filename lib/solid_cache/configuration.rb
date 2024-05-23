@@ -2,12 +2,15 @@
 
 module SolidCache
   class Configuration
-    attr_reader :store_options, :connects_to, :executor, :size_estimate_samples
+    attr_reader :store_options, :connects_to, :executor, :size_estimate_samples, :encrypt, :encryption_context_properties
 
-    def initialize(store_options: {}, database: nil, databases: nil, connects_to: nil, executor: nil, size_estimate_samples: 10_000)
+    def initialize(store_options: {}, database: nil, databases: nil, connects_to: nil, executor: nil, encrypt: false, encryption_context_properties: nil, size_estimate_samples: 10_000)
       @store_options = store_options
       @size_estimate_samples = size_estimate_samples
       @executor = executor
+      @encrypt = encrypt
+      @encryption_context_properties = encryption_context_properties
+      @encryption_context_properties ||= default_encryption_context_properties if encrypt?
       set_connects_to(database: database, databases: databases, connects_to: connects_to)
     end
 
@@ -17,6 +20,10 @@ module SolidCache
 
     def shard_keys
       sharded? ? connects_to[:shards].keys : []
+    end
+
+    def encrypt?
+      encrypt.present?
     end
 
     private
@@ -36,6 +43,17 @@ module SolidCache
           else
             nil
           end
+      end
+
+      def default_encryption_context_properties
+        require "active_record/encryption/message_pack_message_serializer"
+
+        {
+          # No need to compress, the cache does that already
+          encryptor: ActiveRecord::Encryption::Encryptor.new(compress: false),
+          # Binary column only serializer that is 40% more efficient than the default MessageSerializer
+          message_serializer: ActiveRecord::Encryption::MessagePackMessageSerializer.new
+        }
       end
   end
 end

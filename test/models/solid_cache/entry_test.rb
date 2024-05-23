@@ -53,12 +53,21 @@ module SolidCache
     end
 
     test "byte_size" do
-      Entry.write "hello".b, "test"
-      assert_equal 149, Entry.uncached { Entry.last.byte_size }
-      Entry.write "hello".b, "12345"
-      assert_equal 150, Entry.uncached { Entry.last.byte_size }
-      Entry.write "hi".b, "12345"
-      assert_equal 147, Entry.uncached { Entry.last.byte_size }
+      if SolidCache.configuration.encrypt?
+        Entry.write "hello".b, "test"
+        assert_equal 319, Entry.uncached { Entry.last.byte_size }
+        Entry.write "hello".b, "12345"
+        assert_equal 320, Entry.uncached { Entry.last.byte_size }
+        Entry.write "hi".b, "12345"
+        assert_equal 317, Entry.uncached { Entry.last.byte_size }
+      else
+        Entry.write "hello".b, "test"
+        assert_equal 149, Entry.uncached { Entry.last.byte_size }
+        Entry.write "hello".b, "12345"
+        assert_equal 150, Entry.uncached { Entry.last.byte_size }
+        Entry.write "hi".b, "12345"
+        assert_equal 147, Entry.uncached { Entry.last.byte_size }
+      end
     end
 
     private

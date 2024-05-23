@@ -1,0 +1,13 @@
+default: &default
+  databases: [primary_shard_one, primary_shard_two, secondary_shard_one, secondary_shard_two]
+  encrypt: true
+
+  store_options:
+    max_age: 3600
+    max_size:
+
+development:
+  <<: *default
+
+test:
+  <<: *default

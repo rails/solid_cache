@@ -23,7 +23,7 @@ def run_without_aborting(*tasks)
 end
 
 def configs
-  [ :default, :connects_to, :database, :no_database, :shards ]
+  [ :default, :connects_to, :database, :encrypted, :encrypted_custom, :no_database, :shards ]
 end
 
 task :test do
@@ -42,3 +42,5 @@ configs.each do |config|
     end
   end
 end
+
+task default: [:test]
