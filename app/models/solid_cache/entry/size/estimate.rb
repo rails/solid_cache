@@ -27,7 +27,7 @@ module SolidCache
     # We then calculate the fraction of the rows we want to sample by dividing the sample size by the estimated number
     # of rows.
     #
-    # The we grab the byte_size sum of the rows in the range of key_hash values excluding any rows that are larger than
+    # Then we grab the byte_size sum of the rows in the range of key_hash values excluding any rows that are larger than
     # our minimum outlier cutoff. We then divide this by the sampling fraction to get an estimate of the size of the
     # non outlier rows
     #

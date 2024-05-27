@@ -5,7 +5,7 @@ module SolidCache
     include Expiration, Size
 
     # The estimated cost of an extra row in bytes, including fixed size columns, overhead, indexes and free space
-    # Based on expirimentation on SQLite, MySQL and Postgresql.
+    # Based on experimentation on SQLite, MySQL and Postgresql.
     # A bit high for SQLite (more like 90 bytes), but about right for MySQL/Postgresql.
     ESTIMATED_ROW_OVERHEAD = 140
     KEY_HASH_ID_RANGE = -(2**63)..(2**63 - 1)

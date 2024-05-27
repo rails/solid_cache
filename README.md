@@ -4,7 +4,7 @@
 
 Solid Cache is a database-backed Active Support cache store implementation.
 
-Using SQL databases backed by SSDs we can have caches that are much larger and cheaper than traditional memory only Redis or Memcached backed caches.
+Using SQL databases backed by SSDs we can have caches that are much larger and cheaper than traditional memory-only Redis or Memcached backed caches.
 
 ## Usage
 
@@ -14,15 +14,15 @@ To set Solid Cache as your Rails cache, you should add this to your environment 
 config.cache_store = :solid_cache_store
 ```
 
-Solid Cache is a FIFO (first in, first out) cache. While this is not as efficient as an LRU cache, this is mitigated by the longer cache lifespan.
+Solid Cache is a FIFO (first in, first out) cache. While this is not as efficient as an LRU cache, it is mitigated by the longer cache lifespan.
 
 A FIFO cache is much easier to manage:
-1. We don't need to track when items are read
+1. We don't need to track when items are read.
 2. We can estimate and control the cache size by comparing the maximum and minimum IDs.
 3. By deleting from one end of the table and adding at the other end we can avoid fragmentation (on MySQL at least).
 
 ### Installation
-Add this line to your application's Gemfile:
+Add this line to your application's `Gemfile`:
 
 ```ruby
 gem "solid_cache"
@@ -93,9 +93,9 @@ Setting `databases` to `[cache_db, cache_db2]` is the equivalent of:
 SolidCache::Record.connects_to shards: { cache_db1: { writing: :cache_db1 },  cache_db2: { writing: :cache_db2 } }
 ```
 
-If `connects_to` is set it will be passed directly.
+If `connects_to` is set, it will be passed directly.
 
-If none of these are set, then Solid Cache will use the `ActiveRecord::Base` connection pool. This means that cache reads and writes will be part of any wrapping
+If none of these are set, Solid Cache will use the `ActiveRecord::Base` connection pool. This means that cache reads and writes will be part of any wrapping
 database transaction.
 
 #### Engine configuration
@@ -104,7 +104,7 @@ There are three options that can be set on the engine:
 
 - `executor` - the [Rails executor](https://guides.rubyonrails.org/threading_and_code_execution.html#executor) used to wrap asynchronous operations, defaults to the app executor
 - `connects_to` - a custom connects to value for the abstract `SolidCache::Record` active record model. Required for sharding and/or using a separate cache database to the main app. This will overwrite any value set in `config/solid_cache.yml`
-- `size_estimate_samples` - if `max_size` is set on the cache, the number of the samples used to estimates the size.
+- `size_estimate_samples` - if `max_size` is set on the cache, the number of the samples used to estimates the size
 
 These can be set in your Rails configuration:
 
@@ -116,7 +116,7 @@ end
 
 #### Cache configuration
 
-Solid Cache supports these options in addition to the standard `ActiveSupport::Cache::Store` options.
+Solid Cache supports these options in addition to the standard `ActiveSupport::Cache::Store` options:
 
 - `error_handler` - a Proc to call to handle any `ActiveRecord::ActiveRecordError`s that are raises (default: log errors as warnings)
 - `expiry_batch_size` - the batch size to use when deleting old records (default: `100`)
@@ -127,12 +127,12 @@ Solid Cache supports these options in addition to the standard `ActiveSupport::C
 - `max_size` - the maximum size of the cache entries (default `nil`, meaning no limit)
 - `cluster` - (deprecated) a Hash of options for the cache database cluster, e.g `{ shards: [:database1, :database2, :database3] }`
 - `clusters` - (deprecated) an Array of Hashes for multiple cache clusters (ignored if `:cluster` is set)
-- `shards` - an Array of databases.
+- `shards` - an Array of databases
 - `active_record_instrumentation` - whether to instrument the cache's queries (default: `true`)
 - `clear_with` - clear the cache with `:truncate` or `:delete` (default `truncate`, except for when `Rails.env.test?` then `delete`)
 - `max_key_bytesize` - the maximum size of a normalized key in bytes (default `1024`)
 
-For more information on cache clusters see [Sharding the cache](#sharding-the-cache)
+For more information on cache clusters, see [Sharding the cache](#sharding-the-cache)
 
 ### Cache expiry
 
@@ -196,9 +196,9 @@ Solid Cache uses the [Maglev](https://static.googleusercontent.com/media/researc
 
 To shard:
 
-1. Add the configuration for the database shards to database.yml
-2. Configure the shards via `config.solid_cache.connects_to`
-3. Pass the shards for the cache to use via the cluster option
+1. Add the configuration for the database shards to database.yml.
+2. Configure the shards via `config.solid_cache.connects_to`.
+3. Pass the shards for the cache to use via the cluster option.
 
 For example:
 ```yml
@@ -234,8 +234,8 @@ end
 ### Index size limits
 The Solid Cache migrations try to create an index with 1024 byte entries. If that is too big for your database, you should:
 
-1. Edit the index size in the migration
-2. Set `max_key_bytesize` on your cache to the new value
+1. Edit the index size in the migration.
+2. Set `max_key_bytesize` on your cache to the new value.
 
 ## Development
 
@@ -262,10 +262,10 @@ $ TARGET_DB=mysql bin/rake test
 $ TARGET_DB=postgres bin/rake test
 ```
 
-### Testing with multiple Rails version
+### Testing with multiple Rails versions
 
 Solid Cache relies on [appraisal](https://github.com/thoughtbot/appraisal/tree/main) to test
-multiple Rails version.
+multiple Rails versions.
 
 To run a test for a specific version run:
 

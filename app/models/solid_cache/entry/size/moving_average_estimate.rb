@@ -3,9 +3,9 @@
 module SolidCache
   class Entry
     module Size
-      # Moving averate cache size estimation
+      # Moving average cache size estimation
       #
-      # To reduce variablitity in the cache size estimate, we'll use a moving average of the previous 20 estimates.
+      # To reduce variability in the cache size estimate, we'll use a moving average of the previous 20 estimates.
       # The estimates are stored directly in the cache, under the "__solid_cache_entry_size_moving_average_estimates" key.
       #
       # We'll remove the largest and smallest estimates, and then average remaining ones.
