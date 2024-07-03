@@ -42,6 +42,10 @@ development:
   primary:
     <<: *default
     database: <%= database("database_cache_development") %>
+  primary_unprepared_statements:
+    <<: *default
+    database: <%= database("database_cache_development") %>
+    prepared_statements: false
   primary_replica:
     <<: *default
     database: <%= database("database_cache_development") %>
@@ -67,6 +71,10 @@ test:
   primary:
     <<: *default
     database: <%= database("database_cache_test") %>
+  primary_unprepared_statements:
+    <<: *default
+    database: <%= database("database_cache_development") %>
+    prepared_statements: false
   primary_replica:
     <<: *default
     database: <%= database("database_cache_test") %>

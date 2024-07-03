@@ -23,7 +23,7 @@ def run_without_aborting(*tasks)
 end
 
 def configs
-  [ :default, :connects_to, :database, :no_database, :shards ]
+  [ :default, :connects_to, :database, :no_database, :shards, :unprepared_statements ]
 end
 
 task :test do

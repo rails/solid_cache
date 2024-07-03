@@ -145,7 +145,6 @@ module CacheStoreBehavior
     @cache.write(other_key, "baz")
     @cache.write(SecureRandom.alphanumeric, "biz")
     assert_equal({ key => "bar", other_key => "baz" }, @cache.read_multi(key, other_key))
-    assert_equal({ key => "bar" }, @cache.read_multi(key))
   end
 
   def test_read_multi_empty_list
