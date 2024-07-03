@@ -73,7 +73,7 @@ test:
     database: <%= database("database_cache_test") %>
   primary_unprepared_statements:
     <<: *default
-    database: <%= database("database_cache_development") %>
+    database: <%= database("database_cache_test") %>
     prepared_statements: false
   primary_replica:
     <<: *default
