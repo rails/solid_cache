@@ -82,6 +82,6 @@ class ActiveSupport::TestCase
   end
 
   def single_database?
-    [ "config/solid_cache_database.yml", "config/solid_cache_no_database.yml" ].include?(ENV["SOLID_CACHE_CONFIG"])
+    [ "config/solid_cache_database.yml", "config/solid_cache_no_database.yml", "config/solid_cache_unprepared_statements.yml" ].include?(ENV["SOLID_CACHE_CONFIG"])
   end
 end
