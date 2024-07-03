@@ -112,12 +112,8 @@ module SolidCache
         end
 
         def get_all_sql(key_hashes)
-          if connection.prepared_statements?
-            @get_all_sql_binds ||= {}
-            @get_all_sql_binds[key_hashes.count] ||= build_sql(where(key_hash: key_hashes).select(:key, :value))
-          else
-            @get_all_sql_no_binds ||= build_sql(where(key_hash: [ 1, 2 ]).select(:key, :value)).gsub("?, ?", "?")
-          end
+          @get_all_sql_binds ||= {}
+          @get_all_sql_binds[key_hashes.count] ||= build_sql(where(key_hash: key_hashes).select(:key, :value))
         end
 
         def build_sql(relation)
@@ -134,7 +130,7 @@ module SolidCache
             if connection.prepared_statements?
               result = connection.select_all(sanitize_sql(query), "#{name} Load", Array(values), preparable: true)
             else
-              result = connection.select_all(sanitize_sql([ query, values ]), "#{name} Load", Array(values), preparable: false)
+              result = connection.select_all(sanitize_sql([ query, *values ]), "#{name} Load", Array(values), preparable: false)
             end
 
             result.cast_values(SolidCache::Entry.attribute_types)
