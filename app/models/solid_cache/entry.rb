@@ -134,7 +134,7 @@ module SolidCache
             if connection.prepared_statements?
               result = connection.select_all(sanitize_sql(query), "#{name} Load", Array(values), preparable: true)
             else
-              result = connection.select_all(sanitize_sql([ query, Array(values) ]), "#{name} Load", Array(values), preparable: false)
+              result = connection.select_all(sanitize_sql([ query, values ]), "#{name} Load", binds, preparable: false)
             end
 
             result.cast_values(SolidCache::Entry.attribute_types)
