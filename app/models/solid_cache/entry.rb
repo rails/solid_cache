@@ -116,7 +116,7 @@ module SolidCache
             @get_all_sql_binds ||= {}
             @get_all_sql_binds[key_hashes.count] ||= build_sql(where(key_hash: key_hashes).select(:key, :value))
           else
-            if keys.size == 1
+            if key_hashes.size == 1
               @get_all_sql_no_binds_one_key ||= build_sql(where(key_hash: 1).select(:key, :value))
             else
               @get_all_sql_no_binds_many_keys ||= build_sql(where(key_hash: [ 1, 2 ]).select(:key, :value)).gsub("?, ?", "?")
