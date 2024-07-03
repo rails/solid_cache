@@ -112,16 +112,8 @@ module SolidCache
         end
 
         def get_all_sql(key_hashes)
-          if connection.prepared_statements?
-            @get_all_sql_binds ||= {}
-            @get_all_sql_binds[key_hashes.count] ||= build_sql(where(key_hash: key_hashes).select(:key, :value))
-          else
-            if key_hashes.size == 1
-              @get_all_sql_no_binds_one_key ||= build_sql(where(key_hash: 1).select(:key, :value))
-            else
-              @get_all_sql_no_binds_many_keys ||= build_sql(where(key_hash: [ 1, 2 ]).select(:key, :value)).gsub("?, ?", "?")
-            end
-          end
+          @get_all_sql_binds ||= {}
+          @get_all_sql_binds[key_hashes.count] ||= build_sql(where(key_hash: key_hashes).select(:key, :value))
         end
 
         def build_sql(relation)
@@ -135,11 +127,11 @@ module SolidCache
 
         def select_all_no_query_cache(query, values)
           uncached do
-            if connection.prepared_statements?
-              result = connection.select_all(sanitize_sql(query), "#{name} Load", Array(values), preparable: true)
-            else
-              result = connection.select_all(sanitize_sql([ query, values ]), "#{name} Load", Array(values), preparable: false)
+            binds = Array(values).map do |value|
+              ActiveRecord::Relation::QueryAttribute.new("key_hash", value, SolidCache::Entry.type_for_attribute("key_hash"))
             end
+
+            result = connection.select_all(sanitize_sql(query), "#{name} Load", binds, preparable: true)
 
             result.cast_values(SolidCache::Entry.attribute_types)
           end
