@@ -66,7 +66,7 @@ module SolidCache
 
       private
         def upsert_all_no_query_cache(payloads)
-          args = [ self,
+          args = [ self.all,
                    connection_for_insert_all,
                    add_key_hash_and_byte_size(payloads) ].compact
           options = { unique_by: upsert_unique_by,
