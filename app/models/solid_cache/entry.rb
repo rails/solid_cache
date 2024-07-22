@@ -112,8 +112,8 @@ module SolidCache
         end
 
         def get_all_sql(key_hashes)
-          @get_all_sql_binds ||= {}
-          @get_all_sql_binds[key_hashes.count] ||= build_sql(where(key_hash: key_hashes).select(:key, :value))
+          @get_all_sql ||= {}
+          @get_all_sql[key_hashes.count] ||= build_sql(where(key_hash: key_hashes).select(:key, :value))
         end
 
         def build_sql(relation)
