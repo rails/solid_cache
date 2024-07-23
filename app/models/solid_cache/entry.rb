@@ -52,7 +52,7 @@ module SolidCache
           uncached do
             result = lock.where(key_hash: key_hash_for(key)).pick(:key, :value)
             new_value = block.call(result&.first == key ? result[1] : nil)
-            write(key, new_value)
+            write(key, new_value) if new_value
             new_value
           end
         end

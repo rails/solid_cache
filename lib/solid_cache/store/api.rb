@@ -39,16 +39,27 @@ module SolidCache
           entry_read(key)
         end
 
-        def write_entry(key, entry, raw: false, **options)
+        def write_entry(key, entry, raw: false, unless_exist: false, **options)
           payload = serialize_entry(entry, raw: raw, **options)
-          # No-op for us, but this writes it to the local cache
-          write_serialized_entry(key, payload, raw: raw, **options)
 
-          entry_write(key, payload)
+          if unless_exist
+            written = false
+            entry_lock_and_write(key) do |value|
+              if value.nil? || deserialize_entry(value, **options).expired?
+                written = true
+                payload
+              end
+            end
+          else
+            written = entry_write(key, payload)
+          end
+
+          write_serialized_entry(key, payload, raw: raw, returning: written, **options)
+          written
         end
 
-        def write_serialized_entry(key, payload, raw: false, unless_exist: false, expires_in: nil, race_condition_ttl: nil, **options)
-          true
+        def write_serialized_entry(key, payload, raw: false, unless_exist: false, expires_in: nil, race_condition_ttl: nil, returning: true, **options)
+          returning
         end
 
         def read_serialized_entries(keys)
