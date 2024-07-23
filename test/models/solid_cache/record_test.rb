@@ -7,7 +7,7 @@ module SolidCache
     test "each_shard" do
       shards = SolidCache::Record.each_shard.map { SolidCache::Record.current_shard }
       case ENV["SOLID_CACHE_CONFIG"]
-      when "config/solid_cache_no_database.yml", "config/solid_cache_database.yml"
+      when "config/solid_cache_no_database.yml", "config/solid_cache_database.yml", "config/solid_cache_unprepared_statements.yml"
         assert_equal [ :default ], shards
       when "config/solid_cache_connects_to.yml", "config/solid_cache_shards.yml", nil
         assert_equal [ :primary_shard_one, :primary_shard_two, :secondary_shard_one, :secondary_shard_two ], shards
@@ -19,7 +19,7 @@ module SolidCache
     test "each_shard uses the default role" do
       role = ActiveRecord::Base.connected_to(role: :reading) { SolidCache::Record.each_shard.map { SolidCache::Record.current_role } }
       case ENV["SOLID_CACHE_CONFIG"]
-      when "config/solid_cache_no_database.yml", "config/solid_cache_database.yml"
+      when "config/solid_cache_no_database.yml", "config/solid_cache_database.yml", "config/solid_cache_unprepared_statements.yml"
         assert_equal [ :reading ], role
       when "config/solid_cache_connects_to.yml", "config/solid_cache_shards.yml", nil
         assert_equal [ :writing, :writing, :writing, :writing ], role
