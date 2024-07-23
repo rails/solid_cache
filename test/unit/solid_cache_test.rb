@@ -54,6 +54,17 @@ class SolidCacheTest < ActiveSupport::TestCase
     cache = lookup_store(max_age: 7200)
     assert_equal 7200, cache.max_age
   end
+
+  def test_write_with_unless_exist
+    assert_equal true, @cache.write("foo", 1)
+    assert_equal false, @cache.write("foo", 1, unless_exist: true)
+  end
+
+  def test_write_expired_value_with_unless_exist
+    assert_equal true, @cache.write(1, "aaaa", expires_in: 1.second)
+    travel 2.seconds
+    assert_equal true, @cache.write(1, "bbbb", expires_in: 1.second, unless_exist: true)
+  end
 end
 
 class SolidCacheFailsafeTest < ActiveSupport::TestCase

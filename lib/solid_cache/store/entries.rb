@@ -29,7 +29,9 @@ module SolidCache
 
         def entry_lock_and_write(key, &block)
           writing_key(key, failsafe: :increment) do
-            Entry.lock_and_write(key, &block)
+            Entry.lock_and_write(key) do |value|
+              block.call(value).tap { |result| track_writes(1) if result }
+            end
           end
         end
 
