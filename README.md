@@ -38,13 +38,29 @@ Or install it yourself as:
 $ gem install solid_cache
 ```
 
-Add the migration to your app:
+Now, you need to install the necessary migrations and configure the cache store. You can do both at once using the provided generator:
+
+```bash
+$ bin/rails generate solid_cache:install
+```
+
+This will set solid_cache as the cache store in production, and will copy the optional configuration file and the required migration over to your app.
+
+Alternatively, you can add only the migration to your app:
 
 ```bash
 $ bin/rails solid_cache:install:migrations
 ```
 
-Then run it:
+And set Solid Cache as your application's cache store backend manually, in your environment config:
+
+```ruby
+# config/environments/production.rb
+config.cache_store = :solid_cache_store
+```
+
+Finally, you need to run the migrations:
+
 ```bash
 $ bin/rails db:migrate
 ```
