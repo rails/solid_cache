@@ -41,7 +41,7 @@ $ gem install solid_cache
 Add the migration to your app:
 
 ```bash
-$ bin/rails solid_cache:install:migrations
+$ bin/rails solid_cache:install
 ```
 
 Then run it:
