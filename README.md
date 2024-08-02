@@ -59,12 +59,6 @@ And set Solid Cache as your application's cache store backend manually, in your 
 config.cache_store = :solid_cache_store
 ```
 
-Add the migration to your app:
-
-```bash
-$ bin/rails solid_cache:install
-```
-
 Finally, you need to run the migrations:
 
 ```bash
