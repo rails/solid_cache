@@ -20,13 +20,12 @@ module SolidCache
       end
 
       def read(key)
-        result = select_all_no_query_cache(get_sql, key_hash_for(key)).first
+        result = select_all_no_query_cache([key]).first
         result[1] if result&.first == key
       end
 
       def read_multi(keys)
-        key_hashes = keys.map { |key| key_hash_for(key) }
-        results = select_all_no_query_cache(get_all_sql(key_hashes), key_hashes).to_h
+        results = select_all_no_query_cache(keys).to_h
         results.except!(results.keys - keys)
       end
 
@@ -107,34 +106,19 @@ module SolidCache
           [ :key, :value, :byte_size ]
         end
 
-        def get_sql
-          @get_sql ||= build_sql(where(key_hash: 1).select(:key, :value))
-        end
-
-        def get_all_sql(key_hashes)
-          @get_all_sql ||= {}
-          @get_all_sql[key_hashes.count] ||= build_sql(where(key_hash: key_hashes).select(:key, :value))
-        end
-
-        def build_sql(relation)
-          collector = Arel::Collectors::Composite.new(
-            Arel::Collectors::SQLString.new,
-            Arel::Collectors::Bind.new,
-          )
-
-          connection.visitor.compile(relation.arel.ast, collector)[0]
-        end
-
-        def select_all_no_query_cache(query, values)
+        def select_all_no_query_cache(keys)
           uncached do
-            if connection.prepared_statements?
-              result = connection.select_all(sanitize_sql(query), "#{name} Load", Array(values), preparable: true)
-            else
-              result = connection.select_all(sanitize_sql([ query, *values ]), "#{name} Load", Array(values), preparable: false)
-            end
-
-            result.cast_values(SolidCache::Entry.attribute_types)
+            find_by_sql([select_sql(keys), *key_hashes_for(keys)]).pluck(:key, :value)
           end
+        end
+
+        def select_sql(keys)
+          @get_sql ||= {}
+          @get_sql[keys.count] ||= \
+            where(key_hash: [ "1111", "2222" ])
+              .select(:key, :value)
+              .to_sql
+              .gsub("1111, 2222", (["?"] * keys.count).join(", "))
         end
 
         def delete_no_query_cache(attribute, values)
@@ -158,6 +142,10 @@ module SolidCache
         def key_hash_for(key)
           # Need to unpack this as a signed integer - Postgresql and SQLite don't support unsigned integers
           Digest::SHA256.digest(key.to_s).unpack("q>").first
+        end
+
+        def key_hashes_for(keys)
+          keys.map { |key| key_hash_for(key) }
         end
 
         def byte_size_for(payload)
