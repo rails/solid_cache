@@ -18,6 +18,8 @@ module SolidCache
 
       options[:connects_to] = config.solid_cache.connects_to if config.solid_cache.connects_to
       options[:size_estimate_samples] = config.solid_cache.size_estimate_samples if config.solid_cache.size_estimate_samples
+      options[:encrypt] = config.solid_cache.encrypt if config.solid_cache.encrypt
+      options[:encryption_context_properties] = config.solid_cache.encryption_context_properties if config.solid_cache.encryption_context_properties
 
       SolidCache.configuration = SolidCache::Configuration.new(**options)
 
@@ -32,6 +34,14 @@ module SolidCache
 
     config.after_initialize do
       Rails.cache.setup! if Rails.cache.is_a?(Store)
+    end
+
+    config.after_initialize do
+      if SolidCache.configuration.encrypt? && SolidCache::Record.connection.adapter_name == "PostgreSQL"
+        raise \
+          "Cannot enable encryption for Solid Cache: Active Record Encryption does not currently support " \
+          "encrypting binary columns on PostgreSQL"
+      end
     end
   end
 end

@@ -15,7 +15,9 @@ def run_without_aborting(*tasks)
 
   tasks.each do |task|
     Rake::Task[task].invoke
-  rescue Exception
+  rescue Exception => e
+    puts e.message
+    puts e.backtrace
     errors << task
   end
 
@@ -23,7 +25,7 @@ def run_without_aborting(*tasks)
 end
 
 def configs
-  [ :default, :connects_to, :database, :no_database, :shards, :unprepared_statements ]
+  [ :default, :connects_to, :database, :encrypted, :encrypted_custom, :no_database, :shards, :unprepared_statements ]
 end
 
 task :test do
@@ -34,6 +36,11 @@ end
 configs.each do |config|
   namespace :test do
     task config do
+      if config.to_s.start_with?("encrypted") && ENV["TARGET_DB"] == "postgres"
+        puts "Skipping encrypted tests on PostgreSQL as binary encrypted columns are not supported by Rails yet"
+        next
+      end
+
       if config == :default
         sh("bin/rails test")
       else
@@ -42,3 +49,5 @@ configs.each do |config|
     end
   end
 end
+
+task default: [:test]

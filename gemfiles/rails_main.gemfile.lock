@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/rails/rails.git
-  revision: d7f93473682d9b64ab268a6736d5af2853e97ce2
+  revision: abc4538300e8a2897f350611666d7e64021e6d16
   branch: main
   specs:
     actionpack (8.0.0.alpha)
@@ -95,7 +95,13 @@ GEM
       ruby2_keywords (>= 0.0.5)
     msgpack (1.7.2)
     mysql2 (0.5.6)
+    nokogiri (1.16.7-aarch64-linux)
+      racc (~> 1.4)
+    nokogiri (1.16.7-arm-linux)
+      racc (~> 1.4)
     nokogiri (1.16.7-arm64-darwin)
+      racc (~> 1.4)
+    nokogiri (1.16.7-x86-linux)
       racc (~> 1.4)
     nokogiri (1.16.7-x86_64-darwin)
       racc (~> 1.4)
@@ -171,9 +177,16 @@ GEM
       actionpack (>= 6.1)
       activesupport (>= 6.1)
       sprockets (>= 3.0.0)
+    sqlite3 (2.0.3-aarch64-linux-gnu)
+    sqlite3 (2.0.3-aarch64-linux-musl)
+    sqlite3 (2.0.3-arm-linux-gnu)
+    sqlite3 (2.0.3-arm-linux-musl)
     sqlite3 (2.0.3-arm64-darwin)
+    sqlite3 (2.0.3-x86-linux-gnu)
+    sqlite3 (2.0.3-x86-linux-musl)
     sqlite3 (2.0.3-x86_64-darwin)
     sqlite3 (2.0.3-x86_64-linux-gnu)
+    sqlite3 (2.0.3-x86_64-linux-musl)
     stringio (3.1.1)
     strscan (3.1.0)
     thor (1.3.1)
@@ -186,12 +199,20 @@ GEM
     zeitwerk (2.6.17)
 
 PLATFORMS
-  arm64-darwin-21
-  arm64-darwin-22
-  arm64-darwin-23
-  x86_64-darwin-20
-  x86_64-darwin-22
+  aarch64-linux
+  aarch64-linux-gnu
+  aarch64-linux-musl
+  arm-linux
+  arm-linux-gnu
+  arm-linux-musl
+  arm64-darwin
+  x86-linux
+  x86-linux-gnu
+  x86-linux-musl
+  x86_64-darwin
   x86_64-linux
+  x86_64-linux-gnu
+  x86_64-linux-musl
 
 DEPENDENCIES
   appraisal
@@ -212,4 +233,4 @@ DEPENDENCIES
   sqlite3
 
 BUNDLED WITH
-   2.5.9
+   2.5.17
