@@ -272,6 +272,11 @@ config.solid_cache.encryption_context_properties = {
 }
 ```
 
+**Note**
+
+Encryption currently does not work for PostgreSQL, as Rails does not yet support encrypting binary columns for it.
+See https://github.com/rails/rails/pull/52650.
+
 ### Index size limits
 The Solid Cache migrations try to create an index with 1024 byte entries. If that is too big for your database, you should:
 

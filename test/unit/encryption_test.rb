@@ -40,7 +40,13 @@ class SolidCache::EncryptionTest < ActiveSupport::TestCase
 
   private
     def raw_first_value
-      SolidCache::Entry.connection.select_all("select * from solid_cache_entries order by id desc limit 1").first["value"]
+      raw = SolidCache::Entry.connection.select_all("select * from solid_cache_entries order by id desc limit 1").first["value"]
+
+      if ActiveRecord::Base.connection.adapter_name == "PostgreSQL"
+        ActiveRecord::Base.connection.unescape_bytea(raw)
+      else
+        raw
+      end
     end
 
     def first_value
