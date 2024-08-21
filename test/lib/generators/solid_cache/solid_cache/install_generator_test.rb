@@ -29,7 +29,7 @@ module SolidCache
       def expected_config
         <<~YAML
           default: &default
-            database: <%= Rails.env %>
+            database: cache
             store_options:
               max_age: <%= 1.week.to_i %>
               max_size: <%= 256.megabytes %>
