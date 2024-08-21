@@ -187,20 +187,7 @@ $ bin/rails db:create
 
 Install migrations:
 ```
-$ bin/rails solid_cache:install:migrations
-```
-
-Move migrations to custom migrations folder:
-```
-$ mkdir -p db/cache/migrate
-$ mv db/migrate/*.solid_cache.rb db/cache/migrate
-```
-
-Set the engine configuration to point to the new database:
-```yaml
-# config/solid_cache.yml
-production:
-  database: cache
+$ DATABASE=cache bin/rails solid_cache:install:migrations
 ```
 
 Run migrations:
