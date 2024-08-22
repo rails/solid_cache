@@ -19,7 +19,7 @@ module SolidCache
     test "generator updates environment config" do
       run_generator [ "--skip-migrations" ]
       assert_file "#{destination_root}/config/solid_cache.yml", expected_config
-      assert_file "#{destination_root}/config/environments/development.rb", /config.cache_store = :solid_cache_store\n/
+      assert_file "#{destination_root}/config/environments/development.rb", /config.cache_store = :memory_store\n/
       assert_file "#{destination_root}/config/environments/development.rb", /config.cache_store = :null_store\n/
       assert_file "#{destination_root}/config/environments/test.rb", /config.cache_store = :null_store\n/
       assert_file "#{destination_root}/config/environments/production.rb", /config.cache_store = :solid_cache_store\n/
