@@ -85,12 +85,9 @@ module SolidCache
         end
 
         def select_sql(keys)
-          @get_sql ||= {}
-          @get_sql[keys.count] ||= \
-            where(key_hash: [ "1111", "2222" ])
-              .select(:key, :value)
-              .to_sql
-              .gsub("1111, 2222", (["?"] * keys.count).join(", "))
+          @select_sql ||= {}
+          @select_sql[keys.count] ||= \
+            "SELECT key, value FROM #{table_name} WHERE key_hash IN (#{Array.new(keys.count, "?").join(", ")})"
         end
 
         def key_hash_for(key)
