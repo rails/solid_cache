@@ -33,7 +33,7 @@ module SolidCache
 
       def read_multi(keys)
         without_query_cache do
-          find_by_sql([select_sql(keys), *key_hashes_for(keys)]).pluck(:key, :value).to_h
+          connection.select_rows(select_sql(keys), "SQL", key_hashes_for(keys)).to_h
         end
       end
 
