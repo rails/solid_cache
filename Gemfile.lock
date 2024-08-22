@@ -125,7 +125,7 @@ GEM
     regexp_parser (2.8.3)
     reline (0.5.9)
       io-console (~> 0.5)
-    rexml (3.3.3)
+    rexml (3.3.6)
       strscan
     rubocop (1.59.0)
       json (~> 2.3)
