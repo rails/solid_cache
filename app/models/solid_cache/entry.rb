@@ -40,7 +40,7 @@ module SolidCache
             find_by_sql(query).pluck(:key, :value).to_h
           else
             # If encryption is disabled, we can go straight to the database.
-            connection.select_rows(query).to_h
+            connection.select_all(query, "SolidCache::Entry Load").cast_values.to_h
           end
         end
       end
