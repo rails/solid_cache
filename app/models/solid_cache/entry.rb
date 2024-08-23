@@ -33,7 +33,15 @@ module SolidCache
 
       def read_multi(keys)
         without_query_cache do
-          connection.select_rows(select_sql(keys), "SQL", key_hashes_for(keys)).to_h
+          query = Arel.sql(select_sql(keys), *key_hashes_for(keys))
+
+          if SolidCache.configuration.encrypt?
+            # If encryption is enabled, we need to go through AR to decrypt the columns.
+            find_by_sql(query).pluck(:key, :value).to_h
+          else
+            # If encryption is disabled, we can go straight to the database.
+            connection.select_rows(query).to_h
+          end
         end
       end
 
