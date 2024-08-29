@@ -35,13 +35,7 @@ module SolidCache
         without_query_cache do
           query = Arel.sql(select_sql(keys), *key_hashes_for(keys))
 
-          if SolidCache.configuration.encrypt?
-            # If encryption is enabled, we need to go through AR to decrypt the columns.
-            find_by_sql(query).pluck(:key, :value).to_h
-          else
-            # If encryption is disabled, we can go straight to the database.
-            connection.select_all(query, "SolidCache::Entry Load").cast_values.to_h
-          end
+          connection.select_all(query, "SolidCache::Entry Load").cast_values(attribute_types).to_h
         end
       end
 
