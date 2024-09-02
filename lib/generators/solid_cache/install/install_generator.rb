@@ -3,9 +3,6 @@
 class SolidCache::InstallGenerator < Rails::Generators::Base
   source_root File.expand_path("templates", __dir__)
 
-  class_option :skip_migrations,    type: :boolean, default: nil,
-                                    desc: "Skip migrations"
-
   def add_rails_cache
     if (env_config = app_root.join("config/environments/production.rb")).exist?
       gsub_file env_config, /(# )?config\.cache_store = (:.*)/, "config.cache_store = :solid_cache_store"
@@ -27,9 +24,7 @@ class SolidCache::InstallGenerator < Rails::Generators::Base
   end
 
   def create_migrations
-    unless options[:skip_migrations]
-      rails_command "railties:install:migrations DB=cache FROM=solid_cache", inline: true
-    end
+    rails_command "railties:install:migrations DATABASE=cache FROM=solid_cache", inline: true
   end
 
   private
