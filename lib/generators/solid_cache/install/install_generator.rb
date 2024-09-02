@@ -4,9 +4,8 @@ class SolidCache::InstallGenerator < Rails::Generators::Base
   source_root File.expand_path("templates", __dir__)
 
   def add_rails_cache
-    if (env_config = app_root.join("config/environments/production.rb")).exist?
-      gsub_file env_config, /(# )?config\.cache_store = (:.*)/, "config.cache_store = :solid_cache_store"
-    end
+    gsub_file app_root.join("config/environments/production.rb"),
+      /(# )?config\.cache_store = (:.*)/, "config.cache_store = :solid_cache_store"
   end
 
   def create_config_solid_cache_yml
@@ -14,12 +13,10 @@ class SolidCache::InstallGenerator < Rails::Generators::Base
   end
 
   def add_cache_db_to_database_yml
-    if app_root.join("config/database.yml").exist?
-      if app_is_using_sqlite?
-        gsub_file database_yml, /production:\s*<<: \*default.*/m, sqlite_database_config_with_cache
-      else
-        gsub_file database_yml, /production:\s*<<: \*default.*/m, generic_database_config_with_cache
-      end
+    if app_is_using_sqlite?
+      gsub_file database_yml, /production:\s*<<: \*default.*/m, sqlite_database_config_with_cache
+    else
+      gsub_file database_yml, /production:\s*<<: \*default.*/m, generic_database_config_with_cache
     end
   end
 
