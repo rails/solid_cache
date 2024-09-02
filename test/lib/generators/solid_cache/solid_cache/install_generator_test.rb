@@ -17,6 +17,7 @@ module SolidCache
     end
 
     test "generator updates environment config" do
+      copy_database_config_fixture_to_destination_root "sqlite"
       run_generator [ "--skip-migrations" ]
       assert_file "#{destination_root}/config/solid_cache.yml", expected_solid_cache_config
       assert_file "#{destination_root}/config/environments/development.rb", /config.cache_store = :memory_store\n/
