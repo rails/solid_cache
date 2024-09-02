@@ -23,8 +23,8 @@ class SolidCache::InstallGenerator < Rails::Generators::Base
     end
   end
 
-  def create_migrations
-    rails_command "railties:install:migrations DATABASE=cache FROM=solid_cache", inline: true
+  def add_solid_cache_db_schema
+    template "db/cache_schema.rb"
   end
 
   private
