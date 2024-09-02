@@ -15,11 +15,21 @@ module SolidCache
       end
 
       def increment(name, amount = 1, options = nil)
-        adjust(name, amount, options)
+        options = merged_options(options)
+        key = normalize_key(name, options)
+
+        instrument :increment, key, amount: amount do
+          adjust(name, amount, options)
+        end
       end
 
       def decrement(name, amount = 1, options = nil)
-        adjust(name, -amount, options)
+        options = merged_options(options)
+        key = normalize_key(name, options)
+
+        instrument :decrement, key, amount: amount do
+          adjust(name, -amount, options)
+        end
       end
 
       def cleanup(options = nil)

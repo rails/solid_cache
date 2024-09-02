@@ -55,7 +55,8 @@ module LocalCacheBehavior
     begin
       @cache.cleanup
     rescue NotImplementedError
-      skip
+      pass
+      return # Not implementing cleanup is valid
     end
 
     key = SecureRandom.uuid
@@ -157,7 +158,7 @@ module LocalCacheBehavior
     begin
       @cache.delete_matched("*")
     rescue NotImplementedError
-      skip
+      return # Not implementing delete_matched is valid
     end
 
     prefix = SecureRandom.alphanumeric
@@ -242,7 +243,6 @@ module LocalCacheBehavior
   end
 
   def test_local_cache_of_read_multi_prioritizes_local_entries
-    skip if Rails::VERSION::MAJOR == 7 && Rails::VERSION::MINOR < 2
     key = "key#{rand}"
     @cache.with_local_cache do
       @cache.write(key, "foo")
