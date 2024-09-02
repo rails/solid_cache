@@ -33,7 +33,9 @@ module SolidCache
 
       def read_multi(keys)
         without_query_cache do
-          find_by_sql([select_sql(keys), *key_hashes_for(keys)]).pluck(:key, :value).to_h
+          query = Arel.sql(select_sql(keys), *key_hashes_for(keys))
+
+          connection.select_all(query, "SolidCache::Entry Load").cast_values(attribute_types).to_h
         end
       end
 
@@ -84,13 +86,24 @@ module SolidCache
           connection.supports_insert_conflict_target? ? :key_hash : nil
         end
 
+        # This constructs and caches a SQL query for a given number of keys.
+        #
+        # The query is constructed with two bind parameters to generate an IN (...) condition,
+        # which is then replaced with the correct amount based on the number of keys. The
+        # parameters are filled later when executing the query. This is done through Active Record
+        # to ensure the field and table names are properly quoted and escaped based on the used database adapter.
+
+        # For example: The query for 4 keys will be transformed from:
+        # > SELECT "key", "value" FROM "solid_cache_entries" WHERE "key_hash" IN (1111, 2222)
+        # into:
+        # > SELECT "key", "value" FROM "solid_cache_entries" WHERE "key_hash" IN (?, ?, ?, ?)
         def select_sql(keys)
-          @get_sql ||= {}
-          @get_sql[keys.count] ||= \
-            where(key_hash: [ "1111", "2222" ])
+          @select_sql ||= {}
+          @select_sql[keys.count] ||= \
+            where(key_hash: [ 1111, 2222 ])
               .select(:key, :value)
               .to_sql
-              .gsub("1111, 2222", (["?"] * keys.count).join(", "))
+              .gsub("1111, 2222", Array.new(keys.count, "?").join(", "))
         end
 
         def key_hash_for(key)
