@@ -4,76 +4,15 @@ Solid Cache is a database-backed Active Support cache store that let's you keep 
 
 ## Installation
 
-Solid Cache is configured by default in new Rails 8 applications. But if you're running an earlier version, you can add it manually using `bundle add solid_cache`.
+Solid Cache is configured by default in new Rails 8 applications. But if you're running an earlier version, you can add it manually following these steps:
 
-#### Cache database configuration
+1. `bundle add solid_cache`
+2. `bin/rails solid_cache:install`
+3. `bin/rails db:migrate`
 
-The default installation of Solid Cache expects a database named `cache` in `database.yml`. It should
-have it's own connection pool to avoid mixing cache queries in other transactions.
+This will configure Solid Queue as the production cache store, create `config/solid_cache.yml`, and alter `config/database.yml` to include the new cache database.
 
-You can use the primary database for your cache like this:
-
-```yaml
-# config/database.yml
-production:
-  primary: &production_primary
-    ...
-  cache:
-    <<: *production_primary
-```
-
-Or a separate database like this:
-
-```yaml
-production:
-  primary:
-    ...
-  cache:
-    database: cache_development
-    host: 127.0.0.1
-    migrations_paths: "db/cache/migrate"
-```
-
-#### Install Solid Cache
-
-Now, you need to install the necessary migrations and configure the cache store. You can do both at once using the provided generator:
-
-```bash
-# If using the primary database
-$ bin/rails generate solid_cache:install
-
-# Or if using a dedicated database
-$ DATABASE=cache bin/rails generate solid_cache:install
-```
-
-This will set solid_cache as the cache store in production, and will copy the optional configuration file and the required migration over to your app.
-
-Alternatively, you can add only the migration to your app:
-
-```bash
-# If using the primary database
-$ bin/rails generate solid_cache:install:migrations
-
-# Or if using a dedicated database
-$ DATABASE=cache bin/rails generate solid_cache:install:migrations
-```
-
-And set Solid Cache as your application's cache store backend manually, in your environment config:
-
-```ruby
-# config/environments/production.rb
-config.cache_store = :solid_cache_store
-```
-
-#### Run migrations
-
-Finally, you need to run the migrations:
-
-```bash
-$ bin/rails db:migrate
-```
-
-### Configuration
+## Configuration
 
 Configuration will be read from `config/solid_cache.yml`. You can change the location of the config file by setting the `SOLID_CACHE_CONFIG` env variable.
 
@@ -101,7 +40,7 @@ production: &production
 
 For the full list of keys for `store_options` see [Cache configuration](#cache-configuration). Any options passed to the cache lookup will overwrite those specified here.
 
-#### Connection configuration
+### Connection configuration
 
 You can set one of `database`, `databases` and `connects_to` in the config file. They will be used to configure the cache databases in `SolidCache::Record#connects_to`.
 
@@ -119,10 +58,9 @@ SolidCache::Record.connects_to shards: { cache_db1: { writing: :cache_db1 },  ca
 
 If `connects_to` is set, it will be passed directly.
 
-If none of these are set, Solid Cache will use the `ActiveRecord::Base` connection pool. This means that cache reads and writes will be part of any wrapping
-database transaction.
+If none of these are set, Solid Cache will use the `ActiveRecord::Base` connection pool. This means that cache reads and writes will be part of any wrapping database transaction.
 
-#### Engine configuration
+### Engine configuration
 
 There are three options that can be set on the engine:
 
@@ -140,7 +78,7 @@ Rails.application.configure do
 end
 ```
 
-#### Cache configuration
+### Cache configuration
 
 Solid Cache supports these options in addition to the standard `ActiveSupport::Cache::Store` options:
 
@@ -160,7 +98,7 @@ Solid Cache supports these options in addition to the standard `ActiveSupport::C
 
 For more information on cache clusters, see [Sharding the cache](#sharding-the-cache)
 
-### Cache expiry
+## Cache expiry
 
 Solid Cache tracks writes to the cache. For every write it increments a counter by 1. Once the counter reaches 50% of the `expiry_batch_size` it adds a task to run on a background thread. That task will:
 
@@ -176,7 +114,7 @@ Only triggering expiry when we write means that if the cache is idle, the backgr
 
 If you want the cache expiry to be run in a background job instead of a thread, you can set `expiry_method` to `:job`. This will enqueue a `SolidCache::ExpiryJob`.
 
-### Sharding the cache
+## Sharding the cache
 
 Solid Cache uses the [Maglev](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/44824.pdf) consistent hashing scheme to shard the cache across multiple databases.
 
@@ -207,7 +145,7 @@ production:
   databases: [cache_shard1, cache_shard2, cache_shard3]
 ```
 
-### Enabling encryption
+## Enabling encryption
 
 To encrypt the cache values, you can add set the encrypt property.
 
@@ -245,7 +183,7 @@ config.solid_cache.encryption_context_properties = {
 Encryption currently does not work for PostgreSQL, as Rails does not yet support encrypting binary columns for it.
 See https://github.com/rails/rails/pull/52650.
 
-### Index size limits
+## Index size limits
 The Solid Cache migrations try to create an index with 1024 byte entries. If that is too big for your database, you should:
 
 1. Edit the index size in the migration.
