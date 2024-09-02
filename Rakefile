@@ -36,7 +36,7 @@ end
 configs.each do |config|
   namespace :test do
     task config do
-      if config.to_s.start_with?("encrypted") && ENV["TARGET_DB"] == "postgres"
+      if config.to_s.start_with?("encrypted") && ENV["TARGET_DB"] == "postgres" && Rails::VERSION::MAJOR <= 7
         puts "Skipping encrypted tests on PostgreSQL as binary encrypted columns are not supported by Rails yet"
         next
       end
