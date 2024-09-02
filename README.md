@@ -1,36 +1,10 @@
 # Solid Cache
 
-**Upgrading from v0.3.0 or earlier? Please see [upgrading to version v0.4.x and beyond](upgrading_to_version_0.4.x.md)**
-
-Solid Cache is a database-backed Active Support cache store implementation.
-
-Using SQL databases backed by SSDs we can have caches that are much larger and cheaper than traditional memory-only Redis or Memcached backed caches.
-
-## Introduction
-
-Solid Cache is a FIFO (first in, first out) cache. While this is not as efficient as an LRU cache, it is mitigated by the longer cache lifespan.
-
-A FIFO cache is much easier to manage:
-1. We don't need to track when items are read.
-2. We can estimate and control the cache size by comparing the maximum and minimum IDs.
-3. By deleting from one end of the table and adding at the other end we can avoid fragmentation (on MySQL at least).
+Solid Cache is a database-backed Active Support cache store that let's you keep a much larger cache than is typically possible with traditional memory-only Redis or Memcached stores. This is thanks to the speed of modern SSD drives, which make the access-time penalty of using disk vs RAM insignificant for most caching purposes. Simply put, you're now usually better off keeping a huge cache on disk rather than a small cache in memory.
 
 ## Installation
-Add this line to your application's `Gemfile`:
 
-```ruby
-gem "solid_cache"
-```
-
-And then execute:
-```bash
-$ bundle
-```
-
-Or install it yourself as:
-```bash
-$ gem install solid_cache
-```
+Solid Cache is configured by default in new Rails 8 applications. But if you're running an earlier version, you can add it manually using `bundle add solid_cache`.
 
 #### Cache database configuration
 
@@ -321,6 +295,20 @@ $ appraisal update
 ```
 
 This ensures that all the Rails versions dependencies are updated.
+
+## Implementation
+
+Solid Cache is a FIFO (first in, first out) cache. While this is not as efficient as an LRU cache, it is mitigated by the longer cache lifespan.
+
+A FIFO cache is much easier to manage:
+1. We don't need to track when items are read.
+2. We can estimate and control the cache size by comparing the maximum and minimum IDs.
+3. By deleting from one end of the table and adding at the other end we can avoid fragmentation (on MySQL at least).
+
+
+## Upgrading
+
+**Upgrading from v0.3.0 or earlier? Please see [upgrading to version v0.4.x and beyond](upgrading_to_version_0.4.x.md)**
 
 ## License
 Solid Cache is licensed under MIT.
