@@ -25,10 +25,10 @@ module SolidCache
       assert_file "#{destination_root}/config/environments/production.rb", /config.cache_store = :solid_cache_store\n/
     end
 
-   test "generator updates sqlite database config" do
-     copy_database_config_fixture_to_destination_root "sqlite"
-     run_generator [ "--skip-migrations" ]
-     assert_file "#{destination_root}/config/database.yml", <<~YAML
+    test "generator updates sqlite database config" do
+      copy_database_config_fixture_to_destination_root "sqlite"
+      run_generator [ "--skip-migrations" ]
+      assert_file "#{destination_root}/config/database.yml", <<~YAML
         # SQLite. Versions 3.8.0 and up are supported.
         #   gem install sqlite3
         #
@@ -62,13 +62,13 @@ module SolidCache
             <<: *default
             database: storage/production_cache.sqlite3
             migrations_paths: db/cache_migrate
-     YAML
-   end
+      YAML
+    end
 
-   test "generator updates mysql database config" do
-     copy_database_config_fixture_to_destination_root "mysql"
-     run_generator [ "--skip-migrations" ]
-     assert_file "#{destination_root}/config/database.yml", <<~YAML
+    test "generator updates mysql database config" do
+      copy_database_config_fixture_to_destination_root "mysql"
+      run_generator [ "--skip-migrations" ]
+      assert_file "#{destination_root}/config/database.yml", <<~YAML
         # MySQL. Versions 5.5.8 and up are supported.
         #
         # Install the MySQL driver
@@ -128,8 +128,8 @@ module SolidCache
           cache:
             <<: *production_primary
             database: bongo_production_cache
-     YAML
-   end
+      YAML
+    end
 
     private
       def expected_solid_cache_config

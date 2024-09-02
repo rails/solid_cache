@@ -55,7 +55,7 @@ production:
     <<: *default
     database: storage/production_cache.sqlite3
     migrations_paths: db/cache_migrate
-YAML
+      YAML
     end
 
     def app_name_from_production_database_name
@@ -75,6 +75,6 @@ production:
   cache:
     <<: *production_primary
     database: #{app_name}_production_cache
-YAML
+      YAML
     end
 end
