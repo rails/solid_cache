@@ -14,6 +14,7 @@ AllCops:
   Exclude:
     # These have been copied from the Rails repo
     - test/unit/behaviors/*
+    - test/unit/behaviors_rails*/*
     # Don't rubocop generated files
     - test/dummy/**/*
     - bin/*
