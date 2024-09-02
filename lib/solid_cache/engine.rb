@@ -37,9 +37,9 @@ module SolidCache
     end
 
     config.after_initialize do
-      if SolidCache.configuration.encrypt? && SolidCache::Record.connection.adapter_name == "PostgreSQL"
+      if SolidCache.configuration.encrypt? && Record.connection.adapter_name == "PostgreSQL" && Rails::VERSION::MAJOR <= 7
         raise \
-          "Cannot enable encryption for Solid Cache: Active Record Encryption does not currently support " \
+          "Cannot enable encryption for Solid Cache: in Rails 7, Active Record Encryption does not support " \
           "encrypting binary columns on PostgreSQL"
       end
     end
