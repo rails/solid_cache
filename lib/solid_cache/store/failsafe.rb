@@ -3,6 +3,16 @@
 module SolidCache
   class Store
     module Failsafe
+      TRANSIENT_ACTIVE_RECORD_ERRORS = [
+        ActiveRecord::AdapterTimeout,
+        ActiveRecord::ConnectionNotEstablished,
+        ActiveRecord::ConnectionTimeoutError,
+        ActiveRecord::Deadlocked,
+        ActiveRecord::LockWaitTimeout,
+        ActiveRecord::QueryCanceled,
+        ActiveRecord::StatementTimeout
+      ]
+
       DEFAULT_ERROR_HANDLER = ->(method:, returning:, exception:) do
         if Store.logger
           Store.logger.error { "SolidCacheStore: #{method} failed, returned #{returning.inspect}: #{exception.class}: #{exception.message}" }
@@ -20,7 +30,7 @@ module SolidCache
 
         def failsafe(method, returning: nil)
           yield
-        rescue ActiveRecord::ActiveRecordError => error
+        rescue *TRANSIENT_ACTIVE_RECORD_ERRORS => error
           ActiveSupport.error_reporter&.report(error, handled: true, severity: :warning)
           error_handler&.call(method: method, exception: error, returning: returning)
           returning
