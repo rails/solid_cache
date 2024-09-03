@@ -39,14 +39,14 @@ class SolidCache::InstallGenerator < Rails::Generators::Base
 
     def sqlite_database_config_with_cache
       <<~YAML
-production:
-  primary:
-    <<: *default
-    database: storage/production.sqlite3
-  cache:
-    <<: *default
-    database: storage/production_cache.sqlite3
-    migrations_paths: db/cache_migrate
+        production:
+          primary:
+            <<: *default
+            database: storage/production.sqlite3
+          cache:
+            <<: *default
+            database: storage/production_cache.sqlite3
+            migrations_paths: db/cache_migrate
       YAML
     end
 
