@@ -144,7 +144,7 @@ end
 
 Solid Cache supports these options in addition to the standard `ActiveSupport::Cache::Store` options:
 
-- `error_handler` - a Proc to call to handle any `ActiveRecord::ActiveRecordError`s that are raises (default: log errors as warnings)
+- `error_handler` - a Proc to call to handle any transient database errors that are raised (default: log errors as warnings)
 - `expiry_batch_size` - the batch size to use when deleting old records (default: `100`)
 - `expiry_method` - what expiry method to use `thread` or `job` (default: `thread`)
 - `expiry_queue` - which queue to add expiry jobs to (default: `default`)
