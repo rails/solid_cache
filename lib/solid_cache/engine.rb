@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support"
+require "active_record"
 
 module SolidCache
   class Engine < ::Rails::Engine
