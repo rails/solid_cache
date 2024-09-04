@@ -8,8 +8,8 @@ class SolidCache::InstallGenerator < Rails::Generators::Base
       /(# )?config\.cache_store = (:.*)/, "config.cache_store = :solid_cache_store"
   end
 
-  def create_config_solid_cache_yml
-    template "config/solid_cache.yml"
+  def create_config_cache_yml
+    template "config/cache.yml"
   end
 
   def add_cache_db_to_database_yml
