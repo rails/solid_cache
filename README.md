@@ -8,9 +8,36 @@ Solid Cache is configured by default in new Rails 8 applications. But if you're 
 
 1. `bundle add solid_cache`
 2. `bin/rails solid_cache:install`
-3. `bin/rails db:migrate`
 
-This will configure Solid Queue as the production cache store, create `config/solid_cache.yml`, and alter `config/database.yml` to include the new cache database.
+This will configure Solid Queue as the production cache store, create `config/solid_cache.yml`, create `db/cache_schema.rb`, and attempt to alter `config/database.yml` to include the new cache database.
+
+If you've already made material changes to your `config/database.yml` file, the installer may not be able to add the cache db configuration directly. If you need to do it yourself, this is what it should look like:
+
+```yaml
+production:
+  primary:
+    <<: *default
+    database: storage/production.sqlite3
+  cache:
+    <<: *default
+    database: storage/production_cache.sqlite3
+    migrations_paths: db/cache_migrate
+```
+
+...or if you're using MySQL/PostgreSQL/Trilogy:
+
+```yaml
+production:
+  primary: &primary_production
+    <<: *default
+    database: app_production
+    username: app
+    password: <%= ENV["APP_DATABASE_PASSWORD"] %>
+  cache:
+    <<: *primary_production
+    database: app_production_cache
+    migrations_paths: db/cache_migrate
+```
 
 ## Configuration
 
