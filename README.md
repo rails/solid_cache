@@ -39,6 +39,8 @@ production:
     migrations_paths: db/cache_migrate
 ```
 
+Then run `db:prepare` in production to ensure the database is created and the schema is loaded.
+
 ## Configuration
 
 Configuration will be read from `config/solid_cache.yml`. You can change the location of the config file by setting the `SOLID_CACHE_CONFIG` env variable.
