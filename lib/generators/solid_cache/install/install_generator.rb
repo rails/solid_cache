@@ -51,7 +51,7 @@ class SolidCache::InstallGenerator < Rails::Generators::Base
     end
 
     def app_name_from_production_database_name
-      database_yml.read.scan(/database: (\w+)_production/).flatten.first || "app"
+      database_yml.read.scan(/database: (\w+)_production/).flatten.first || (defined?(Rails) ? Rails.application.name.underscore : "app")
     end
 
     def generic_database_config_with_cache
