@@ -39,9 +39,7 @@ module SolidCache
               candidate_ids = if cache_full
                 candidates.pluck(:id)
               else
-                min_created_at = max_age.seconds.ago
-                candidates.pluck(:id, :created_at)
-                          .filter_map { |id, created_at| id if created_at < min_created_at }
+                candidates.where("created_at < ?", max_age.seconds.ago).pluck(:id)
               end
 
               candidate_ids.sample(count)
