@@ -9,7 +9,7 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
 
   setup do
     @namespace = "test-#{SecureRandom.hex}"
-    @single_shard_cluster = single_database? ? {} : { shards: [ first_shard_key ] }
+    @single_shard_cluster = default_database? ? {} : { shards: [ first_shard_key ] }
   end
 
   teardown do

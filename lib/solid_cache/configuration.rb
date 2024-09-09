@@ -35,7 +35,7 @@ module SolidCache
         @connects_to =
           case
           when database
-            { database: { writing: database.to_sym } }
+            { shards: { database.to_sym => { writing: database.to_sym } } }
           when databases
             { shards: databases.map(&:to_sym).index_with { |database| { writing: database } } }
           when connects_to

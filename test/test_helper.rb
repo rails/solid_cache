@@ -74,7 +74,7 @@ class ActiveSupport::TestCase
   end
 
   def first_shard_key
-    single_database? ? :default : SolidCache.configuration.shard_keys.first
+    default_database? ? :default : SolidCache.configuration.shard_keys.first
   end
 
   def second_shard_key
@@ -83,6 +83,10 @@ class ActiveSupport::TestCase
 
   def single_database?
     [ "config/solid_cache_database.yml", "config/solid_cache_no_database.yml", "config/solid_cache_unprepared_statements.yml" ].include?(ENV["SOLID_CACHE_CONFIG"])
+  end
+
+  def default_database?
+    ENV["SOLID_CACHE_CONFIG"] == "config/solid_cache_no_database.yml"
   end
 
   def shard_keys(cache, shard)
