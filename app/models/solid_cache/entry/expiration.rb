@@ -40,6 +40,8 @@ module SolidCache
                 candidates.pluck(:id)
               else
                 min_created_at = max_age.seconds.ago
+                # We don't have an index on created_at, but we can select
+                # the records by id and they'll be in created_at order.
                 candidates.pluck(:id, :created_at)
                           .filter_map { |id, created_at| id if created_at < min_created_at }
               end
