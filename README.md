@@ -91,7 +91,7 @@ If none of these are set, Solid Cache will use the `ActiveRecord::Base` connecti
 
 ### Engine configuration
 
-There are three options that can be set on the engine:
+There are five options that can be set on the engine:
 
 - `executor` - the [Rails executor](https://guides.rubyonrails.org/threading_and_code_execution.html#executor) used to wrap asynchronous operations, defaults to the app executor
 - `connects_to` - a custom connects to value for the abstract `SolidCache::Record` active record model. Required for sharding and/or using a separate cache database to the main app. This will overwrite any value set in `config/solid_cache.yml`
@@ -176,7 +176,7 @@ production:
 
 ## Enabling encryption
 
-To encrypt the cache values, you can add set the encrypt property.
+To encrypt the cache values, you can add the encrypt property.
 
 ```yaml
 # config/solid_cache.yml
