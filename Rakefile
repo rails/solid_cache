@@ -44,7 +44,7 @@ configs.each do |config|
       if config == :default
         sh("bin/rails test")
       else
-        sh("SOLID_CACHE_CONFIG=config/solid_cache_#{config}.yml bin/rails test")
+        sh("SOLID_CACHE_CONFIG=config/cache_#{config}.yml bin/rails test")
       end
     end
   end

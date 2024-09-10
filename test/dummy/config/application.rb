@@ -18,15 +18,11 @@ module Dummy
 
     config.active_record.encryption.key_provider = ActiveRecord::Encryption::EnvelopeEncryptionKeyProvider.new
 
-    if ENV["SOLID_CACHE_CONFIG"] == "config/solid_cache_encrypted_custom.yml"
+    if ENV["SOLID_CACHE_CONFIG"] == "config/cache_encrypted_custom.yml"
       config.solid_cache.encryption_context_properties = {
         encryptor: ActiveRecord::Encryption::Encryptor.new,
         message_serializer: ActiveRecord::Encryption::MessageSerializer.new
       }
-    end
-
-    initializer :custom_solid_cache_yml, before: :solid_cache do |app|
-      app.paths.add "config/solid_cache", with: ENV["SOLID_CACHE_CONFIG_PATH"]
     end
   end
 end

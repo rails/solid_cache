@@ -11,7 +11,7 @@ class SolidCache::StatsTest < ActiveSupport::TestCase
   end
 
   def test_stats_with_entries_no_shards
-    skip unless ENV["SOLID_CACHE_CONFIG"] == "config/solid_cache_no_database.yml"
+    skip unless ENV["SOLID_CACHE_CONFIG"] == "config/cache_no_database.yml"
 
     @cache = lookup_store(expiry_batch_size: 2, max_age: 2.weeks.to_i, max_entries: 1000)
 
