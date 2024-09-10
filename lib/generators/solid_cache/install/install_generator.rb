@@ -4,7 +4,7 @@ class SolidCache::InstallGenerator < Rails::Generators::Base
   source_root File.expand_path("templates", __dir__)
 
   def copy_files
-    template "config/solid_cache.yml"
+    template "config/cache.yml"
     template "db/cache_schema.rb"
   end
 

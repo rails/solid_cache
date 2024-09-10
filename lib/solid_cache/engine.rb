@@ -10,12 +10,15 @@ module SolidCache
     config.solid_cache = ActiveSupport::OrderedOptions.new
 
     initializer "solid_cache.config", before: :initialize_cache do |app|
-      app.paths.add "config/solid_cache", with: ENV["SOLID_CACHE_CONFIG"] || "config/solid_cache.yml"
+      config_paths = %w[config/cache config/solid_cache]
 
-      options = {}
-      if (config_path = Pathname.new(app.config.paths["config/solid_cache"].first)).exist?
-        options = app.config_for(config_path).to_h.deep_symbolize_keys
+      config_paths.each do |path|
+        app.paths.add path, with: ENV["SOLID_CACHE_CONFIG"] || "#{path}.yml"
       end
+
+      config_pathname = config_paths.map { |path| Pathname.new(app.config.paths[path].first) }.find(&:exist?)
+
+      options = config_pathname ? app.config_for(config_pathname).to_h.deep_symbolize_keys : {}
 
       options[:connects_to] = config.solid_cache.connects_to if config.solid_cache.connects_to
       options[:size_estimate_samples] = config.solid_cache.size_estimate_samples if config.solid_cache.size_estimate_samples

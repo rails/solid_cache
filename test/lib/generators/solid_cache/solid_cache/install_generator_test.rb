@@ -18,7 +18,7 @@ module SolidCache
 
     test "generator updates environment config" do
       run_generator
-      assert_file "#{destination_root}/config/solid_cache.yml", expected_solid_cache_config
+      assert_file "#{destination_root}/config/cache.yml", expected_cache_config
       assert_file "#{destination_root}/db/cache_schema.rb"
       assert_file "#{destination_root}/config/environments/development.rb", /config.cache_store = :memory_store\n/
       assert_file "#{destination_root}/config/environments/development.rb", /config.cache_store = :null_store\n/
@@ -27,7 +27,7 @@ module SolidCache
     end
 
     private
-      def expected_solid_cache_config
+      def expected_cache_config
         <<~YAML
           default: &default
             store_options:

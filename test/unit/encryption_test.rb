@@ -9,7 +9,7 @@ class SolidCache::EncryptionTest < ActiveSupport::TestCase
   end
 
   test "not encrypted" do
-    skip if ENV["SOLID_CACHE_CONFIG"] =~ /config\/solid_cache_encrypted.*\.yml/
+    skip if ENV["SOLID_CACHE_CONFIG"] =~ /config\/cache_encrypted.*\.yml/
 
     @cache.write(@shard_key, "value")
     assert_not_nil first_value
@@ -17,7 +17,7 @@ class SolidCache::EncryptionTest < ActiveSupport::TestCase
   end
 
   test "encrypted with defaults" do
-    skip unless ENV["SOLID_CACHE_CONFIG"] == "config/solid_cache_encrypted.yml"
+    skip unless ENV["SOLID_CACHE_CONFIG"] == "config/cache_encrypted.yml"
 
     @cache.write(@shard_key, "value")
     assert_not_nil first_value
@@ -28,7 +28,7 @@ class SolidCache::EncryptionTest < ActiveSupport::TestCase
   end
 
   test "encrypted with custom settings" do
-    skip unless ENV["SOLID_CACHE_CONFIG"] == "config/solid_cache_encrypted_custom.yml"
+    skip unless ENV["SOLID_CACHE_CONFIG"] == "config/cache_encrypted_custom.yml"
 
     @cache.write(@shard_key, "value")
     assert_not_nil first_value

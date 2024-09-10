@@ -9,7 +9,7 @@ Solid Cache is configured by default in new Rails 8 applications. But if you're 
 1. `bundle add solid_cache`
 2. `bin/rails solid_cache:install`
 
-This will configure Solid Cache as the production cache store, create `config/solid_cache.yml`, and create `db/cache_schema.rb`.
+This will configure Solid Cache as the production cache store, create `config/cache.yml`, and create `db/cache_schema.rb`.
 
 You will then have to add the configuration for the queue database in `config/database.yml`. If you're using sqlite, it'll look like this:
 
@@ -43,7 +43,7 @@ Then run `db:prepare` in production to ensure the database is created and the sc
 
 ## Configuration
 
-Configuration will be read from `config/solid_cache.yml`. You can change the location of the config file by setting the `SOLID_CACHE_CONFIG` env variable.
+Configuration will be read from `config/cache.yml` or `config/solid_cache.yml`. You can change the location of the config file by setting the `SOLID_CACHE_CONFIG` env variable.
 
 The format of the file is:
 
@@ -169,7 +169,7 @@ production:
 ```
 
 ```yaml
-# config/solid_cache.yml
+# config/cache.yml
 production:
   databases: [cache_shard1, cache_shard2, cache_shard3]
 ```
@@ -179,7 +179,7 @@ production:
 To encrypt the cache values, you can add the encrypt property.
 
 ```yaml
-# config/solid_cache.yml
+# config/cache.yml
 production:
   encrypt: true
 ```
