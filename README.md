@@ -189,7 +189,7 @@ or
 config.solid_cache.encrypt = true
 ```
 
-You will need to set up your application to (use Active Record Encryption)[https://guides.rubyonrails.org/active_record_encryption.html].
+You will need to set up your application to [use Active Record Encryption](https://guides.rubyonrails.org/active_record_encryption.html).
 
 Solid Cache by default uses a custom encryptor and message serializer that are optimised for it.
 
@@ -260,7 +260,7 @@ This ensures that all the Rails versions dependencies are updated.
 
 ## Implementation
 
-Solid Cache is a FIFO (first in, first out) cache. While this is not as efficient as an LRU cache, it is mitigated by the longer cache lifespan.
+Solid Cache is a FIFO (first in, first out) cache. While this is not as efficient as an LRU (least recently used) cache, it is mitigated by the longer cache lifespan.
 
 A FIFO cache is much easier to manage:
 1. We don't need to track when items are read.
