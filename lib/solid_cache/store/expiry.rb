@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "concurrent/atomic/atomic_fixnum"
-
 module SolidCache
   class Store
     module Expiry
