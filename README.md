@@ -69,6 +69,13 @@ production: &production
 
 For the full list of keys for `store_options` see [Cache configuration](#cache-configuration). Any options passed to the cache lookup will overwrite those specified here.
 
+After running `solid_cache:install`, `environments/production.rb` will replace your cache store with Solid Cache, but you can also do this manually:
+
+```ruby
+# config/environments/production.rb
+config.cache_store = :solid_cache_store
+```
+
 ### Connection configuration
 
 You can set one of `database`, `databases` and `connects_to` in the config file. They will be used to configure the cache databases in `SolidCache::Record#connects_to`.
