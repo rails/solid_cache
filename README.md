@@ -11,7 +11,7 @@ Solid Cache is configured by default in new Rails 8 applications. But if you're 
 
 This will configure Solid Cache as the production cache store, create `config/cache.yml`, and create `db/cache_schema.rb`.
 
-You will then have to add the configuration for the queue database in `config/database.yml`. If you're using sqlite, it'll look like this:
+You will then have to add the configuration for the cache database in `config/database.yml`. If you're using sqlite, it'll look like this:
 
 ```yaml
 production:
