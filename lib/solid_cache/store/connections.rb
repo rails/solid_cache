@@ -34,26 +34,6 @@ module SolidCache
         end
       end
 
-      def with_connection_for(key, async: false, &block)
-        connections.with_connection_for(key) do
-          execute(async, &block)
-        end
-      end
-
-      def with_connection(name, async: false, &block)
-        connections.with(name) do
-          execute(async, &block)
-        end
-      end
-
-      def group_by_connection(keys)
-        connections.assign(keys)
-      end
-
-      def connection_names
-        connections.names
-      end
-
       def connections
         @connections ||= SolidCache::Connections.from_config(@shard_options)
       end
@@ -63,6 +43,26 @@ module SolidCache
           connections
         end
 
+        def with_connection_for(key, async: false, &block)
+          connections.with_connection_for(key) do
+            execute(async, &block)
+          end
+        end
+
+        def with_connection(name, async: false, &block)
+          connections.with(name) do
+            execute(async, &block)
+          end
+        end
+
+        def group_by_connection(keys)
+          connections.assign(keys)
+        end
+
+        def connection_names
+          connections.names
+        end
+
         def reading_key(key, failsafe:, failsafe_returning: nil, &block)
           failsafe(failsafe, returning: failsafe_returning) do
             with_connection_for(key, &block)
@@ -70,15 +70,14 @@ module SolidCache
         end
 
         def reading_keys(keys, failsafe:, failsafe_returning: nil)
-          group_by_connection(keys).map do |connection, keys|
+          group_by_connection(keys).map do |connection, grouped_keys|
             failsafe(failsafe, returning: failsafe_returning) do
               with_connection(connection) do
-                yield keys
+                yield grouped_keys
               end
             end
           end
         end
-
 
         def writing_key(key, failsafe:, failsafe_returning: nil, &block)
           failsafe(failsafe, returning: failsafe_returning) do
@@ -87,10 +86,10 @@ module SolidCache
         end
 
         def writing_keys(entries, failsafe:, failsafe_returning: nil)
-          group_by_connection(entries).map do |connection, entries|
+          group_by_connection(entries).map do |connection, grouped_entries|
             failsafe(failsafe, returning: failsafe_returning) do
               with_connection(connection) do
-                yield entries
+                yield grouped_entries
               end
             end
           end

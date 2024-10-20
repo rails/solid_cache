@@ -75,7 +75,7 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
     }
 
     ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
-      # Warm up the connections as they may log before instrumenation can be disabled
+      # Warm up the connections as they may log before instrumentation can be disabled
       uninstrumented_cache.write("foo", "bar")
       uninstrumented_cache.write("foo", "bar")
       uninstrumented_cache.write("foo", "bar")
@@ -90,7 +90,7 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
     end
 
     ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
-      # Warm up the connections as they may log before instrumenation can be disabled
+      # Warm up the connections as they may log before instrumentation can be disabled
       instrumented_cache.write("foo", "bar")
       instrumented_cache.write("foo", "bar")
       instrumented_cache.write("foo", "bar")

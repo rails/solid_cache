@@ -14,7 +14,7 @@ class DeleteMatchedTest < ActiveSupport::TestCase
     @peek = lookup_store(expires_in: 60)
   end
 
-  test "deletes matched raises a NotImplementedError" do
+  test "delete matched raises a NotImplementedError" do
     prefix = SecureRandom.alphanumeric
     assert_raises(NotImplementedError) { @cache.delete_matched("#{prefix}%") }
   end
