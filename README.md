@@ -83,7 +83,11 @@ You can set one of `database`, `databases` and `connects_to` in the config file.
 Setting `database` to `cache_db` will configure with:
 
 ```ruby
-SolidCache::Record.connects_to database: { writing: :cache_db }
+Rails.application.configure do
+  config.after_initialize do
+    SolidCache::Record.connects_to database: { writing: :cache_db }
+  end
+end
 ```
 
 Setting `databases` to `[cache_db, cache_db2]` is the equivalent of:
