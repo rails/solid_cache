@@ -14,6 +14,8 @@ module SolidCache
 
     KEY_HASH_ID_RANGE = -(2**63)..(2**63 - 1)
 
+    MULTI_BATCH_SIZE = 1000
+
     class << self
       def write(key, value)
         write_multi([ { key: key, value: value } ])
@@ -21,9 +23,11 @@ module SolidCache
 
       def write_multi(payloads)
         without_query_cache do
-          upsert_all \
-            add_key_hash_and_byte_size(payloads),
-            unique_by: upsert_unique_by, on_duplicate: :update, update_only: [ :key, :value, :byte_size ]
+          payloads.each_slice(MULTI_BATCH_SIZE).each do |payload_batch|
+            upsert_all \
+              add_key_hash_and_byte_size(payload_batch),
+              unique_by: upsert_unique_by, on_duplicate: :update, update_only: [ :key, :value, :byte_size ]
+          end
         end
       end
 
@@ -33,9 +37,13 @@ module SolidCache
 
       def read_multi(keys)
         without_query_cache do
-          query = Arel.sql(select_sql(keys), *key_hashes_for(keys))
+          {}.tap do |results|
+            keys.each_slice(MULTI_BATCH_SIZE).each do |keys_batch|
+              query = Arel.sql(select_sql(keys_batch), *key_hashes_for(keys_batch))
 
-          connection.select_all(query, "SolidCache::Entry Load").cast_values(attribute_types).to_h
+              results.merge!(connection.select_all(query, "SolidCache::Entry Load").cast_values(attribute_types).to_h)
+            end
+          end
         end
       end
 
