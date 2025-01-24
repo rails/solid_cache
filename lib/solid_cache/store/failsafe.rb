@@ -6,7 +6,6 @@ module SolidCache
       TRANSIENT_ACTIVE_RECORD_ERRORS = [
         ActiveRecord::AdapterTimeout,
         ActiveRecord::ConnectionNotEstablished,
-        ActiveRecord::ConnectionTimeoutError,
         ActiveRecord::Deadlocked,
         ActiveRecord::LockWaitTimeout,
         ActiveRecord::QueryCanceled,
