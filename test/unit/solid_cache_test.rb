@@ -65,6 +65,10 @@ class SolidCacheTest < ActiveSupport::TestCase
     travel 2.seconds
     assert_equal true, @cache.write(1, "bbbb", expires_in: 1.second, unless_exist: true)
   end
+
+  test "store logger defaults to Rails logger" do
+    assert_equal Rails.logger, @cache.logger
+  end
 end
 
 class SolidCacheFailsafeTest < ActiveSupport::TestCase

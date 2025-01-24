@@ -11,6 +11,8 @@ loader.setup
 module SolidCache
   mattr_accessor :executor
   mattr_accessor :configuration, default: Configuration.new
+
+  ActiveSupport.run_load_hooks(:solid_cache, self)
 end
 
 loader.eager_load

@@ -36,8 +36,16 @@ module SolidCache
       SolidCache.executor = config.solid_cache.executor || app.executor
     end
 
-    config.after_initialize do
-      Rails.cache.setup! if Rails.cache.is_a?(Store)
+    initializer "solid_cache.logger" do
+      ActiveSupport.on_load(:solid_cache) do
+        Store.logger ||= Rails.logger
+      end
+    end
+
+    initializer "solid_cache.setup" do
+      ActiveSupport.on_load(:solid_cache) do
+        Rails.cache.setup! if Rails.cache.is_a?(Store)
+      end
     end
 
     config.after_initialize do
