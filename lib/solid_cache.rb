@@ -6,6 +6,7 @@ require "solid_cache/engine"
 loader = Zeitwerk::Loader.for_gem
 loader.ignore("#{__dir__}/active_support")
 loader.ignore("#{__dir__}/generators")
+loader.ignore("#{__dir__}/../app")
 loader.setup
 
 module SolidCache
