@@ -10,7 +10,20 @@ module SolidCache
 
     class << self
       def disable_instrumentation(&block)
-        connection.with_instrumenter(NULL_INSTRUMENTER, &block)
+        with_instrumenter(NULL_INSTRUMENTER, &block)
+      end
+
+      def with_instrumenter(instrumenter, &block)
+        if connection.respond_to?(:with_instrumenter)
+          connection.with_instrumenter(instrumenter, &block)
+        else
+          begin
+            old_instrumenter, ActiveSupport::IsolatedExecutionState[:active_record_instrumenter] = ActiveSupport::IsolatedExecutionState[:active_record_instrumenter], instrumenter
+            block.call
+          ensure
+            ActiveSupport::IsolatedExecutionState[:active_record_instrumenter] = old_instrumenter
+          end
+        end
       end
 
       def with_shard(shard, &block)
