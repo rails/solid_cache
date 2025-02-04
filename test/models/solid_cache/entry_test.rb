@@ -71,9 +71,7 @@ module SolidCache
     end
 
     test "batching multi queries" do
-      with_multi_batch_size(2) do
-        Entry.stubs(:const_get).with(:MULTI_BATCH_SIZE).returns("stubbed_value")
-
+      stub_const(Entry, :MULTI_BATCH_SIZE, 2) do
         assert_queries_count(2) do
           Entry.write_multi([ { key: "hello".b, value: "there" }, { key: "foo".b, value: "bar" }, { key: "baz".b, value: "zab" } ])
         end
@@ -87,16 +85,6 @@ module SolidCache
     private
       def write_entries(count = 20)
         Entry.write_multi(count.times.map { |i| { key: "key#{i}", value: "value#{i}" } })
-      end
-
-      def with_multi_batch_size(value)
-        old_value = Entry::MULTI_BATCH_SIZE
-        Entry.send(:remove_const, :MULTI_BATCH_SIZE)
-        Entry.const_set(:MULTI_BATCH_SIZE, value)
-        yield
-      ensure
-        Entry.send(:remove_const, :MULTI_BATCH_SIZE)
-        Entry.const_set(:MULTI_BATCH_SIZE, old_value)
       end
   end
 end
