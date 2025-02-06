@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    solid_cache (1.0.6)
+    solid_cache (1.0.7)
       activejob (>= 7.2)
       activerecord (>= 7.2)
       railties (>= 7.2)
@@ -183,6 +183,7 @@ PLATFORMS
   arm64-darwin-21
   arm64-darwin-22
   arm64-darwin-23
+  arm64-darwin-24
   x86_64-darwin-20
   x86_64-darwin-22
   x86_64-linux
