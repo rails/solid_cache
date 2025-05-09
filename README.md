@@ -55,7 +55,7 @@ default:
   size_estimate_samples: 1000
 
 development: &development
-  database: development_cache
+  database: cache
   store_options:
     <<: *default_store_options
     max_size: <%= 256.gigabytes %>
