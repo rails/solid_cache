@@ -106,7 +106,7 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
   end
 
   def test_no_connections_uninstrumented
-    ActiveRecord::ConnectionAdapters::ConnectionPool.any_instance.stubs(connection).raises(ActiveRecord::StatementTimeout)
+    ActiveRecord::ConnectionAdapters::ConnectionPool.any_instance.stubs(:with_connection).raises(ActiveRecord::StatementTimeout)
 
     cache = lookup_store(expires_in: 60, active_record_instrumentation: false)
 
@@ -120,7 +120,7 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
   end
 
   def test_no_connections_instrumented
-    ActiveRecord::ConnectionAdapters::ConnectionPool.any_instance.stubs(connection).raises(ActiveRecord::StatementTimeout)
+    ActiveRecord::ConnectionAdapters::ConnectionPool.any_instance.stubs(:with_connection).raises(ActiveRecord::StatementTimeout)
 
     cache = lookup_store(expires_in: 60)
 

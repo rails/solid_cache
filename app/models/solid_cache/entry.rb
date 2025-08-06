@@ -41,7 +41,9 @@ module SolidCache
             keys.each_slice(MULTI_BATCH_SIZE).each do |keys_batch|
               query = Arel.sql(select_sql(keys_batch), *key_hashes_for(keys_batch))
 
-              results.merge!(connection.select_all(query, "SolidCache::Entry Load").cast_values(attribute_types).to_h)
+              with_connection do |connection|
+                results.merge!(connection.select_all(query, "SolidCache::Entry Load").cast_values(attribute_types).to_h)
+              end
             end
           end
         end
@@ -54,7 +56,9 @@ module SolidCache
       end
 
       def clear_truncate
-        connection.truncate(table_name)
+        with_connection do |connection|
+          connection.truncate(table_name)
+        end
       end
 
       def clear_delete
@@ -91,7 +95,9 @@ module SolidCache
         end
 
         def upsert_unique_by
-          connection.supports_insert_conflict_target? ? :key_hash : nil
+          with_connection do |connection|
+            connection.supports_insert_conflict_target? ? :key_hash : nil
+          end
         end
 
         # This constructs and caches a SQL query for a given number of keys.
