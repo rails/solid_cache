@@ -14,14 +14,16 @@ module SolidCache
       end
 
       def with_instrumenter(instrumenter, &block)
-        if connection.respond_to?(:with_instrumenter)
-          connection.with_instrumenter(instrumenter, &block)
-        else
-          begin
-            old_instrumenter, ActiveSupport::IsolatedExecutionState[:active_record_instrumenter] = ActiveSupport::IsolatedExecutionState[:active_record_instrumenter], instrumenter
-            block.call
-          ensure
-            ActiveSupport::IsolatedExecutionState[:active_record_instrumenter] = old_instrumenter
+        with_connection do |connection|
+          if connection.respond_to?(:with_instrumenter)
+            connection.with_instrumenter(instrumenter, &block)
+          else
+            begin
+              old_instrumenter, ActiveSupport::IsolatedExecutionState[:active_record_instrumenter] = ActiveSupport::IsolatedExecutionState[:active_record_instrumenter], instrumenter
+              block.call
+            ensure
+              ActiveSupport::IsolatedExecutionState[:active_record_instrumenter] = old_instrumenter
+            end
           end
         end
       end
