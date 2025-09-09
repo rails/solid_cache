@@ -37,9 +37,11 @@ module SolidCache
               namespace: <%= Rails.env %>
 
           development:
+            database: cache
             <<: *default
 
           test:
+            database: cache
             <<: *default
 
           production:
