@@ -6,9 +6,11 @@ default: &default
     namespace: <%%= Rails.env %>
 
 development:
+  database: <%= ENV.fetch("DATABASE", "cache") %>
   <<: *default
 
 test:
+  database: <%= ENV.fetch("DATABASE", "cache") %>
   <<: *default
 
 production:
