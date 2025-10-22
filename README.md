@@ -41,6 +41,16 @@ production:
 
 Then run `db:prepare` in production to ensure the database is created and the schema is loaded.
 
+### Single database configuration
+
+Running Solid Cache in a separate database is recommended, but it's also possible to use one single database for both the app and the queue. Follow these steps:
+
+1. Copy the contents of `db/cache_schema.rb` into a normal migration and delete `db/cache_schema.rb`
+2. Remove `database: cache` from `cache.yml`
+3. Migrate your database.
+
+You won't have multiple databases, so `database.yml` doesn't need to have primary and cache database.
+
 ## Configuration
 
 Configuration will be read from `config/cache.yml` or `config/solid_cache.yml`. You can change the location of the config file by setting the `SOLID_CACHE_CONFIG` env variable.
