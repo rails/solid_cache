@@ -94,4 +94,13 @@ class ActiveSupport::TestCase
     shard_keys = cache.send(:connections).assign(namespaced_keys)[shard]
     shard_keys.map { |key| key.delete_prefix("#{@namespace}:") }
   end
+
+  def emulating_timeouts
+    ar_methods = [ :select_all, :delete, :exec_insert_all ]
+    stub_matcher = ActiveRecord::Base.connection.class.any_instance
+    ar_methods.each { |method| stub_matcher.stubs(method).raises(ActiveRecord::StatementTimeout) }
+    yield
+  ensure
+    ar_methods.each { |method| stub_matcher.unstub(method) }
+  end
 end
