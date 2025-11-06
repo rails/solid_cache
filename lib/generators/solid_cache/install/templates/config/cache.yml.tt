@@ -1,4 +1,5 @@
 default: &default
+  database: <%= ENV.fetch("DATABASE", "cache") %>
   store_options:
     # Cap age of oldest cache entry to fulfill retention policies
     # max_age: <%%= 60.days.to_i %>
@@ -12,5 +13,4 @@ test:
   <<: *default
 
 production:
-  database: <%= ENV.fetch("DATABASE", "cache") %>
   <<: *default
