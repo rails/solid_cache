@@ -23,6 +23,7 @@ AllCops:
     - '**/tmp/**/*'
     - '**/vendor/**/*'
     - '**/node_modules/**/*'
+    - "**/*_schema.rb"
 
 Performance:
   Exclude:
