@@ -83,15 +83,9 @@ class SolidCacheFailsafeTest < ActiveSupport::TestCase
 
   def emulating_unavailability
     wait_for_background_tasks(@cache)
-    stub_matcher = ActiveRecord::Base.connection.class.any_instance
-    stub_matcher.stubs(:exec_query).raises(ActiveRecord::StatementTimeout)
-    stub_matcher.stubs(:internal_exec_query).raises(ActiveRecord::StatementTimeout)
-    stub_matcher.stubs(:exec_delete).raises(ActiveRecord::StatementTimeout)
-    yield lookup_store(namespace: @namespace)
-  ensure
-    stub_matcher.unstub(:exec_query)
-    stub_matcher.unstub(:internal_exec_query)
-    stub_matcher.unstub(:exec_delete)
+    emulating_timeouts do
+      yield lookup_store(namespace: @namespace)
+    end
   end
 end
 
@@ -111,15 +105,9 @@ class SolidCacheRaisingTest < ActiveSupport::TestCase
 
   def emulating_unavailability
     wait_for_background_tasks(@cache)
-    stub_matcher = ActiveRecord::Base.connection.class.any_instance
-    stub_matcher.stubs(:exec_query).raises(ActiveRecord::StatementTimeout)
-    stub_matcher.stubs(:internal_exec_query).raises(ActiveRecord::StatementTimeout)
-    stub_matcher.stubs(:exec_delete).raises(ActiveRecord::StatementTimeout)
-    yield lookup_store(namespace: @namespace,
-      error_handler: ->(method:, returning:, exception:) { raise exception })
-  ensure
-    stub_matcher.unstub(:exec_query)
-    stub_matcher.unstub(:internal_exec_query)
-    stub_matcher.unstub(:exec_delete)
+    emulating_timeouts do
+      yield lookup_store(namespace: @namespace,
+        error_handler: ->(method:, returning:, exception:) { raise exception })
+    end
   end
 end
