@@ -64,7 +64,7 @@ production: &production
   databases: [production_cache1, production_cache2]
   store_options:
     <<: *default_store_options
-    max_entries: 10_000_000 # default is null
+    max_size: <%= 256.gigabytes %>
 ```
 
 For the full list of keys for `store_options` see [Cache configuration](#cache-configuration). Any options passed to the cache lookup will overwrite those specified here.
