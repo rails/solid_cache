@@ -37,7 +37,7 @@ module SolidCache
           when database
             { shards: { database.to_sym => { writing: database.to_sym } } }
           when databases
-            { shards: databases.map(&:to_sym).index_with { |database| { writing: database } } }
+            { shards: Array(databases).map(&:to_sym).index_with { |database| { writing: database } } }
           when connects_to
             connects_to
           else
