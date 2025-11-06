@@ -9,7 +9,13 @@ Solid Cache is configured by default in new Rails 8 applications. But if you're 
 1. `bundle add solid_cache`
 2. `bin/rails solid_cache:install`
 
-This will configure Solid Cache as the production cache store, create `config/cache.yml`, and create `db/cache_schema.rb`.
+This will configure Solid Cache as the production cache store and create `config/cache.yml`.
+
+If your application uses `config.active_record.schema_format = :ruby` (the default), the installer creates `db/cache_schema.rb`.
+
+If your application uses `config.active_record.schema_format = :sql`, the installer creates `db/cache_structure.sql` with the appropriate SQL for your database adapter (PostgreSQL, MySQL, or SQLite).
+
+### Configuring the cache database
 
 You will then have to add the configuration for the cache database in `config/database.yml`. If you're using sqlite, it'll look like this:
 
@@ -39,7 +45,9 @@ production:
     migrations_paths: db/cache_migrate
 ```
 
-Then run `db:prepare` in production to ensure the database is created and the schema is loaded.
+### Finalizing installation
+
+After configuring `database.yml`, run `db:prepare` in production to ensure the cache database is created and the schema is loaded.
 
 ## Configuration
 
