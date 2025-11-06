@@ -1,0 +1,94 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Called by bin/generate_sql_schemas with TARGET_DB environment variable set
+
+require "bundler/setup"
+require "fileutils"
+
+# Change to test/dummy directory
+dummy_dir = File.expand_path("../test/dummy", __dir__)
+Dir.chdir(dummy_dir)
+
+# Load the test/dummy Rails app
+APP_PATH = File.expand_path("config/application", Dir.pwd)
+require File.expand_path("config/boot", Dir.pwd)
+require APP_PATH
+Dummy::Application.load_tasks
+
+# Patch Rails to use Docker containers for mysqldump/pg_dump for repeatable results
+module DockerDatabaseCommands
+  private
+    def run_cmd(cmd, *args, **opts)
+      case cmd
+      when "mysqldump"
+        database, output_file = extract_database_and_output_file(args, file_arg: "--result-file")
+        docker_cmd = ["docker", "exec", "solid_cache-mysql-1", "mysqldump",
+                      "--set-gtid-purged=OFF", "--no-data", "--routines", "--skip-comments", database]
+
+        fail run_cmd_error(cmd, args, "structure_dump") unless Kernel.system(*docker_cmd, out: output_file, **opts)
+      when "pg_dump"
+        database, output_file = extract_database_and_output_file(args, file_arg: "--file")
+        docker_cmd = ["docker", "exec", "solid_cache-postgres-1", "pg_dump",
+                      "-U", "postgres", "--schema-only", "--no-privileges", "--no-owner", database]
+
+        fail run_cmd_error(cmd, args) unless Kernel.system(*docker_cmd, out: output_file, **opts)
+      else
+        super
+      end
+    end
+
+    def extract_database_and_output_file(args, file_arg:)
+      args = args.flatten
+      database = args.last
+      output_file = nil
+
+      args.each_with_index do |arg, i|
+        if arg == file_arg
+          output_file = args[i + 1]
+          break
+        end
+      end
+
+      [database, output_file]
+    end
+end
+
+ActiveRecord::Tasks::MySQLDatabaseTasks.prepend(DockerDatabaseCommands)
+ActiveRecord::Tasks::PostgreSQLDatabaseTasks.prepend(DockerDatabaseCommands)
+
+OUTPUT_FILES = {
+  "sqlite" => "cache_structure.sqlite3.sql",
+  "mysql" => "cache_structure.mysql.sql",
+  "postgres" => "cache_structure.postgresql.sql"
+}
+
+target_db = ENV["TARGET_DB"] || "sqlite"
+output_file = OUTPUT_FILES[target_db]
+
+unless output_file
+  puts "  ✗ Error: Unknown TARGET_DB: #{target_db}"
+  exit 1
+end
+
+templates_dir = File.expand_path("../../lib/generators/solid_cache/install/templates/db", Dir.pwd)
+output_path = File.join(templates_dir, output_file)
+cache_schema_path = File.join(templates_dir, "cache_schema.rb")
+
+begin
+  puts "  Creating database..."
+  Rake::Task["db:create"].invoke
+
+  puts "  Loading Ruby schema..."
+  load cache_schema_path
+
+  puts "  Dumping structure..."
+  db_config = ActiveRecord::Base.connection_db_config
+  ActiveRecord::Tasks::DatabaseTasks.structure_dump(db_config, output_path)
+
+  puts "  ✓ Saved to #{output_file}"
+rescue => e
+  puts "  ✗ Error: #{e.message}"
+  puts "  #{e.backtrace.first(5).join("\n  ")}"
+  exit 1
+end

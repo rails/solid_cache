@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# frozen_string_literal: true
+
+# Generate SQL schema files for PostgreSQL, MySQL, and SQLite
+# These files are used when installing SolidCache with schema_format = :sql
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+export BUNDLE_GEMFILE="$PROJECT_ROOT/gemfiles/rails_8_1.gemfile"
+
+echo "Generating SQL schema files for SolidCache..."
+echo ""
+
+for db in sqlite mysql postgres; do
+  echo "==> Generating schema for $db..."
+  TARGET_DB=$db "$SCRIPT_DIR/generate_structure_sql"
+done
+
+echo ""
+echo "✓ All SQL schema files generated successfully!"
+echo ""
+echo "Generated files:"
+echo "  - cache_structure.sqlite3.sql"
+echo "  - cache_structure.mysql.sql"
+echo "  - cache_structure.postgresql.sql"

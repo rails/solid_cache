@@ -6,14 +6,14 @@ volumes:
 
 services:
   postgres:
-    image: postgres:15.1
+    image: postgres:17
     environment:
       POSTGRES_HOST_AUTH_METHOD: "trust"
     volumes:
       - postgres:/var/lib/postgres
     ports: [ "127.0.0.1:55432:5432" ]
   mysql:
-    image: mysql:8.0.31
+    image: mysql:9
     environment:
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
     volumes:

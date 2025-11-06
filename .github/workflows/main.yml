@@ -43,13 +43,13 @@ jobs:
         ports:
           - 6379:6379
       postgres:
-        image: postgres:15.1
+        image: postgres:17
         env:
           POSTGRES_HOST_AUTH_METHOD: "trust"
         ports:
           - 55432:5432
       mysql:
-        image: mysql:8.0.31
+        image: mysql:9
         env:
           MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
         ports:
