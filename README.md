@@ -88,19 +88,32 @@ config.cache_store = :solid_cache_store
 
 You can set one of `database`, `databases` and `connects_to` in the config file. They will be used to configure the cache databases in `SolidCache::Record#connects_to`.
 
-Setting `database` to `cache_db` will configure with:
-
-```ruby
-SolidCache::Record.connects_to database: { writing: :cache_db }
-```
-
-Setting `databases` to `[cache_db, cache_db2]` is the equivalent of:
-
-```ruby
-SolidCache::Record.connects_to shards: { cache_db1: { writing: :cache_db1 },  cache_db2: { writing: :cache_db2 } }
-```
-
 If `connects_to` is set, it will be passed directly.
+
+Setting `database` is shorthand for connecting to a single database:
+
+```yaml
+database: :cache_db
+
+# equivalent to
+connects_to:
+  database:
+    writing: :cache_db
+```
+
+And `databases` to `[cache_db, cache_db2]` configures multiple database shards:
+
+```yaml
+databases: [cache_db, cache_db2]
+
+# equivalent to
+connects_to:
+  shards:
+    cache_db1:
+      writing: :cache_db1
+    cache_db2:
+      writing: :cache_db2
+```
 
 If none of these are set, Solid Cache will use the `ActiveRecord::Base` connection pool. This means that cache reads and writes will be part of any wrapping database transaction.
 
