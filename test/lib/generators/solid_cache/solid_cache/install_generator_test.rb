@@ -72,7 +72,6 @@ module SolidCache
       def expected_cache_config
         <<~YAML
           default: &default
-            database: cache
             store_options:
               # Cap age of oldest cache entry to fulfill retention policies
               # max_age: <%= 60.days.to_i %>
@@ -86,6 +85,7 @@ module SolidCache
             <<: *default
 
           production:
+            database: cache
             <<: *default
         YAML
       end
