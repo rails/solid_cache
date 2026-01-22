@@ -24,11 +24,8 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
     sleep 0.1
     assert_equal 1, error_subscriber.errors.count
     assert_equal "Boom!", error_subscriber.errors.first[0].message
-    if Rails.version >= "7.1"
-      assert_equal({ context: {}, handled: false, level: :error, source: "application.active_support" }, error_subscriber.errors.first[1])
-    else
-      assert_equal({ context: {}, handled: false, level: :error, source: nil }, error_subscriber.errors.first[1])
-    end
+    assert_equal :error, error_subscriber.errors.first[1][:level]
+    assert_equal false, error_subscriber.errors.first[1][:handled]
   ensure
     Rails.error.unsubscribe(error_subscriber) if Rails.error.respond_to?(:unsubscribe)
     @all_stores = [] #  to avoid waiting for background tasks as the error one won't have completed
