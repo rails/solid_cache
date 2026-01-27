@@ -117,6 +117,16 @@ connects_to:
 
 If none of these are set, Solid Cache will use the `ActiveRecord::Base` connection pool. This means that cache reads and writes will be part of any wrapping database transaction.
 
+### Single database configuration
+
+Running Solid Cache in a separate database is recommended, but it's also possible to use one single database for both the app and the cache. Follow these steps:
+
+1. Copy the contents of `db/cache_schema.rb` into a normal migration and delete `db/cache_schema.rb`
+2. Remove the `database: cache` line from `config/cache.yml` in the production section
+3. Migrate your database. You are ready to run `bin/rails server`
+
+You won't have multiple databases, so `database.yml` doesn't need to have primary and cache database.
+
 ### Engine configuration
 
 There are five options that can be set on the engine:
