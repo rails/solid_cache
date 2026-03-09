@@ -54,7 +54,10 @@ module SolidCache
 
           if unless_exist
             written = false
-            entry_lock_and_write(key) do |value|
+            entry_lock_and_write(
+              key,
+              placeholder_payload: expired_placeholder_payload(raw: raw, **options)
+            ) do |value|
               if value.nil? || deserialize_entry(value, **options).expired?
                 written = true
                 payload
@@ -155,7 +158,10 @@ module SolidCache
           options = merged_options(options)
           key = normalize_key(name, options)
 
-          new_value = entry_lock_and_write(key) do |value|
+          new_value = entry_lock_and_write(
+            key,
+            placeholder_payload: expired_placeholder_payload(**options)
+          ) do |value|
             serialize_entry(adjusted_entry(value, amount, options))
           end
           deserialize_entry(new_value, **options).value if new_value
@@ -173,6 +179,14 @@ module SolidCache
           else
             ActiveSupport::Cache::Entry.new(amount, **options)
           end
+        end
+
+        def expired_placeholder_payload(raw: false, **options)
+          serialize_entry(
+            ActiveSupport::Cache::Entry.new(nil, expires_in: -1),
+            raw: raw,
+            **options
+          )
         end
     end
   end

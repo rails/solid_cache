@@ -67,12 +67,21 @@ module SolidCache
         end
       end
 
-      def lock_and_write(key, &block)
+      def lock_and_write(key, placeholder_payload: nil, &block)
         transaction do
           without_query_cache do
+            ensure_lockable_row_exists(key, placeholder_payload) if placeholder_payload
+
             result = lock.where(key_hash: key_hash_for(key)).pick(:key, :value)
-            new_value = block.call(result&.first == key ? result[1] : nil)
-            write(key, new_value) if new_value
+            current_value = result&.first == key ? result[1] : nil
+            new_value = block.call(current_value)
+
+            if new_value
+              write(key, new_value)
+            elsif placeholder_payload && current_value == placeholder_payload
+              delete_by_key(key)
+            end
+
             new_value
           end
         end
@@ -85,6 +94,31 @@ module SolidCache
       end
 
       private
+        def ensure_lockable_row_exists(key, payload)
+          retries = 0
+
+          begin
+            insert_all(
+              add_key_hash_and_byte_size([
+                { key: key, value: payload, created_at: Time.current }
+              ]),
+              unique_by: upsert_unique_by
+            )
+          rescue ActiveRecord::RecordNotUnique
+            # Another concurrent writer created the row first.
+          rescue ActiveRecord::StatementInvalid => error
+            raise unless sqlite_busy_exception?(error) && retries < 3
+
+            retries += 1
+            sleep(0.01 * retries)
+            retry
+          end
+        end
+
+        def sqlite_busy_exception?(error)
+          connection.adapter_name == "SQLite" && error.message.include?("database is locked")
+        end
+
         def add_key_hash_and_byte_size(payloads)
           payloads.map do |payload|
             payload.dup.tap do |payload|
