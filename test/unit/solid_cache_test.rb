@@ -89,6 +89,32 @@ class SolidCacheFailsafeTest < ActiveSupport::TestCase
   end
 end
 
+class SolidCacheConnectionFailedFailsafeTest < ActiveSupport::TestCase
+  include FailureSafetyBehavior
+
+  setup do
+    @cache = nil
+    @namespace = "test-#{SecureRandom.hex}"
+
+    @cache = lookup_store(expires_in: 60)
+    # @cache.logger = Logger.new($stdout)  # For test debugging
+
+    # For LocalCacheBehavior tests
+    @peek = lookup_store(expires_in: 60)
+  end
+
+  # A terminated connection raises ActiveRecord::ConnectionFailed, which is a
+  # subclass of ActiveRecord::StatementInvalid rather than of
+  # ActiveRecord::ConnectionNotEstablished, so it needs its own failsafe entry.
+  # Regression test for https://github.com/rails/solid_cache/issues/307.
+  def emulating_unavailability
+    wait_for_background_tasks(@cache)
+    emulating_connection_failures do
+      yield lookup_store(namespace: @namespace)
+    end
+  end
+end
+
 class SolidCacheRaisingTest < ActiveSupport::TestCase
   include FailureRaisingBehavior
 
