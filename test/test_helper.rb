@@ -95,12 +95,20 @@ class ActiveSupport::TestCase
     shard_keys.map { |key| key.delete_prefix("#{@namespace}:") }
   end
 
-  def emulating_timeouts
+  def emulating_errors(error_class)
     ar_methods = [ :select_all, :delete, :exec_insert_all ]
     stub_matcher = ActiveRecord::Base.connection.class.any_instance
-    ar_methods.each { |method| stub_matcher.stubs(method).raises(ActiveRecord::StatementTimeout) }
+    ar_methods.each { |method| stub_matcher.stubs(method).raises(error_class) }
     yield
   ensure
     ar_methods.each { |method| stub_matcher.unstub(method) }
+  end
+
+  def emulating_timeouts(&block)
+    emulating_errors(ActiveRecord::StatementTimeout, &block)
+  end
+
+  def emulating_connection_failures(&block)
+    emulating_errors(ActiveRecord::ConnectionFailed, &block)
   end
 end
