@@ -56,24 +56,24 @@ Configuration will be read from `config/cache.yml` or `config/solid_cache.yml`. 
 The format of the file is:
 
 ```yml
-default:
-  store_options: &default_store_options
+shared:
+  store_options:
     max_age: <%= 60.days.to_i %>
     namespace: <%= Rails.env %>
   size_estimate_samples: 1000
 
-development: &development
+development:
   database: cache
   store_options:
-    <<: *default_store_options
     max_size: <%= 256.gigabytes %>
 
-production: &production
+production:
   databases: [production_cache1, production_cache2]
   store_options:
-    <<: *default_store_options
     max_size: <%= 256.gigabytes %>
 ```
+
+The `shared` key is read by Rails' `config_for` and deep merged into the configuration of every environment, with the environment's own values taking precedence.
 
 For the full list of keys for `store_options` see [Cache configuration](#cache-configuration). Any options passed to the cache lookup will overwrite those specified here.
 
