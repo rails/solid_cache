@@ -55,7 +55,9 @@ module SolidCache
           if unless_exist
             written = false
             entry_lock_and_write(key) do |value|
-              if value.nil? || deserialize_entry(value, **options).expired?
+              existing_entry = deserialize_entry(value, **options)
+
+              if existing_entry.nil? || existing_entry.expired?
                 written = true
                 payload
               end

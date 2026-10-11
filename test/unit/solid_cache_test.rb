@@ -65,6 +65,15 @@ class SolidCacheTest < ActiveSupport::TestCase
     travel 2.seconds
     assert_equal true, @cache.write(1, "bbbb", expires_in: 1.second, unless_exist: true)
   end
+
+  def test_write_with_unless_exist_over_unreadable_value
+    key = @cache.send(:normalize_key, "foo", @cache.send(:merged_options, nil))
+    @cache.send(:entry_write, key, "not a cache entry")
+    assert_nil @cache.read("foo")
+
+    assert_equal true, @cache.write("foo", "bar", unless_exist: true)
+    assert_equal "bar", @cache.read("foo")
+  end
 end
 
 class SolidCacheFailsafeTest < ActiveSupport::TestCase
