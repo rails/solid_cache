@@ -53,12 +53,8 @@ module SolidCache
           payload = serialize_entry(entry, raw: raw, **options)
 
           if unless_exist
-            written = false
-            entry_lock_and_write(key) do |value|
-              if value.nil? || deserialize_entry(value, **options).expired?
-                written = true
-                payload
-              end
+            written = !!entry_lock_and_write(key) do |value|
+              payload if value.nil? || deserialize_entry(value, **options).expired?
             end
           else
             written = entry_write(key, payload)
