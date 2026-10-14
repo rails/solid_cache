@@ -42,7 +42,12 @@ module SolidCache
               query = Arel.sql(select_sql(keys_batch), *key_hashes_for(keys_batch))
 
               with_connection do |connection|
-                results.merge!(connection.select_all(query, "SolidCache::Entry Load").cast_values(attribute_types).to_h)
+                key_type, value_type = attribute_types.values_at("key", "value")
+                connection.select_all(query, "SolidCache::Entry Load").rows.each do |key, value|
+                  results[key_type.deserialize(key)] = value_type.deserialize(value)
+                rescue ActiveRecord::Encryption::Errors::Decryption => error
+                  ActiveSupport.error_reporter&.report(error, handled: true, severity: :warning)
+                end
               end
             end
           end
