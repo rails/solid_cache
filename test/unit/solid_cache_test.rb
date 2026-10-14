@@ -69,7 +69,7 @@ class SolidCacheTest < ActiveSupport::TestCase
   test "concurrent writes with unless_exist to a missing key" do
     10.times do |i|
       key = "foo#{i}"
-      results = concurrently { @cache.write(key, 1, unless_exist: true) }
+      results = concurrently(key) { @cache.write(key, 1, unless_exist: true) }
 
       assert_equal 1, results.count(true)
       assert_equal 7, results.count(false)
@@ -80,7 +80,7 @@ class SolidCacheTest < ActiveSupport::TestCase
   test "concurrent increments of a missing key" do
     10.times do |i|
       key = "foo#{i}"
-      results = concurrently { @cache.increment(key) }
+      results = concurrently(key) { @cache.increment(key) }
 
       assert_equal (1..8).to_a, results.sort
       assert_equal 8, @cache.read(key)
@@ -88,14 +88,24 @@ class SolidCacheTest < ActiveSupport::TestCase
   end
 
   private
-    def concurrently(&block)
+    def concurrently(key, &block)
+      key = @cache.send(:normalize_key, key, {})
+      # Keep schema discovery out of the concurrent SQLite transactions.
+      @cache.connections.with_connection_for(key) do
+        SolidCache::Entry.connection_pool.schema_cache.add(SolidCache::Entry.table_name)
+      end
+
       ready = Queue.new
       start = Queue.new
       threads = 8.times.map do
         Thread.new do
           ready << true
           start.pop
-          Rails.application.executor.wrap(&block)
+          Rails.application.executor.wrap do
+            @cache.connections.with_connection_for(key) do
+              with_sqlite_busy_handler(&block)
+            end
+          end
         end
       end
 
@@ -105,6 +115,19 @@ class SolidCacheTest < ActiveSupport::TestCase
     ensure
       threads&.each(&:kill)
       threads&.each(&:join)
+    end
+
+    def with_sqlite_busy_handler(&block)
+      SolidCache::Record.with_connection do |connection|
+        if connection.adapter_name == "SQLite" && Rails::VERSION::MAJOR == 7
+          # Rails 7.2's busy_timeout holds the GVL while waiting for other writers.
+          timeout = connection.pool.db_config.configuration_hash.fetch(:timeout)
+          connection.raw_connection.busy_handler_timeout = timeout
+        end
+        block.call
+      ensure
+        connection.raw_connection.busy_timeout(timeout) if timeout
+      end
     end
 end
 
