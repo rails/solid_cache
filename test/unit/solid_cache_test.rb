@@ -81,6 +81,23 @@ class SolidCacheFailsafeTest < ActiveSupport::TestCase
     @peek = lookup_store(expires_in: 60)
   end
 
+  test "write with unless_exist returns false when persistence fails" do
+    SolidCache::Entry.expects(:write).raises(ActiveRecord::Deadlocked)
+
+    assert_equal false, @cache.write("foo", "bar", unless_exist: true)
+    assert_nil @cache.read("foo")
+  end
+
+  test "failed write with unless_exist does not populate the local cache" do
+    SolidCache::Entry.expects(:write).raises(ActiveRecord::StatementTimeout)
+
+    @cache.with_local_cache do
+      @cache.write("foo", "bar", unless_exist: true)
+
+      assert_nil @cache.read("foo")
+    end
+  end
+
   def emulating_unavailability
     wait_for_background_tasks(@cache)
     emulating_timeouts do
