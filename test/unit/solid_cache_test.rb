@@ -65,6 +65,70 @@ class SolidCacheTest < ActiveSupport::TestCase
     travel 2.seconds
     assert_equal true, @cache.write(1, "bbbb", expires_in: 1.second, unless_exist: true)
   end
+
+  test "concurrent writes with unless_exist to a missing key" do
+    10.times do |i|
+      key = "foo#{i}"
+      results = concurrently(key) { @cache.write(key, 1, unless_exist: true) }
+
+      assert_equal 1, results.count(true)
+      assert_equal 7, results.count(false)
+      assert_equal 1, @cache.read(key)
+    end
+  end
+
+  test "concurrent increments of a missing key" do
+    10.times do |i|
+      key = "foo#{i}"
+      results = concurrently(key) { @cache.increment(key) }
+
+      assert_equal (1..8).to_a, results.sort
+      assert_equal 8, @cache.read(key)
+    end
+  end
+
+  private
+    def concurrently(key, &block)
+      key = @cache.send(:normalize_key, key, {})
+      # Keep schema discovery out of the concurrent SQLite transactions.
+      @cache.connections.with_connection_for(key) do
+        SolidCache::Entry.connection_pool.schema_cache.add(SolidCache::Entry.table_name)
+      end
+
+      ready = Queue.new
+      start = Queue.new
+      threads = 8.times.map do
+        Thread.new do
+          ready << true
+          start.pop
+          Rails.application.executor.wrap do
+            @cache.connections.with_connection_for(key) do
+              with_sqlite_busy_handler(&block)
+            end
+          end
+        end
+      end
+
+      8.times { ready.pop }
+      8.times { start << true }
+      threads.map(&:value)
+    ensure
+      threads&.each(&:kill)
+      threads&.each(&:join)
+    end
+
+    def with_sqlite_busy_handler(&block)
+      SolidCache::Record.with_connection do |connection|
+        if connection.adapter_name == "SQLite" && Rails::VERSION::MAJOR == 7
+          # Rails 7.2's busy_timeout holds the GVL while waiting for other writers.
+          timeout = connection.pool.db_config.configuration_hash.fetch(:timeout)
+          connection.raw_connection.busy_handler_timeout = timeout
+        end
+        block.call
+      ensure
+        connection.raw_connection.busy_timeout(timeout) if timeout
+      end
+    end
 end
 
 class SolidCacheFailsafeTest < ActiveSupport::TestCase
