@@ -14,6 +14,29 @@ module SolidCache
       assert_equal({ "foo" => "bar", "hello" => "there" }, Entry.read_multi([ "hello".b, "foo".b, "bar".b ]))
     end
 
+    test "lock and write without a new value leaves a missing key absent" do
+      result = Entry.lock_and_write("hello".b) do |value|
+        assert_nil value
+        nil
+      end
+
+      assert_nil result
+      assert_nil Entry.read("hello".b)
+      assert_equal 0, uncached_entry_count
+    end
+
+    test "lock and write preserves an existing empty value" do
+      Entry.write("hello".b, "")
+
+      result = Entry.lock_and_write("hello".b) do |value|
+        assert_equal "", value
+        "there"
+      end
+
+      assert_equal "there", result
+      assert_equal "there", Entry.read("hello".b)
+    end
+
     test "id range" do
       assert_equal 0, Entry.id_range
 

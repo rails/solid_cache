@@ -70,9 +70,17 @@ module SolidCache
       def lock_and_write(key, &block)
         transaction do
           without_query_cache do
-            result = lock.where(key_hash: key_hash_for(key)).pick(:key, :value)
-            new_value = block.call(result&.first == key ? result[1] : nil)
-            write(key, new_value) if new_value
+            # A zero byte_size marks a placeholder row, which ensures missing keys can be locked.
+            key_hash = key_hash_for(key)
+            insert_all [ { key: key, value: "", key_hash: key_hash, byte_size: 0 } ], unique_by: upsert_unique_by
+
+            result = lock.where(key_hash: key_hash).pick(:key, :value, :byte_size)
+            new_value = block.call(result&.first == key && result[2] > 0 ? result[1] : nil)
+            if new_value
+              write(key, new_value)
+            elsif result&.last == 0
+              delete_by_key(key)
+            end
             new_value
           end
         end

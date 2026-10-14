@@ -65,6 +65,47 @@ class SolidCacheTest < ActiveSupport::TestCase
     travel 2.seconds
     assert_equal true, @cache.write(1, "bbbb", expires_in: 1.second, unless_exist: true)
   end
+
+  test "concurrent writes with unless_exist to a missing key" do
+    10.times do |i|
+      key = "foo#{i}"
+      results = concurrently { @cache.write(key, 1, unless_exist: true) }
+
+      assert_equal 1, results.count(true)
+      assert_equal 7, results.count(false)
+      assert_equal 1, @cache.read(key)
+    end
+  end
+
+  test "concurrent increments of a missing key" do
+    10.times do |i|
+      key = "foo#{i}"
+      results = concurrently { @cache.increment(key) }
+
+      assert_equal (1..8).to_a, results.sort
+      assert_equal 8, @cache.read(key)
+    end
+  end
+
+  private
+    def concurrently(&block)
+      ready = Queue.new
+      start = Queue.new
+      threads = 8.times.map do
+        Thread.new do
+          ready << true
+          start.pop
+          Rails.application.executor.wrap(&block)
+        end
+      end
+
+      8.times { ready.pop }
+      8.times { start << true }
+      threads.map(&:value)
+    ensure
+      threads&.each(&:kill)
+      threads&.each(&:join)
+    end
 end
 
 class SolidCacheFailsafeTest < ActiveSupport::TestCase
