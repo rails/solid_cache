@@ -5,6 +5,7 @@ module SolidCache
     module Failsafe
       TRANSIENT_ACTIVE_RECORD_ERRORS = [
         ActiveRecord::AdapterTimeout,
+        ActiveRecord::ConnectionFailed,
         ActiveRecord::ConnectionNotEstablished,
         ActiveRecord::Deadlocked,
         ActiveRecord::LockWaitTimeout,

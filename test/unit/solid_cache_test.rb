@@ -89,6 +89,21 @@ class SolidCacheFailsafeTest < ActiveSupport::TestCase
   end
 end
 
+class SolidCacheFailsafeConnectionFailedTest < ActiveSupport::TestCase
+  setup do
+    @cache = lookup_store(expires_in: 60)
+  end
+
+  test "treats a dropped connection as a cache miss" do
+    @cache.write("foo", "bar")
+    ActiveRecord::Base.connection.class.any_instance.stubs(:select_all).raises(ActiveRecord::ConnectionFailed)
+
+    assert_nil @cache.read("foo")
+  ensure
+    ActiveRecord::Base.connection.class.any_instance.unstub(:select_all)
+  end
+end
+
 class SolidCacheRaisingTest < ActiveSupport::TestCase
   include FailureRaisingBehavior
 
