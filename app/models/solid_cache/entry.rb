@@ -16,6 +16,8 @@ module SolidCache
 
     MULTI_BATCH_SIZE = 1000
 
+    PLACEHOLDER = "".b.freeze
+
     class << self
       def write(key, value)
         write_multi([ { key: key, value: value } ])
@@ -68,12 +70,18 @@ module SolidCache
       end
 
       def lock_and_write(key, &block)
-        transaction do
-          without_query_cache do
-            result = lock.where(key_hash: key_hash_for(key)).pick(:key, :value)
-            new_value = block.call(result&.first == key ? result[1] : nil)
-            write(key, new_value) if new_value
-            new_value
+        without_query_cache do
+          existing = transaction do
+            if (entry = locked_entry(key))
+              [ apply_and_write(key, entry, &block) ]
+            end
+          end
+
+          next existing.first if existing
+
+          transaction do
+            insert_placeholder(key)
+            apply_and_write(key, locked_entry(key), placeholder: true, &block)
           end
         end
       end
@@ -85,6 +93,27 @@ module SolidCache
       end
 
       private
+        def locked_entry(key)
+          lock.where(key_hash: key_hash_for(key)).pick(:key, :value)
+        end
+
+        def insert_placeholder(key)
+          insert_all add_key_hash_and_byte_size([ { key: key, value: PLACEHOLDER } ]), unique_by: upsert_unique_by
+        end
+
+        def apply_and_write(key, entry, placeholder: false, &block)
+          own_placeholder = placeholder && entry&.first == key && entry[1] == PLACEHOLDER
+          new_value = block.call(entry&.first == key && !own_placeholder ? entry[1] : nil)
+
+          if new_value
+            write(key, new_value)
+          elsif own_placeholder
+            delete_by_key(key)
+          end
+
+          new_value
+        end
+
         def add_key_hash_and_byte_size(payloads)
           payloads.map do |payload|
             payload.dup.tap do |payload|
