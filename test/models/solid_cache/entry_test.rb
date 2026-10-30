@@ -38,6 +38,10 @@ module SolidCache
     end
 
     test "lock_and_write serializes writers racing to create an entry" do
+      if Rails::VERSION::MAJOR < 8 && Entry.with_connection(&:adapter_name) == "SQLite"
+        skip "Deferred SQLite transactions before Rails 8 raise BusyException for concurrent writers"
+      end
+
       writers = 2.times.map do
         Thread.new do
           Entry.lock_and_write("counter".b) do |value|
