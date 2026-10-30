@@ -37,6 +37,30 @@ module SolidCache
       assert_equal 0, uncached_entry_count
     end
 
+    test "lock_and_write serializes writers racing to create an entry" do
+      if Rails::VERSION::MAJOR < 8 && Entry.with_connection(&:adapter_name) == "SQLite"
+        skip "Deferred SQLite transactions before Rails 8 raise BusyException for concurrent writers"
+      end
+
+      writers = 2.times.map do
+        Thread.new do
+          Entry.lock_and_write("counter".b) do |value|
+            sleep 0.2
+            (value.to_i + 1).to_s
+          end
+        end
+      end
+      writers.each(&:join)
+
+      assert_equal "2", Entry.read("counter".b)
+    end
+
+    test "lock_and_write does not leave an entry when the block writes nothing" do
+      assert_nil Entry.lock_and_write("absent".b) { nil }
+      assert_nil Entry.read("absent".b)
+      assert_equal 0, uncached_entry_count
+    end
+
     test "handles key_hash collisions" do
       Entry.stubs(:key_hash_for).with("hello".b).returns(1)
       Entry.stubs(:key_hash_for).with("hi".b).returns(1)
